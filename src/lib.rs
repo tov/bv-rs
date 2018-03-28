@@ -12,5 +12,8 @@ pub use self::traits::{BitVec, BitVecMut, BitVecPush, BitSliceable};
 mod slice;
 pub use self::slice::{BitSlice, BitSliceMut, BitSliceBlockIter};
 
+mod bv;
+pub use self::bv::BV;
+
 mod prims;
 
