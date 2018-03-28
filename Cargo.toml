@@ -1,6 +1,6 @@
 [package]
 name = "bv"
-version = "0.1.0"
+version = "0.1.1-pre"
 authors = ["Jesse A. Tov <jesse.tov@gmail.com>"]
 description = "Bitvectors for Rust"
 repository = "https://github.com/tov/bv-rs"
