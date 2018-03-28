@@ -1,5 +1,5 @@
 use std::marker::PhantomData;
-use std::{cmp, ptr};
+use std::{cmp, hash, ptr};
 use std::ops::{self, Range, RangeFrom, RangeTo, RangeFull};
 
 use super::traits::{BitVec, BitVecMut, BitSliceable};
@@ -384,5 +384,14 @@ impl<'a, Block: BlockType> PartialOrd for BitSliceMut<'a, Block> {
 impl<'a, Block: BlockType> Ord for BitSliceMut<'a, Block> {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
         self.as_immut().cmp(&other.as_immut())
+    }
+}
+
+impl<'a, Block: BlockType> hash::Hash for BitSlice<'a, Block> {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        state.write_u64(self.bit_len());
+        for block in self.block_iter() {
+            block.hash_block(state);
+        }
     }
 }

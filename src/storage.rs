@@ -1,4 +1,4 @@
-use std::mem;
+use std::{hash, mem};
 
 use num_traits::{One, PrimInt};
 use num_traits::cast::ToPrimitive;
@@ -199,10 +199,14 @@ pub trait BlockType: PrimInt {
         if self <= Self::one() { return 0; }
         Self::nbits() - 1 - self.leading_zeros() as usize
     }
+
+    /// Hashes a block into the given hasher.
+    #[inline]
+    fn hash_block<H: hash::Hasher>(self, state: &mut H);
 }
 
-macro_rules! fn_low_mask {
-    ( $ty:ident )
+macro_rules! impl_block_type {
+    ( $ty:ident, $write:ident )
         =>
     {
         #[inline]
@@ -217,27 +221,32 @@ macro_rules! fn_low_mask {
 
             a | b
         }
+
+        #[inline]
+        fn hash_block<H: hash::Hasher>(self, state: &mut H) {
+            state.$write(self);
+        }
     }
 }
 
 impl BlockType for u8 {
-    fn_low_mask!(u8);
+    impl_block_type!(u8, write_u8);
 }
 
 impl BlockType for u16 {
-    fn_low_mask!(u16);
+    impl_block_type!(u16, write_u16);
 }
 
 impl BlockType for u32 {
-    fn_low_mask!(u32);
+    impl_block_type!(u32, write_u32);
 }
 
 impl BlockType for u64 {
-    fn_low_mask!(u64);
+    impl_block_type!(u64, write_u64);
 }
 
 impl BlockType for usize {
-    fn_low_mask!(usize);
+    impl_block_type!(usize, write_usize);
 }
 
 /// Represents the address of a bit, broken into a block component
@@ -388,7 +397,6 @@ mod test {
                 2u64.pow(n.ceil_lg() as u32) >= n
                     && 2u64.pow(n.ceil_lg() as u32 - 1) < n)
         }
-
         quickcheck(prop as fn(u64) -> TestResult);
     }
 }
