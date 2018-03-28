@@ -5,6 +5,16 @@ use std::ops::{self, Range, RangeFrom, RangeTo, RangeFull};
 use super::traits::{BitVec, BitVecMut, BitSliceable};
 use super::storage::BlockType;
 
+/*
+ * We represent bit-slices as raw pointers to `Block`s. The slice stores an
+ * offset, which is the number of bits to skip at the beginning of the slice,
+ * and a length, which is the total number of bits in the slice.
+ *
+ * INVARIANTS:
+ *  - `offset < Block::nbits()`.
+ *  - The buffer is large enough to store `offset + len` bits.
+ */
+
 /// A slice of a bit-vector; akin to `&'a [bool]` but packed.
 #[derive(Copy, Clone)]
 pub struct BitSlice<'a, Block> {
