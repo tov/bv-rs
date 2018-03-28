@@ -50,14 +50,28 @@ impl<Block: BlockType> BV<Block> {
     }
 
     /// Creates a new, empty bit-vector with the given bit capacity.
+    ///
+    /// ```
+    /// use bv::BV;
+    ///
+    /// let mut bv: BV<u16> = BV::with_capacity(20);
+    /// assert_eq!(bv.capacity(), 32);
+    /// ```
     pub fn with_capacity(nbits: u64) -> Self {
         Self::with_block_capacity(Block::ceil_div_nbits(nbits))
     }
 
     /// Creates a new, empty bit-vector with the given block capacity.
+    ///
+    /// ```
+    /// use bv::BV;
+    ///
+    /// let mut bv: BV<u16> = BV::with_block_capacity(8);
+    /// assert_eq!(bv.capacity(), 128);
+    /// ```
     pub fn with_block_capacity(nblocks: usize) -> Self {
         BV {
-            bits: Vec::with_capacity(nblocks).into_boxed_slice(),
+            bits: vec![ Block::zero(); nblocks ].into_boxed_slice(),
             len: 0,
         }
     }
@@ -151,7 +165,10 @@ impl<Block: BlockType> BV<Block> {
 
     /// Adds the given `bool` to the end of the bit-vector.
     pub fn push(&mut self, value: bool) {
-        self.reserve(1);
+        if self.len() == self.capacity() - 1 {
+            self.reserve(1);
+        }
+
         let old_len = self.len;
         self.len = old_len + 1;
         self.set_bit(old_len, value);
@@ -230,7 +247,11 @@ impl<Block: BlockType> BitVecPush for BV<Block> {
 
     fn push_block(&mut self, value: Block) {
         self.align_block(false);
-        self.block_reserve(1);
+
+        if self.block_len() + 1 == self.block_capacity() {
+            self.block_reserve(1);
+        }
+
         self.len += Block::nbits() as u64;
         let last = self.block_len() - 1;
         self.set_block(last, value);
