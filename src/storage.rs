@@ -267,13 +267,13 @@ impl Address {
         }
     }
 
-    /// Converts an `Address` back into a raw bit index.
-    ///
-    /// This method and `new` should be inverses.
-    #[inline]
-    pub fn bit_index<Block: BlockType>(&self) -> u64 {
-        Block::mul_nbits(self.block_index) + self.bit_offset as u64
-    }
+//    /// Converts an `Address` back into a raw bit index.
+//    ///
+//    /// This method and `new` should be inverses.
+//    #[inline]
+//    pub fn bit_index<Block: BlockType>(&self) -> u64 {
+//        Block::mul_nbits(self.block_index) + self.bit_offset as u64
+//    }
 }
 
 #[cfg(test)]

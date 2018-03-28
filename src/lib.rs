@@ -4,17 +4,13 @@ extern crate num_traits;
 extern crate quickcheck;
 
 mod storage;
-pub use self::storage::*;
+pub use self::storage::BlockType;
 
 mod traits;
-pub use self::traits::*;
+pub use self::traits::{BitVec, BitVecMut, BitVecPush};
 
 mod bit_slice;
-pub use self::bit_slice::*;
+pub use self::bit_slice::{BitSlice, BitSliceMut};
 
 mod prims;
-pub use self::prims::*;
 
-#[cfg(test)]
-mod tests {
-}
