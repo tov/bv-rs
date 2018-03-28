@@ -77,6 +77,19 @@ impl<Block: BlockType> BV<Block> {
     }
 
     /// The number of bits in the bit-vector.
+    ///
+    /// ```
+    /// use bv::BV;
+    ///
+    /// let mut bv: BV = BV::new();
+    /// assert_eq!(bv.len(), 0);
+    /// bv.push(false);
+    /// assert_eq!(bv.len(), 1);
+    /// bv.push(false);
+    /// assert_eq!(bv.len(), 2);
+    /// bv.push(false);
+    /// assert_eq!(bv.len(), 3);
+    /// ```
     pub fn len(&self) -> u64 {
         self.len
     }
