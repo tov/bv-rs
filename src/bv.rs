@@ -6,7 +6,7 @@ use super::storage::*;
 use super::slice::*;
 use super::traits::*;
 
-/// A bit-vector.
+/// A bit-vector, akin to `Vec<bool>` but packed.
 #[derive(Clone)]
 pub struct BV<Block = usize> {
     bits:   Box<[Block]>,

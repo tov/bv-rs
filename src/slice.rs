@@ -5,7 +5,7 @@ use std::ops::{self, Range, RangeFrom, RangeTo, RangeFull};
 use super::traits::{BitVec, BitVecMut, BitSliceable};
 use super::storage::BlockType;
 
-/// A slice of a bit-vector. Akin to `&'a [bool]` but packed.
+/// A slice of a bit-vector; akin to `&'a [bool]` but packed.
 #[derive(Copy, Clone)]
 pub struct BitSlice<'a, Block> {
     bits:   *const Block,
@@ -14,7 +14,7 @@ pub struct BitSlice<'a, Block> {
     marker: PhantomData<&'a ()>,
 }
 
-/// A mutable slice of a bit-vector. Akin to `&'a mut [bool]` but packed.
+/// A mutable slice of a bit-vector; akin to `&'a mut [bool]` but packed.
 pub struct BitSliceMut<'a, Block> {
     bits:   *mut Block,
     offset: u8,
@@ -24,7 +24,9 @@ pub struct BitSliceMut<'a, Block> {
 
 impl<'a, Block: BlockType> BitSlice<'a, Block> {
     /// Creates a `BitSlice` from a pointer to its data, an offset where the bits start, and the
-    /// number of available bits. This is unsafe because the size of the passed-in buffer is not
+    /// number of available bits.
+    ///
+    /// This is unsafe because the size of the passed-in buffer is not
     /// checked. It must hold at least `offset + len` bits or the resulting behavior is undefined.
     pub unsafe fn from_raw_parts(bits: *const Block, offset: u8, len: u64) -> Self {
         BitSlice {
@@ -35,7 +37,9 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
         }
     }
 
-    /// Creates a `BitSlice` from an array slice of blocks. The size is always a multiple of
+    /// Creates a `BitSlice` from an array slice of blocks.
+    ///
+    /// The size is always a multiple of
     /// `Block::nbits()`. If you want a different size, slice.
     pub fn from_slice(blocks: &[Block]) -> Self {
         BitSlice {
@@ -47,6 +51,10 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
     }
 
     /// Gets an iterator over the blocks of the slice.
+    ///
+    /// Note that this iterates over whole blocks, with a partial block only at the end. That
+    /// means that if the bit-slice offset is non-zero, these blocks may not correspond to the
+    /// blocks retrieved by `BitVec::get_block`.
     pub fn block_iter(self) -> BitSliceBlockIter<'a, Block> {
         BitSliceBlockIter(self)
     }
@@ -54,7 +62,9 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
 
 impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
     /// Creates a `BitSliceMut` from a pointer to its data, an offset where the bits start, and
-    /// the number of available bits. This is unsafe because the size of the passed-in buffer is
+    /// the number of available bits.
+    ///
+    /// This is unsafe because the size of the passed-in buffer is
     /// not checked. It must hold at least `offset + len` bits or the resulting behavior is
     /// undefined.
     pub unsafe fn from_raw_parts(bits: *mut Block, offset: u8, len: u64) -> Self {
@@ -66,8 +76,10 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
         }
     }
 
-    /// Creates a `BitSliceMut` from a mutable array slice of blocks. The size is always a
-    /// multiple of `Block::nbits()`. If you want a different size, slice.
+    /// Creates a `BitSliceMut` from a mutable array slice of blocks.
+    ///
+    /// The size is always a multiple of `Block::nbits()`. If you want a different size,
+    /// slice.
     pub fn from_slice(blocks: &mut [Block]) -> Self {
         BitSliceMut {
             bits:   blocks.as_mut_ptr(),

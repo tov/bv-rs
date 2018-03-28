@@ -3,8 +3,9 @@ use std::mem;
 use num_traits::{One, PrimInt};
 use num_traits::cast::ToPrimitive;
 
-/// The type of primitive bit storage. Types implementing this trait can be used as the blocks of
-/// a bit-vector.
+/// Interface to primitive bit storage.
+///
+/// Types implementing this trait can be used as the blocks of a bit-vector.
 pub trait BlockType: PrimInt {
     /// The number of bits in a block.
     #[inline]
