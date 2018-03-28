@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 use std::{cmp, ptr};
 use std::ops::{self, Range, RangeFrom, RangeTo, RangeFull};
 
-use super::traits::{BitVec, BitVecMut};
+use super::traits::{BitVec, BitVecMut, BitSliceable};
 use super::storage::BlockType;
 
 /// A slice of a bit-vector. Akin to `&'a [bool]` but packed.
@@ -157,15 +157,6 @@ impl<'a, Block: BlockType> ops::Index<u64> for BitSliceMut<'a, Block> {
     fn index(&self, index: u64) -> &bool {
         if self.get_bit(index) {&true} else {&false}
     }
-}
-
-/// Types that support (re-)slicing by ranges.
-pub trait BitSliceable<Range> {
-    /// The type of the slice.
-    type Slice;
-
-    /// (Re-)slices the given object.
-    fn slice(self, range: Range) -> Self::Slice;
 }
 
 impl<'a, Block: BlockType> BitSliceable<Range<u64>> for BitSlice<'a, Block> {

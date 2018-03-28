@@ -7,10 +7,10 @@ mod storage;
 pub use self::storage::BlockType;
 
 mod traits;
-pub use self::traits::{BitVec, BitVecMut, BitVecPush};
+pub use self::traits::{BitVec, BitVecMut, BitVecPush, BitSliceable};
 
 mod slice;
-pub use self::slice::{BitSliceable, BitSlice, BitSliceMut, BitSliceBlockIter};
+pub use self::slice::{BitSlice, BitSliceMut, BitSliceBlockIter};
 
 mod prims;
 

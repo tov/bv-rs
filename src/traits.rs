@@ -232,6 +232,15 @@ pub trait BitVecPush: BitVecMut {
     }
 }
 
+/// Types that support (re-)slicing by ranges.
+pub trait BitSliceable<Range> {
+    /// The type of the slice.
+    type Slice;
+
+    /// (Re-)slices the given object.
+    fn slice(self, range: Range) -> Self::Slice;
+}
+
 impl<Block: BlockType> BitVec for [Block] {
     type Block = Block;
 
