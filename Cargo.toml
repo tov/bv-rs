@@ -11,3 +11,7 @@ license = "MIT/Apache-2.0"
 keywords = ["bitvector bit vector bitvec bitset"]
 
 [dependencies]
+num-traits = "0.2"
+
+[dev-dependencies]
+quickcheck = "0.6.2"
