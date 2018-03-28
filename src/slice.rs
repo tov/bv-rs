@@ -335,3 +335,54 @@ impl<'a, Block: BlockType> Iterator for BitSliceBlockIter<'a, Block> {
         (len, Some(len))
     }
 }
+
+impl<'a, Block: BlockType> PartialEq for BitSlice<'a, Block> {
+    fn eq(&self, other: &BitSlice<Block>) -> bool {
+        self.cmp(other) == cmp::Ordering::Equal
+    }
+}
+
+impl<'a, Block: BlockType> Eq for BitSlice<'a, Block> {}
+
+impl<'a, Block: BlockType> PartialOrd for BitSlice<'a, Block> {
+    fn partial_cmp(&self, other: &BitSlice<Block>) -> Option<cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<'a, Block: BlockType> Ord for BitSlice<'a, Block> {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        let len_ord = self.len.cmp(&other.len);
+        if len_ord != cmp::Ordering::Equal { return len_ord; }
+
+        let mut ai = self.block_iter();
+        let mut bi = other.block_iter();
+
+        while let (Some(a), Some(b)) = (ai.next(), bi.next()) {
+            let elt_ord = a.cmp(&b);
+            if elt_ord != cmp::Ordering::Equal { return elt_ord; }
+        }
+
+        return cmp::Ordering::Equal;
+    }
+}
+
+impl<'a, Block: BlockType> PartialEq for BitSliceMut<'a, Block> {
+    fn eq(&self, other: &BitSliceMut<Block>) -> bool {
+        self.as_immut().eq(&other.as_immut())
+    }
+}
+
+impl<'a, Block: BlockType> Eq for BitSliceMut<'a, Block> {}
+
+impl<'a, Block: BlockType> PartialOrd for BitSliceMut<'a, Block> {
+    fn partial_cmp(&self, other: &BitSliceMut<Block>) -> Option<cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<'a, Block: BlockType> Ord for BitSliceMut<'a, Block> {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.as_immut().cmp(&other.as_immut())
+    }
+}
