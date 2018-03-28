@@ -1,5 +1,7 @@
 use std::marker::PhantomData;
+use std::ptr;
 
+use super::traits::{BitVec, BitVecMut};
 use super::storage::BlockType;
 
 /// A slice of a bit-vector. Akin to `&'a [bool]` but packed.
@@ -43,6 +45,56 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
             offset,
             len,
             marker: PhantomData
+        }
+    }
+}
+
+impl<'a, Block: BlockType> BitVec for BitSlice<'a, Block> {
+    type Block = Block;
+
+    fn bit_len(&self) -> u64 {
+        self.len
+    }
+
+    fn bit_offset(&self) -> u8 {
+        self.offset
+    }
+
+    fn get_block(&self, position: usize) -> <Self as BitVec>::Block {
+        assert!(position < self.block_len(), "BitSlice::get_block: out of bounds");
+
+        unsafe {
+            ptr::read(self.bits.offset(position as isize))
+        }
+    }
+}
+
+impl<'a, Block: BlockType> BitVec for BitSliceMut<'a, Block> {
+    type Block = Block;
+
+    fn bit_len(&self) -> u64 {
+        self.len
+    }
+
+    fn bit_offset(&self) -> u8 {
+        self.offset
+    }
+
+    fn get_block(&self, position: usize) -> Block {
+        assert!(position < self.block_len(), "BitSliceMut::get_block: out of bounds");
+
+        unsafe {
+            ptr::read(self.bits.offset(position as isize))
+        }
+    }
+}
+
+impl<'a, Block: BlockType> BitVecMut for BitSliceMut<'a, Block> {
+    fn set_block(&mut self, position: usize, value: Block) {
+        assert!(position < self.block_len(), "BitSliceMut::set_block: out of bounds");
+
+        unsafe {
+            ptr::write(self.bits.offset(position as isize), value)
         }
     }
 }
