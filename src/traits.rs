@@ -290,4 +290,28 @@ mod test {
         assert_eq!( v.get_bits(4, 8), 0b00110100u8 );
     }
 
+    #[test]
+    fn vec_u8_is_bit_vec_mut() {
+        let mut v = vec![0b01001000u8, 0b11100011u8];
+        assert!( !v.get_bit(0) );
+        v.set_bit(0, true);
+        assert!(  v.get_bit(0) );
+        assert!( !v.get_bit(1) );
+        v.set_bit(1, true);
+        assert!(  v.get_bit(1) );
+        assert!( !v.get_bit(10) );
+        v.set_bit(10, true);
+        assert!(  v.get_bit(10) );
+
+        v.set_bits(4, 8, 0b11110000);
+
+        assert!( !v.get_bit(4) );
+        assert!( !v.get_bit(5) );
+        assert!( !v.get_bit(6) );
+        assert!( !v.get_bit(7) );
+        assert!(  v.get_bit(8) );
+        assert!(  v.get_bit(9) );
+        assert!(  v.get_bit(10) );
+        assert!(  v.get_bit(11) );
+    }
 }
