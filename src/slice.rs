@@ -395,3 +395,9 @@ impl<'a, Block: BlockType> hash::Hash for BitSlice<'a, Block> {
         }
     }
 }
+
+impl<'a, Block: BlockType> hash::Hash for BitSliceMut<'a, Block> {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        self.as_immut().hash(state);
+    }
+}
