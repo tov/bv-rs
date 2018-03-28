@@ -1,5 +1,5 @@
 use std::marker::PhantomData;
-use std::{ops,ptr};
+use std::{cmp, ops, ptr};
 
 use super::traits::{BitVec, BitVecMut};
 use super::storage::BlockType;
@@ -30,8 +30,24 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
             bits,
             offset,
             len,
-            marker: PhantomData
+            marker: PhantomData,
         }
+    }
+
+    /// Creates a `BitSlice` from an array slice of blocks. The size is always a multiple of
+    /// `Block::nbits()`. If you want a different size, slice.
+    pub fn from_slice(blocks: &[Block]) -> Self {
+        BitSlice {
+            bits:   blocks.as_ptr(),
+            offset: 0,
+            len:    Block::mul_nbits(blocks.len()),
+            marker: PhantomData,
+        }
+    }
+
+    /// Gets an iterator over the blocks of the slice.
+    pub fn block_iter(self) -> BitSliceBlockIter<'a, Block> {
+        BitSliceBlockIter(self)
     }
 }
 
@@ -49,6 +65,18 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
         }
     }
 
+    /// Creates a `BitSliceMut` from a mutable array slice of blocks. The size is always a
+    /// multiple of `Block::nbits()`. If you want a different size, slice.
+    pub fn from_slice(blocks: &mut [Block]) -> Self {
+        BitSliceMut {
+            bits:   blocks.as_mut_ptr(),
+            offset: 0,
+            len:    Block::mul_nbits(blocks.len()),
+            marker: PhantomData,
+        }
+    }
+
+    /// Converts a `BitSliceMut` into an immutable `BitSlice`.
     pub fn as_immut(&self) -> BitSlice<Block> {
         BitSlice {
             bits:   self.bits,
@@ -56,6 +84,11 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
             len:    self.len,
             marker: PhantomData,
         }
+    }
+
+    /// Gets an iterator over the blocks of the slice.
+    pub fn block_iter(&self) -> BitSliceBlockIter<Block> {
+        BitSliceBlockIter(self.as_immut())
     }
 }
 
@@ -214,11 +247,18 @@ impl<'a, Block: BlockType> Iterator for BitSliceBlockIter<'a, Block> {
     type Item = Block;
 
     fn next(&mut self) -> Option<Block> {
-        unimplemented!()
+        if self.0.len == 0 { return None; }
+
+        let nbits  = cmp::min(Block::nbits() as u64, self.0.len);
+        let result = Some(self.0.get_bits(0, nbits as usize));
+
+        self.0 = self.0.slice(nbits ..);
+
+        result
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let len = self.0.block_len();
+        let len = Block::ceil_div_nbits(self.0.bit_len());
         (len, Some(len))
     }
 }
