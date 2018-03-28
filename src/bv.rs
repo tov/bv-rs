@@ -76,9 +76,31 @@ impl<Block: BlockType> BV<Block> {
     /// assert_eq!(bv.capacity(), 128);
     /// ```
     pub fn with_block_capacity(nblocks: usize) -> Self {
+        let mut result = Self::from_block(Block::zero(), nblocks);
+        result.len = 0;
+        result
+    }
+
+    /// Creates a new bit-vector of size `len`, filled with all 0s or 1s
+    /// depending on `value`.
+    pub fn new_fill(value: bool, len: u64) -> Self {
+        let mut result = Self::new_block_fill(value, Block::ceil_div_nbits(len));
+        result.len = len;
+        result
+    }
+
+    /// Creates a new bit-vector filled with `value`, made up of `nblocks` blocks.
+    #[inline]
+    fn new_block_fill(value: bool, nblocks: usize) -> Self {
+        let block = if value {!Block::zero()} else {Block::zero()};
+        Self::from_block(block, nblocks)
+    }
+
+    #[inline]
+    fn from_block(init: Block, nblocks: usize) -> Self {
         BV {
-            bits: vec![ Block::zero(); nblocks ].into_boxed_slice(),
-            len: 0,
+            bits: vec![ init; nblocks ].into_boxed_slice(),
+            len:  Block::mul_nbits(nblocks),
         }
     }
 
@@ -136,7 +158,17 @@ impl<Block: BlockType> BV<Block> {
     /// Adjust the capacity to hold at least `additional` additional bits.
     pub fn reserve_exact(&mut self, additional: u64) {
         let new_cap = Block::ceil_div_nbits(self.len() + additional);
-        self.bits = copy_resize(&self.bits, new_cap);
+        if new_cap > self.block_capacity() {
+            self.bits = copy_resize(&self.bits, new_cap);
+        }
+    }
+
+    /// Adjusts the capacity to at least `additional` blocks beyond those used.
+    pub fn block_reserve_exact(&mut self, additional: usize) {
+        let new_cap = self.block_len() + additional;
+        if new_cap > self.block_capacity() {
+            self.bits = copy_resize(&self.bits, new_cap);
+        }
     }
 
     /// Shrinks the capacity of the vector as much as possible.
@@ -153,12 +185,6 @@ impl<Block: BlockType> BV<Block> {
         self.bits
     }
 
-    /// Adjusts the capacity to at least `additional` blocks beyond those used.
-    pub fn block_reserve_exact(&mut self, additional: usize) {
-        let new_cap = self.block_len() + additional;
-        self.bits = copy_resize(&self.bits, new_cap);
-    }
-
     /// Shortens the vector, keeping the first `len` elements and dropping the rest.
     ///
     /// If `len` is greater than the vector's current length, this has no effect.
@@ -167,6 +193,43 @@ impl<Block: BlockType> BV<Block> {
     pub fn truncate(&mut self, len: u64) {
         if len < self.len {
             self.len = len;
+        }
+    }
+
+    /// Resizes the bit-vector, filling with `value` if it has to grow.
+    pub fn resize(&mut self, len: u64, value: bool) {
+        match len.cmp(&self.len) {
+            Ordering::Less => {
+                self.len = len
+            },
+            Ordering::Equal => { },
+            Ordering::Greater => {
+                {
+                    let growth = len - self.len();
+                    self.reserve(growth);
+                }
+
+                {
+                    let keep_bits = Block::mod_nbits(self.len);
+                    if keep_bits > 0 {
+                        let last = self.bits.last_mut().unwrap();
+                        if value {
+                            *last = *last | !Block::low_mask(keep_bits);
+                        } else {
+                            *last = *last & Block::low_mask(keep_bits);
+                        }
+
+                        self.len += (Block::nbits() - keep_bits) as u64;
+                    }
+                }
+
+                let block = if value {!Block::zero()} else {Block::zero()};
+                while self.len < len {
+                    self.push_block(block);
+                }
+
+                self.len = len;
+            },
         }
     }
 
