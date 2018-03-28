@@ -1,5 +1,5 @@
 use std::cmp::max;
-use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
+use std::ops::{self, Range, RangeFrom, RangeTo, RangeFull};
 
 use super::storage::*;
 use super::slice::*;
@@ -281,5 +281,13 @@ impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a mut BV<Block> {
 
     fn slice(self, _: RangeFull) -> BitSliceMut<'a, Block> {
         self.as_mut_slice()
+    }
+}
+
+impl<Block: BlockType> ops::Index<u64> for BV<Block> {
+    type Output = bool;
+
+    fn index(&self, index: u64) -> &bool {
+        if self.get_bit(index) {&true} else {&false}
     }
 }
