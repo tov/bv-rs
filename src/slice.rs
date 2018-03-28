@@ -1,5 +1,5 @@
 use std::marker::PhantomData;
-use std::{cmp, hash, ptr};
+use std::{cmp, fmt, hash, ptr};
 use std::ops::{self, Range, RangeFrom, RangeTo, RangeFull};
 
 use super::traits::{BitVec, BitVecMut, BitSliceable};
@@ -60,6 +60,11 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
         }
     }
 
+    /// The number of bits in the slice.
+    pub fn len(&self) -> u64 {
+        self.len
+    }
+
     /// Gets an iterator over the blocks of the slice.
     ///
     /// Note that this iterates over whole blocks, with a partial block only at the end. That
@@ -97,6 +102,11 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
             len:    Block::mul_nbits(blocks.len()),
             marker: PhantomData,
         }
+    }
+
+    /// The number of bits in the slice.
+    pub fn len(&self) -> u64 {
+        self.len
     }
 
     /// Converts a `BitSliceMut` into an immutable `BitSlice`.
@@ -421,5 +431,24 @@ impl<'a, Block: BlockType + hash::Hash> hash::Hash for BitSlice<'a, Block> {
 impl<'a, Block: BlockType + hash::Hash> hash::Hash for BitSliceMut<'a, Block> {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
         self.as_immut().hash(state);
+    }
+}
+
+impl<'a, Block: BlockType> fmt::Debug for BitSlice<'a, Block> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "bv![")?;
+        if self.len() > 0 {
+            write!(f, "{}", self.get_bit(0))?;
+        }
+        for i in 1 .. self.len() {
+            write!(f, ", {}", self.get_bit(i))?;
+        }
+        write!(f, "]")
+    }
+}
+
+impl<'a, Block: BlockType> fmt::Debug for BitSliceMut<'a, Block> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.as_immut().fmt(f)
     }
 }

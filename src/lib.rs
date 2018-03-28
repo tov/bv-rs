@@ -9,6 +9,24 @@
 //! (`uN`), and vectors and slices thereof, as well as vectors and
 //! slices of `bool`, as bit-vectors.
 //!
+//! # Example
+//!
+//! ```
+//! use bv::{BV, BitVecMut};
+//!
+//! let mut bv1: BV = BV::new_fill(false, 50);
+//! let mut bv2: BV = BV::new_fill(false, 50);
+//!
+//! assert_eq!(bv1, bv2);
+//!
+//! bv1.set_bit(49, true);
+//! assert_ne!(bv1, bv2);
+//!
+//! assert_eq!(bv1.pop(), Some(true));
+//! assert_eq!(bv2.pop(), Some(false));
+//! assert_eq!(bv1, bv2);
+//! ```
+//!
 //! # Usage
 //!
 //! It’s [on crates.io](https://crates.io/crates/bv), so you can add

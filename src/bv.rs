@@ -1,4 +1,5 @@
 use std::cmp::{max, Ordering};
+use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::ops::{self, Range, RangeFrom, RangeTo, RangeFull};
 
@@ -437,5 +438,11 @@ impl<Block: BlockType> Ord for BV<Block> {
 impl<Block: BlockType + Hash> Hash for BV<Block> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.as_slice().hash(state);
+    }
+}
+
+impl<Block: BlockType> fmt::Debug for BV<Block> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.as_slice().fmt(f)
     }
 }
