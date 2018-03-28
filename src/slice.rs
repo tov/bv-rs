@@ -387,16 +387,16 @@ impl<'a, Block: BlockType> Ord for BitSliceMut<'a, Block> {
     }
 }
 
-impl<'a, Block: BlockType> hash::Hash for BitSlice<'a, Block> {
+impl<'a, Block: BlockType + hash::Hash> hash::Hash for BitSlice<'a, Block> {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
         state.write_u64(self.bit_len());
         for block in self.block_iter() {
-            block.hash_block(state);
+            block.hash(state);
         }
     }
 }
 
-impl<'a, Block: BlockType> hash::Hash for BitSliceMut<'a, Block> {
+impl<'a, Block: BlockType + hash::Hash> hash::Hash for BitSliceMut<'a, Block> {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
         self.as_immut().hash(state);
     }

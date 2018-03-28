@@ -313,7 +313,7 @@ impl<Block: BlockType> Ord for BV<Block> {
     }
 }
 
-impl<Block: BlockType> Hash for BV<Block> {
+impl<Block: BlockType + Hash> Hash for BV<Block> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.as_slice().hash(state);
     }

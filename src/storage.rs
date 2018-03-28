@@ -1,4 +1,4 @@
-use std::{hash, mem};
+use std::mem;
 
 use num_traits::{One, PrimInt};
 use num_traits::cast::ToPrimitive;
@@ -199,10 +199,6 @@ pub trait BlockType: PrimInt {
         if self <= Self::one() { return 0; }
         Self::nbits() - 1 - self.leading_zeros() as usize
     }
-
-    /// Hashes a block into the given hasher.
-    #[inline]
-    fn hash_block<H: hash::Hasher>(self, state: &mut H);
 }
 
 macro_rules! impl_block_type {
@@ -220,11 +216,6 @@ macro_rules! impl_block_type {
             let b = (Self::div_nbits(k as u64) & 1) as $ty * !0;
 
             a | b
-        }
-
-        #[inline]
-        fn hash_block<H: hash::Hasher>(self, state: &mut H) {
-            state.$write(self);
         }
     }
 }
