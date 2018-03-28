@@ -151,6 +151,18 @@ impl<Block: BlockType> BV<Block> {
             None
         }
     }
+
+    /// Removes all elements from the bit-vector.
+    ///
+    /// Does not change the capacity.
+    pub fn clear(&mut self) {
+        self.len = 0;
+    }
+
+    /// Does the bit-vector have no elements?
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
 }
 
 impl<Block: BlockType> BitVec for BV<Block> {
