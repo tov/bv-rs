@@ -30,6 +30,8 @@ fn copy_resize<Block: BlockType>(slice: &[Block], len: usize) -> Box<[Block]> {
 impl<Block: BlockType> BV<Block> {
     /// Creates a new, empty bit-vector of one block.
     ///
+    /// # Examples
+    ///
     /// ```
     /// use bv::{BV, BitVec};
     ///
@@ -51,6 +53,8 @@ impl<Block: BlockType> BV<Block> {
 
     /// Creates a new, empty bit-vector with the given bit capacity.
     ///
+    /// # Examples
+    ///
     /// ```
     /// use bv::BV;
     ///
@@ -62,6 +66,8 @@ impl<Block: BlockType> BV<Block> {
     }
 
     /// Creates a new, empty bit-vector with the given block capacity.
+    ///
+    /// # Examples
     ///
     /// ```
     /// use bv::BV;
@@ -77,6 +83,8 @@ impl<Block: BlockType> BV<Block> {
     }
 
     /// The number of bits in the bit-vector.
+    ///
+    /// # Examples
     ///
     /// ```
     /// use bv::BV;
