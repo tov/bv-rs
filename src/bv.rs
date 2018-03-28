@@ -2,6 +2,7 @@ use std::cmp::max;
 
 use super::storage::*;
 use super::slice::*;
+use super::traits::*;
 
 /// A bit-vector.
 #[derive(Clone)]
@@ -129,5 +130,56 @@ impl<Block: BlockType> BV<Block> {
             BitSliceMut::from_raw_parts(self.bits.as_mut_ptr(), 0, self.len)
         }
     }
+
+    /// Adds the given `bool` to the end of the bit-vector.
+    pub fn push(&mut self, value: bool) {
+        self.reserve(1);
+        let old_len = self.len;
+        self.len = old_len + 1;
+        self.set_bit(old_len, value);
+    }
+
+    /// Removes and returnst the last element of the bit-vector, or `None` if empty.
+    pub fn pop(&mut self) -> Option<bool> {
+        if self.len > 0 {
+            let new_len = self.len - 1;
+            let result = self.get_bit(new_len);
+            self.len = new_len;
+            Some(result)
+        } else {
+            None
+        }
+    }
 }
 
+impl<Block: BlockType> BitVec for BV<Block> {
+    type Block = Block;
+
+    fn bit_len(&self) -> u64 {
+        self.len()
+    }
+
+    fn bit_offset(&self) -> u8 {
+        0
+    }
+
+    fn get_block(&self, position: usize) -> Block {
+        self.bits[position]
+    }
+}
+
+impl<Block: BlockType> BitVecMut for BV<Block> {
+    fn set_block(&mut self, position: usize, value: Block) {
+        self.bits[position] = value;
+    }
+}
+
+impl<Block: BlockType> BitVecPush for BV<Block> {
+    fn push_bit(&mut self, value: bool) {
+        self.push(value);
+    }
+
+    fn pop_bit(&mut self) -> Option<bool> {
+        self.pop()
+    }
+}
