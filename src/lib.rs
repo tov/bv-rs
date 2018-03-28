@@ -51,6 +51,9 @@ extern crate num_traits;
 #[cfg(test)]
 extern crate quickcheck;
 
+#[macro_use]
+mod macros;
+
 mod storage;
 pub use self::storage::BlockType;
 
