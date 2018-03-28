@@ -231,3 +231,63 @@ pub trait BitVecPush: BitVecMut {
         }
     }
 }
+
+impl<Block: BlockType> BitVec for [Block] {
+    type Block = Block;
+
+    #[inline]
+    fn bit_len(&self) -> u64 {
+        self.len() as u64 * Block::nbits() as u64
+    }
+
+    #[inline]
+    fn bit_offset(&self) -> u8 {
+        0
+    }
+
+    #[inline]
+    fn block_len(&self) -> usize {
+        self.len()
+    }
+
+    #[inline]
+    fn get_block(&self, position: usize) -> Block {
+        self[position]
+    }
+}
+
+impl<Block: BlockType> BitVecMut for [Block] {
+    #[inline]
+    fn set_block(&mut self, position: usize, value: Block) {
+        self[position] = value;
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn vec_u8_is_bit_vec() {
+        let v = vec![0b01001000u8, 0b11100011u8];
+        assert!( !v.get_bit(0) );
+        assert!( !v.get_bit(1) );
+        assert!( !v.get_bit(2) );
+        assert!(  v.get_bit(3) );
+        assert!( !v.get_bit(4) );
+        assert!( !v.get_bit(5) );
+        assert!(  v.get_bit(6) );
+        assert!( !v.get_bit(7) );
+        assert!(  v.get_bit(8) );
+        assert!(  v.get_bit(9) );
+        assert!( !v.get_bit(10) );
+        assert!( !v.get_bit(11) );
+        assert!( !v.get_bit(12) );
+        assert!(  v.get_bit(13) );
+        assert!(  v.get_bit(14) );
+        assert!(  v.get_bit(15) );
+
+        assert_eq!( v.get_bits(4, 8), 0b00110100u8 );
+    }
+
+}
