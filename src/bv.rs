@@ -1,4 +1,5 @@
-use std::cmp::max;
+use std::cmp::{max, Ordering};
+use std::hash::{Hash, Hasher};
 use std::ops::{self, Range, RangeFrom, RangeTo, RangeFull};
 
 use super::storage::*;
@@ -289,5 +290,31 @@ impl<Block: BlockType> ops::Index<u64> for BV<Block> {
 
     fn index(&self, index: u64) -> &bool {
         if self.get_bit(index) {&true} else {&false}
+    }
+}
+
+impl<Block: BlockType> PartialEq for BV<Block> {
+    fn eq(&self, other: &BV<Block>) -> bool {
+        self.as_slice().eq(&other.as_slice())
+    }
+}
+
+impl<Block: BlockType> PartialOrd for BV<Block> {
+    fn partial_cmp(&self, other: &BV<Block>) -> Option<Ordering> {
+        self.as_slice().partial_cmp(&other.as_slice())
+    }
+}
+
+impl<Block: BlockType> Eq for BV<Block> {}
+
+impl<Block: BlockType> Ord for BV<Block> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.as_slice().cmp(&other.as_slice())
+    }
+}
+
+impl<Block: BlockType> Hash for BV<Block> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.as_slice().hash(state);
     }
 }
