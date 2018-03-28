@@ -11,7 +11,8 @@ also defines slice operations that return `BitSlice` or `BitSliceMut`,
 akin to Rust’s array slices but for bit-vectors. A common API to
 bit-vectors and bit-slices is provided by the `BitVec` and `BitVecMut`
 traits, which also allow treating all primitive unsigned integer types
-(`uN`), vectors thereof (`Vec<uN>`), and `Vec<bool>` as bit-vectors.
+(`uN`), vectors and array slices thereof (`Vec<uN>`, `&[uN]`, and
+`&mut [uN]`), and `Vec<bool>` as bit-vectors.
 
 ## Usage
 

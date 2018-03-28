@@ -272,7 +272,7 @@ impl<Block: BlockType> BitVecMut for [Block] {
     }
 }
 
-impl BitVec for Vec<bool> {
+impl BitVec for [bool] {
     type Block = u8; // This is bogus
 
     #[inline]
@@ -290,11 +290,37 @@ impl BitVec for Vec<bool> {
     }
 }
 
-impl BitVecMut for Vec<bool> {
+impl BitVecMut for [bool] {
     fn set_bit(&mut self, position: u64, value: bool) {
         let position = position.to_usize()
             .expect("Vec<bool>::set_bit: overflow");
         self[position] = value;
+    }
+}
+
+impl BitVec for Vec<bool> {
+    type Block = u8;
+
+    #[inline]
+    fn bit_len(&self) -> u64 {
+        self.as_slice().bit_len()
+    }
+
+    #[inline]
+    fn bit_offset(&self) -> u8 {
+        self.as_slice().bit_offset()
+    }
+
+    #[inline]
+    fn get_bit(&self, position: u64) -> bool {
+        self.as_slice().get_bit(position)
+    }
+}
+
+impl BitVecMut for Vec<bool> {
+    #[inline]
+    fn set_bit(&mut self, position: u64, value: bool) {
+        self.as_mut_slice().set_bit(position, value)
     }
 }
 
