@@ -182,4 +182,27 @@ impl<Block: BlockType> BitVecPush for BV<Block> {
     fn pop_bit(&mut self) -> Option<bool> {
         self.pop()
     }
+
+    fn align_block(&mut self, value: bool) {
+        let padding = Block::nbits() - Block::last_block_bits(self.len);
+        if padding == 0 { return; }
+
+        let last = self.bits.len() - 1;
+        let mask = Block::low_mask(padding);
+        if value {
+            self.bits[last] = self.bits[last] | mask;
+        } else {
+            self.bits[last] = self.bits[last] & !mask;
+        }
+
+        self.len += padding as u64;
+    }
+
+    fn push_block(&mut self, value: Block) {
+        self.align_block(false);
+        self.block_reserve(1);
+        self.len += Block::nbits() as u64;
+        let last = self.block_len() - 1;
+        self.set_block(last, value);
+    }
 }
