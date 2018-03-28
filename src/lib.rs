@@ -12,6 +12,9 @@ pub use self::traits::*;
 mod bit_slice;
 pub use self::bit_slice::*;
 
+mod prims;
+pub use self::prims::*;
+
 #[cfg(test)]
 mod tests {
 }
