@@ -160,7 +160,7 @@ impl<'a, Block: BlockType> ops::Index<u64> for BitSliceMut<'a, Block> {
 }
 
 /// Types that support (re-)slicing by ranges.
-pub trait Sliceable<Range> {
+pub trait BitSliceable<Range> {
     /// The type of the slice.
     type Slice;
 
@@ -168,7 +168,7 @@ pub trait Sliceable<Range> {
     fn slice(self, range: Range) -> Self::Slice;
 }
 
-impl<'a, Block: BlockType> Sliceable<Range<u64>> for BitSlice<'a, Block> {
+impl<'a, Block: BlockType> BitSliceable<Range<u64>> for BitSlice<'a, Block> {
     type Slice = Self;
 
     fn slice(self, range: Range<u64>) -> Self {
@@ -188,7 +188,7 @@ impl<'a, Block: BlockType> Sliceable<Range<u64>> for BitSlice<'a, Block> {
     }
 }
 
-impl<'a, Block: BlockType> Sliceable<Range<u64>> for BitSliceMut<'a, Block> {
+impl<'a, Block: BlockType> BitSliceable<Range<u64>> for BitSliceMut<'a, Block> {
     type Slice = Self;
 
     fn slice(self, range: Range<u64>) -> Self {
@@ -208,7 +208,7 @@ impl<'a, Block: BlockType> Sliceable<Range<u64>> for BitSliceMut<'a, Block> {
     }
 }
 
-impl<'a, Block: BlockType> Sliceable<RangeFrom<u64>> for BitSlice<'a, Block> {
+impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for BitSlice<'a, Block> {
     type Slice = Self;
 
     fn slice(self, range: RangeFrom<u64>) -> Self {
@@ -217,7 +217,7 @@ impl<'a, Block: BlockType> Sliceable<RangeFrom<u64>> for BitSlice<'a, Block> {
     }
 }
 
-impl<'a, Block: BlockType> Sliceable<RangeFrom<u64>> for BitSliceMut<'a, Block> {
+impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for BitSliceMut<'a, Block> {
     type Slice = Self;
 
     fn slice(self, range: RangeFrom<u64>) -> Self {
@@ -226,7 +226,7 @@ impl<'a, Block: BlockType> Sliceable<RangeFrom<u64>> for BitSliceMut<'a, Block> 
     }
 }
 
-impl<'a, Block: BlockType> Sliceable<RangeTo<u64>> for BitSlice<'a, Block> {
+impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for BitSlice<'a, Block> {
     type Slice = Self;
 
     fn slice(self, range: RangeTo<u64>) -> Self {
@@ -234,7 +234,7 @@ impl<'a, Block: BlockType> Sliceable<RangeTo<u64>> for BitSlice<'a, Block> {
     }
 }
 
-impl<'a, Block: BlockType> Sliceable<RangeTo<u64>> for BitSliceMut<'a, Block> {
+impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for BitSliceMut<'a, Block> {
     type Slice = Self;
 
     fn slice(self, range: RangeTo<u64>) -> Self {
@@ -242,7 +242,7 @@ impl<'a, Block: BlockType> Sliceable<RangeTo<u64>> for BitSliceMut<'a, Block> {
     }
 }
 
-impl<'a, Block: BlockType> Sliceable<RangeFull> for BitSlice<'a, Block> {
+impl<'a, Block: BlockType> BitSliceable<RangeFull> for BitSlice<'a, Block> {
     type Slice = Self;
 
     fn slice(self, _: RangeFull) -> Self {
@@ -250,7 +250,7 @@ impl<'a, Block: BlockType> Sliceable<RangeFull> for BitSlice<'a, Block> {
     }
 }
 
-impl<'a, Block: BlockType> Sliceable<RangeFull> for BitSliceMut<'a, Block> {
+impl<'a, Block: BlockType> BitSliceable<RangeFull> for BitSliceMut<'a, Block> {
     type Slice = Self;
 
     fn slice(self, _: RangeFull) -> Self {
@@ -258,7 +258,7 @@ impl<'a, Block: BlockType> Sliceable<RangeFull> for BitSliceMut<'a, Block> {
     }
 }
 
-impl<'a, Block: BlockType> Sliceable<Range<u64>> for &'a [Block] {
+impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a [Block] {
     type Slice = BitSlice<'a, Block>;
 
     fn slice(self, range: Range<u64>) -> Self::Slice {
@@ -266,7 +266,7 @@ impl<'a, Block: BlockType> Sliceable<Range<u64>> for &'a [Block] {
     }
 }
 
-impl<'a, Block: BlockType> Sliceable<Range<u64>> for &'a mut [Block] {
+impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a mut [Block] {
     type Slice = BitSliceMut<'a, Block>;
 
     fn slice(self, range: Range<u64>) -> Self::Slice {
@@ -274,7 +274,7 @@ impl<'a, Block: BlockType> Sliceable<Range<u64>> for &'a mut [Block] {
     }
 }
 
-impl<'a, Block: BlockType> Sliceable<RangeFrom<u64>> for &'a [Block] {
+impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a [Block] {
     type Slice = BitSlice<'a, Block>;
 
     fn slice(self, range: RangeFrom<u64>) -> Self::Slice {
@@ -282,7 +282,7 @@ impl<'a, Block: BlockType> Sliceable<RangeFrom<u64>> for &'a [Block] {
     }
 }
 
-impl<'a, Block: BlockType> Sliceable<RangeFrom<u64>> for &'a mut [Block] {
+impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a mut [Block] {
     type Slice = BitSliceMut<'a, Block>;
 
     fn slice(self, range: RangeFrom<u64>) -> Self::Slice {
@@ -290,7 +290,7 @@ impl<'a, Block: BlockType> Sliceable<RangeFrom<u64>> for &'a mut [Block] {
     }
 }
 
-impl<'a, Block: BlockType> Sliceable<RangeTo<u64>> for &'a [Block] {
+impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a [Block] {
     type Slice = BitSlice<'a, Block>;
 
     fn slice(self, range: RangeTo<u64>) -> Self::Slice {
@@ -298,7 +298,7 @@ impl<'a, Block: BlockType> Sliceable<RangeTo<u64>> for &'a [Block] {
     }
 }
 
-impl<'a, Block: BlockType> Sliceable<RangeTo<u64>> for &'a mut [Block] {
+impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a mut [Block] {
     type Slice = BitSliceMut<'a, Block>;
 
     fn slice(self, range: RangeTo<u64>) -> Self::Slice {
@@ -306,7 +306,7 @@ impl<'a, Block: BlockType> Sliceable<RangeTo<u64>> for &'a mut [Block] {
     }
 }
 
-impl<'a, Block: BlockType> Sliceable<RangeFull> for &'a [Block] {
+impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a [Block] {
     type Slice = BitSlice<'a, Block>;
 
     fn slice(self, _: RangeFull) -> Self::Slice {
@@ -314,7 +314,7 @@ impl<'a, Block: BlockType> Sliceable<RangeFull> for &'a [Block] {
     }
 }
 
-impl<'a, Block: BlockType> Sliceable<RangeFull> for &'a mut [Block] {
+impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a mut [Block] {
     type Slice = BitSliceMut<'a, Block>;
 
     fn slice(self, _: RangeFull) -> Self::Slice {

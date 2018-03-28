@@ -10,7 +10,7 @@ mod traits;
 pub use self::traits::{BitVec, BitVecMut, BitVecPush};
 
 mod slice;
-pub use self::slice::{Sliceable, BitSlice, BitSliceMut, BitSliceBlockIter};
+pub use self::slice::{BitSliceable, BitSlice, BitSliceMut, BitSliceBlockIter};
 
 mod prims;
 
