@@ -29,6 +29,22 @@ fn copy_resize<Block: BlockType>(slice: &[Block], len: usize) -> Box<[Block]> {
 
 impl<Block: BlockType> BV<Block> {
     /// Creates a new, empty bit-vector of one block.
+    ///
+    /// ```
+    /// use bv::{BV, BitVec};
+    ///
+    /// let mut bv: BV = BV::new();
+    /// assert_eq!(bv.len(), 0);
+    ///
+    /// bv.push(true);
+    /// bv.push(false);
+    /// bv.push(true);
+    /// assert_eq!(bv.len(), 3);
+    ///
+    /// assert_eq!(bv.get_bit(0), true);
+    /// assert_eq!(bv.get_bit(1), false);
+    /// assert_eq!(bv.get_bit(2), true);
+    /// ```
     pub fn new() -> Self {
         Self::with_block_capacity(1)
     }
