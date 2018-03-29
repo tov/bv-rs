@@ -84,6 +84,17 @@ impl<Block: BlockType> BV<Block> {
 
     /// Creates a new bit-vector of size `len`, filled with all 0s or 1s
     /// depending on `value`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let mut bv: BV<u64> = BV::new_fill(false, 100);
+    ///
+    /// assert_eq!( bv.get_bit(0), false );
+    /// assert_eq!( bv.len(), 100 );
+    /// ```
     pub fn new_fill(value: bool, len: u64) -> Self {
         let mut result = Self::new_block_fill(value, Block::ceil_div_nbits(len));
         result.len = len;
@@ -126,6 +137,17 @@ impl<Block: BlockType> BV<Block> {
     }
 
     /// The number of blocks used by this bit-vector.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let mut bv: BV<u64> = BV::new_fill(false, 100);
+    ///
+    /// assert_eq!( bv.len(), 100 );
+    /// assert_eq!( bv.block_len(), 2 );
+    /// ```
     pub fn block_len(&self) -> usize {
         Block::ceil_div_nbits(self.len())
     }
