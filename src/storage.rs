@@ -209,7 +209,7 @@ macro_rules! impl_block_type {
         impl BlockType for $ty {
             // The default `low_mask` has a branch, but we can do better if we have
             // `wrapping_shl`. That isn't a member of any trait, but all the primitive
-            // numeric types have it, so we can override it in this macro.
+            // numeric types have it, so we can override low_mask in this macro.
             #[inline]
             fn low_mask(k: usize) -> Self {
                 debug_assert!(k <= Self::nbits());
