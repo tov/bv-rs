@@ -207,15 +207,18 @@ macro_rules! impl_block_type {
         =>
     {
         impl BlockType for $ty {
+            // The default `low_mask` has a branch, but we can do better if we have
+            // `wrapping_shl`. That isn't a member of any trait, but all the primitive
+            // numeric types have it, so we can override it in this macro.
             #[inline]
-            fn low_mask(k: usize) -> $ty {
+            fn low_mask(k: usize) -> Self {
                 debug_assert!(k <= Self::nbits());
 
                 // Compute the mask when element_bits is not the word size:
-                let a = $ty::one().wrapping_shl(k as u32) - 1;
+                let a = Self::one().wrapping_shl(k as u32) - 1;
 
                 // Special case for the word size:
-                let b = (Self::div_nbits(k as u64) & 1) as $ty * !0;
+                let b = (Self::div_nbits(k as u64) & 1) as Self * !0;
 
                 a | b
             }
