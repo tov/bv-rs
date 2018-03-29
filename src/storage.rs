@@ -203,43 +203,31 @@ pub trait BlockType: PrimInt {
 }
 
 macro_rules! impl_block_type {
-    ( $ty:ident, $write:ident )
+    ( $ty:ident )
         =>
     {
-        #[inline]
-        fn low_mask(k: usize) -> $ty {
-            debug_assert!(k <= Self::nbits());
+        impl BlockType for $ty {
+            #[inline]
+            fn low_mask(k: usize) -> $ty {
+                debug_assert!(k <= Self::nbits());
 
-            // Compute the mask when element_bits is not the word size:
-            let a = $ty::one().wrapping_shl(k as u32) - 1;
+                // Compute the mask when element_bits is not the word size:
+                let a = $ty::one().wrapping_shl(k as u32) - 1;
 
-            // Special case for the word size:
-            let b = (Self::div_nbits(k as u64) & 1) as $ty * !0;
+                // Special case for the word size:
+                let b = (Self::div_nbits(k as u64) & 1) as $ty * !0;
 
-            a | b
+                a | b
+            }
         }
     }
 }
 
-impl BlockType for u8 {
-    impl_block_type!(u8, write_u8);
-}
-
-impl BlockType for u16 {
-    impl_block_type!(u16, write_u16);
-}
-
-impl BlockType for u32 {
-    impl_block_type!(u32, write_u32);
-}
-
-impl BlockType for u64 {
-    impl_block_type!(u64, write_u64);
-}
-
-impl BlockType for usize {
-    impl_block_type!(usize, write_usize);
-}
+impl_block_type!(u8);
+impl_block_type!(u16);
+impl_block_type!(u32);
+impl_block_type!(u64);
+impl_block_type!(usize);
 
 /// Represents the address of a bit, broken into a block component
 /// and a bit offset component.
