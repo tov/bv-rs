@@ -20,7 +20,7 @@ pub trait BitVec {
 
     /// The length of the slice in blocks.
     fn block_len(&self) -> usize {
-        u64::ceil_div_nbits(self.bit_len() + self.bit_offset() as u64)
+        Self::Block::ceil_div_nbits(self.bit_len() + self.bit_offset() as u64)
     }
 
     /// Gets the bit at `position`
@@ -54,7 +54,8 @@ pub trait BitVec {
     /// Panics if `position` is out of bounds.
     fn get_block(&self, position: usize) -> Self::Block {
         assert!(position < self.block_len(),
-                "BitVec::get_block: out of bounds");
+                format!("BitVec::get_block: out of bounds ({}/{})",
+                        position, self.block_len()));
 
         let bit_position = position as u64 * Self::Block::nbits() as u64;
 
@@ -384,5 +385,29 @@ mod test {
         assert!(  v.get_bit(9) );
         assert!(  v.get_bit(10) );
         assert!(  v.get_bit(11) );
+    }
+
+    #[test]
+    fn bogus_get_block_vec_bool_works_okay() {
+        let v = vec![ true, false, false, true, false, true, true, false,
+                      false, true, true, false, true, false, false, true ];
+
+        assert_eq!( v.bit_len(), 16 );
+        assert_eq!( v.bit_offset(), 0 );
+        assert_eq!( v.block_len(), 2 );
+
+        assert!(  v.get_bit(0) );
+        assert!( !v.get_bit(1) );
+        assert!( !v.get_bit(2) );
+        assert!(  v.get_bit(3) );
+
+        assert_eq!( v.get_bits(0, 8), 0b01101001 );
+        assert_eq!( v.get_bits(0, 7), 0b01101001 );
+        assert_eq!( v.get_bits(0, 6), 0b00101001 );
+
+        assert_eq!( v.get_bits(3, 5), 0b00001101 );
+        assert_eq!( v.get_bits(3, 6), 0b00001101 );
+        assert_eq!( v.get_bits(3, 7), 0b01001101 );
+        assert_eq!( v.get_bits(3, 8), 0b11001101 );
     }
 }
