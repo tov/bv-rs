@@ -74,3 +74,39 @@ impl_bits_prim!(u32);
 impl_bits_prim!(u64);
 impl_bits_prim!(usize);
 
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn bit_len() {
+        assert_eq!( 30u8.bit_len(), 8 );
+        assert_eq!( 30u16.bit_len(), 16 );
+        assert_eq!( 30u32.bit_len(), 32 );
+        assert_eq!( 30u64.bit_len(), 64 );
+    }
+
+    #[test]
+    fn bit_offset() {
+        assert_eq!( 30u8.bit_offset(), 0 );
+        assert_eq!( 30u16.bit_offset(), 0 );
+        assert_eq!( 30u32.bit_offset(), 0 );
+        assert_eq!( 30u64.bit_offset(), 0 );
+    }
+
+    #[test]
+    fn block_len() {
+        assert_eq!( 30u8.block_len(), 1 );
+        assert_eq!( 30u16.block_len(), 1 );
+        assert_eq!( 30u32.block_len(), 1 );
+        assert_eq!( 30u64.block_len(), 1 );
+    }
+
+    #[test]
+    fn get_bit() {
+        assert_eq!( 0b01010101u8.get_bit(0), true );
+        assert_eq!( 0b01010101u8.get_bit(1), false );
+        assert_eq!( 0b01010101u8.get_bit(2), true );
+        assert_eq!( 0b01010101u8.get_bit(3), false );
+    }
+}
