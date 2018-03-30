@@ -232,19 +232,7 @@ impl<Block: BlockType> BV<Block> {
                     self.reserve(growth);
                 }
 
-                {
-                    let keep_bits = Block::mod_nbits(self.len);
-                    if keep_bits > 0 {
-                        let last = self.bits.last_mut().unwrap();
-                        if value {
-                            *last = *last | !Block::low_mask(keep_bits);
-                        } else {
-                            *last = *last & Block::low_mask(keep_bits);
-                        }
-
-                        self.len += (Block::nbits() - keep_bits) as u64;
-                    }
-                }
+                self.align_block(value);
 
                 let block = if value {!Block::zero()} else {Block::zero()};
                 while self.len < len {
@@ -338,27 +326,22 @@ impl<Block: BlockType> BitVecPush for BV<Block> {
     }
 
     fn align_block(&mut self, value: bool) {
-        let padding = Block::nbits() - Block::last_block_bits(self.len);
-        if padding == 0 { return; }
-
-        let last = self.bits.len() - 1;
-        let mask = Block::low_mask(padding);
-        if value {
-            self.bits[last] = self.bits[last] | mask;
-        } else {
-            self.bits[last] = self.bits[last] & !mask;
+        let keep_bits = Block::mod_nbits(self.len);
+        if keep_bits > 0 {
+            let last_index = self.block_len() - 1;
+            let last = &mut self.bits[last_index];
+            if value {
+                *last = *last | !Block::low_mask(keep_bits);
+            } else {
+                *last = *last & Block::low_mask(keep_bits);
+            }
+            self.len += (Block::nbits() - keep_bits) as u64;
         }
-
-        self.len += padding as u64;
     }
 
     fn push_block(&mut self, value: Block) {
         self.align_block(false);
-
-        if self.block_len() + 1 == self.block_capacity() {
-            self.block_reserve(1);
-        }
-
+        self.block_reserve(1);
         self.len += Block::nbits() as u64;
         let last = self.block_len() - 1;
         self.set_block(last, value);
@@ -498,4 +481,34 @@ mod test {
         assert_eq!( w.get_block(1), 0b01101001 );
     }
 
+    #[test]
+    fn resize() {
+        let mut v: BV<u8> = bv![ true; 13 ];
+        assert_eq!( v.len(), 13 );
+
+        v.resize(50, false);
+        assert_eq!( v.len(), 50 );
+        assert_eq!( v.get_bit(12), true );
+        assert_eq!( v.get_bit(13), false );
+        assert_eq!( v.get_bit(49), false );
+
+        v.resize(67, true);
+        assert_eq!( v.len(), 67 );
+        assert_eq!( v.get_bit(12), true );
+        assert_eq!( v.get_bit(13), false );
+        assert_eq!( v.get_bit(49), false );
+        assert_eq!( v.get_bit(50), true );
+        assert_eq!( v.get_bit(66), true );
+
+        v.set_bit(3, false);
+        assert_eq!( v.get_bit(3), false );
+
+        v.resize(17, false);
+        assert_eq!( v.len(), 17 );
+        assert_eq!( v.get_bit(1), true );
+        assert_eq!( v.get_bit(2), true );
+        assert_eq!( v.get_bit(3), false );
+        assert_eq!( v.get_bit(4), true );
+        assert_eq!( v.get_bit(16), false );
+    }
 }
