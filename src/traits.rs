@@ -453,7 +453,7 @@ mod test {
     }
 
     #[test]
-    fn bogus_get_block_vec_bool_works_okay() {
+    fn bogus_get_bits_vec_bool_works_okay() {
         let v = vec![ true, false, false, true, false, true, true, false,
                       false, true, true, false, true, false, false, true ];
 
@@ -483,9 +483,16 @@ mod test {
 
     #[test]
     #[should_panic]
-    fn bogus_get_block_vec_bool_oob() {
+    fn bogus_get_bits_vec_bool_oob() {
         let v = vec![ false; 16 ];
         v.get_bits(9, 8);
+    }
+
+    #[test]
+    #[should_panic]
+    fn get_block_oob() {
+        let v = vec![ false; 16 ];
+        v.get_block(2);
     }
 
     #[test]
