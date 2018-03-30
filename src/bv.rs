@@ -526,4 +526,13 @@ mod test {
         assert_eq!( v.len(), 2 );
         assert_eq!( v.capacity(), 8 );
     }
+
+    #[test]
+    fn into_boxed_slice() {
+        let v: BV<u8> = bv![ true, false, true ];
+        assert_eq!( v.capacity(), 8 );
+        let bs = v.into_boxed_slice();
+        assert_eq!( bs.len(), 1 );
+        assert_eq!( bs[0], 0b00000101 );
+    }
 }
