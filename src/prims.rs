@@ -109,4 +109,37 @@ mod test {
         assert_eq!( 0b01010101u8.get_bit(2), true );
         assert_eq!( 0b01010101u8.get_bit(3), false );
     }
+
+    quickcheck! {
+        fn prop_get_block_u8(value: u8) -> bool {
+            value.get_block(0) == value
+        }
+
+        fn prop_get_block_u32(value: u32) -> bool {
+            value.get_block(0) == value
+        }
+    }
+
+    #[test]
+    fn get_bits() {
+        assert_eq!( 0b01010101u8.get_bits(1, 4), 0b00001010 );
+        assert_eq!( 0b01010101u8.get_bits(2, 4), 0b00000101 );
+    }
+
+    #[test]
+    fn set_bit() {
+        let mut x = 0b01010101u8;
+
+        x.set_bit(0, false);
+        assert_eq!( x, 0b01010100 );
+
+        x.set_bit(1, true);
+        assert_eq!( x, 0b01010110 );
+
+        x.set_block(0, 0b00000000);
+        assert_eq!( x, 0b00000000 );
+
+        x.set_bits(2, 4, 0b00001111);
+        assert_eq!( x, 0b00111100 );
+    }
 }
