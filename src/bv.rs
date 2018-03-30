@@ -511,4 +511,19 @@ mod test {
         assert_eq!( v.get_bit(4), true );
         assert_eq!( v.get_bit(16), false );
     }
+
+    #[test]
+    fn shrink_to_fit() {
+        let mut v: BV<u8> = BV::with_capacity(100);
+        assert_eq!( v.capacity(), 104 );
+
+        v.push(true);
+        v.push(false);
+        assert_eq!( v.len(), 2 );
+        assert_eq!( v.capacity(), 104 );
+
+        v.shrink_to_fit();
+        assert_eq!( v.len(), 2 );
+        assert_eq!( v.capacity(), 8 );
+    }
 }
