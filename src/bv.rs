@@ -573,4 +573,14 @@ mod test {
         assert_eq!( v.len(), 0 );
         assert!( v.is_empty() );
     }
+
+    #[test]
+    fn push_bit_and_pop_bit() {
+        let mut v: BV<u8> = BV::new();
+        v.push_bit(true);
+        v.push_bit(false);
+        assert_eq!( v.pop_bit(), Some(false) );
+        assert_eq!( v.pop_bit(), Some(true) );
+        assert_eq!( v.pop_bit(), None );
+    }
 }
