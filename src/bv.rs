@@ -468,3 +468,34 @@ impl<Block: BlockType> fmt::Debug for BV<Block> {
         self.as_slice().fmt(f)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn bit_slicing() {
+        let v: BV<u8> = bv![ false, true, true, false, true, false, false, true,
+                             true, false, false, true, false, true, true, false ];
+        assert!( !v.get_bit(0) );
+        assert!(  v.get_bit(1) );
+        assert!(  v.get_bit(2) );
+        assert!( !v.get_bit(3) );
+
+        let w = v.bit_slice(2..14);
+        assert_eq!( w.bit_len(), 12 );
+        assert_eq!( w.bit_offset(), 2 );
+
+        assert!(  w.get_bit(0) );
+        assert!( !w.get_bit(1) );
+
+        assert_eq!( w.get_bits(2, 4), 0b00001001 );
+        assert_eq!( w.get_bits(2, 5), 0b00011001 );
+        assert_eq!( w.get_bits(2, 8), 0b10011001 );
+        assert_eq!( w.get_bits(3, 8), 0b01001100 );
+
+        assert_eq!( w.get_block(0), 0b10010110 );
+        assert_eq!( w.get_block(1), 0b01101001 );
+    }
+
+}
