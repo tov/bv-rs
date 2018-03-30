@@ -535,4 +535,15 @@ mod test {
         assert_eq!( bs.len(), 1 );
         assert_eq!( bs[0], 0b00000101 );
     }
+
+    #[test]
+    fn truncate() {
+        let mut v: BV<u8> = BV::new_fill(true, 80);
+        assert_eq!( v.len(), 80 );
+        assert_eq!( v.get_bit(34), true );
+
+        v.truncate(45);
+        assert_eq!( v.len(), 45 );
+        assert_eq!( v.get_bit(34), true );
+    }
 }
