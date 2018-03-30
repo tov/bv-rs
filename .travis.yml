@@ -4,6 +4,9 @@ rust:
   - beta
   - nightly
 
+env:
+  - RUSTFLAGS="-C link-dead-code"
+
 # required for kcov
 sudo: required
 
