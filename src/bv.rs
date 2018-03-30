@@ -368,55 +368,55 @@ impl<Block: BlockType> BitVecPush for BV<Block> {
 impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a BV<Block> {
     type Slice = BitSlice<'a, Block>;
 
-    fn slice(self, range: Range<u64>) -> BitSlice<'a, Block> {
-        self.as_slice().slice(range)
+    fn bit_slice(self, range: Range<u64>) -> BitSlice<'a, Block> {
+        self.as_slice().bit_slice(range)
     }
 }
 
 impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a mut BV<Block> {
     type Slice = BitSliceMut<'a, Block>;
 
-    fn slice(self, range: Range<u64>) -> BitSliceMut<'a, Block> {
-        self.as_mut_slice().slice(range)
+    fn bit_slice(self, range: Range<u64>) -> BitSliceMut<'a, Block> {
+        self.as_mut_slice().bit_slice(range)
     }
 }
 
 impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a BV<Block> {
     type Slice = BitSlice<'a, Block>;
 
-    fn slice(self, range: RangeFrom<u64>) -> BitSlice<'a, Block> {
-        self.as_slice().slice(range)
+    fn bit_slice(self, range: RangeFrom<u64>) -> BitSlice<'a, Block> {
+        self.as_slice().bit_slice(range)
     }
 }
 
 impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a mut BV<Block> {
     type Slice = BitSliceMut<'a, Block>;
 
-    fn slice(self, range: RangeFrom<u64>) -> BitSliceMut<'a, Block> {
-        self.as_mut_slice().slice(range)
+    fn bit_slice(self, range: RangeFrom<u64>) -> BitSliceMut<'a, Block> {
+        self.as_mut_slice().bit_slice(range)
     }
 }
 
 impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a BV<Block> {
     type Slice = BitSlice<'a, Block>;
 
-    fn slice(self, range: RangeTo<u64>) -> BitSlice<'a, Block> {
-        self.as_slice().slice(range)
+    fn bit_slice(self, range: RangeTo<u64>) -> BitSlice<'a, Block> {
+        self.as_slice().bit_slice(range)
     }
 }
 
 impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a mut BV<Block> {
     type Slice = BitSliceMut<'a, Block>;
 
-    fn slice(self, range: RangeTo<u64>) -> BitSliceMut<'a, Block> {
-        self.as_mut_slice().slice(range)
+    fn bit_slice(self, range: RangeTo<u64>) -> BitSliceMut<'a, Block> {
+        self.as_mut_slice().bit_slice(range)
     }
 }
 
 impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a BV<Block> {
     type Slice = BitSlice<'a, Block>;
 
-    fn slice(self, _: RangeFull) -> BitSlice<'a, Block> {
+    fn bit_slice(self, _: RangeFull) -> BitSlice<'a, Block> {
         self.as_slice()
     }
 }
@@ -424,7 +424,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a BV<Block> {
 impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a mut BV<Block> {
     type Slice = BitSliceMut<'a, Block>;
 
-    fn slice(self, _: RangeFull) -> BitSliceMut<'a, Block> {
+    fn bit_slice(self, _: RangeFull) -> BitSliceMut<'a, Block> {
         self.as_mut_slice()
     }
 }

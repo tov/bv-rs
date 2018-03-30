@@ -240,7 +240,7 @@ pub trait BitSliceable<Range> {
     type Slice;
 
     /// (Re-)slices the given object.
-    fn slice(self, range: Range) -> Self::Slice;
+    fn bit_slice(self, range: Range) -> Self::Slice;
 }
 
 impl<Block: BlockType> BitVec for [Block] {
@@ -339,7 +339,7 @@ impl BitVecPush for Vec<bool> {
 impl<'a> BitSliceable<Range<usize>> for &'a [bool] {
     type Slice = &'a [bool];
 
-    fn slice(self, range: Range<usize>) -> &'a [bool] {
+    fn bit_slice(self, range: Range<usize>) -> &'a [bool] {
         &self[range]
     }
 }
@@ -347,7 +347,7 @@ impl<'a> BitSliceable<Range<usize>> for &'a [bool] {
 impl<'a> BitSliceable<Range<usize>> for &'a mut [bool] {
     type Slice = &'a mut [bool];
 
-    fn slice(self, range: Range<usize>) -> &'a mut [bool] {
+    fn bit_slice(self, range: Range<usize>) -> &'a mut [bool] {
         &mut self[range]
     }
 }
@@ -355,7 +355,7 @@ impl<'a> BitSliceable<Range<usize>> for &'a mut [bool] {
 impl<'a> BitSliceable<RangeFrom<usize>> for &'a [bool] {
     type Slice = &'a [bool];
 
-    fn slice(self, range: RangeFrom<usize>) -> &'a [bool] {
+    fn bit_slice(self, range: RangeFrom<usize>) -> &'a [bool] {
         &self[range]
     }
 }
@@ -363,7 +363,7 @@ impl<'a> BitSliceable<RangeFrom<usize>> for &'a [bool] {
 impl<'a> BitSliceable<RangeFrom<usize>> for &'a mut [bool] {
     type Slice = &'a mut [bool];
 
-    fn slice(self, range: RangeFrom<usize>) -> &'a mut [bool] {
+    fn bit_slice(self, range: RangeFrom<usize>) -> &'a mut [bool] {
         &mut self[range]
     }
 }
@@ -371,7 +371,7 @@ impl<'a> BitSliceable<RangeFrom<usize>> for &'a mut [bool] {
 impl<'a> BitSliceable<RangeTo<usize>> for &'a [bool] {
     type Slice = &'a [bool];
 
-    fn slice(self, range: RangeTo<usize>) -> &'a [bool] {
+    fn bit_slice(self, range: RangeTo<usize>) -> &'a [bool] {
         &self[range]
     }
 }
@@ -379,7 +379,7 @@ impl<'a> BitSliceable<RangeTo<usize>> for &'a [bool] {
 impl<'a> BitSliceable<RangeTo<usize>> for &'a mut [bool] {
     type Slice = &'a mut [bool];
 
-    fn slice(self, range: RangeTo<usize>) -> &'a mut [bool] {
+    fn bit_slice(self, range: RangeTo<usize>) -> &'a mut [bool] {
         &mut self[range]
     }
 }
@@ -387,7 +387,7 @@ impl<'a> BitSliceable<RangeTo<usize>> for &'a mut [bool] {
 impl<'a> BitSliceable<RangeFull> for &'a [bool] {
     type Slice = &'a [bool];
 
-    fn slice(self, _: RangeFull) -> &'a [bool] {
+    fn bit_slice(self, _: RangeFull) -> &'a [bool] {
         self
     }
 }
@@ -395,7 +395,7 @@ impl<'a> BitSliceable<RangeFull> for &'a [bool] {
 impl<'a> BitSliceable<RangeFull> for &'a mut [bool] {
     type Slice = &'a mut [bool];
 
-    fn slice(self, _: RangeFull) -> &'a mut [bool] {
+    fn bit_slice(self, _: RangeFull) -> &'a mut [bool] {
         self
     }
 }
@@ -496,7 +496,7 @@ mod test {
         assert!(  v.get_bit(2) );
         assert!( !v.get_bit(3) );
 
-        let w = v.slice(2..14);
+        let w = v.bit_slice(2..14);
         assert_eq!( w.bit_len(), 12 );
         assert_eq!( w.bit_offset(), 2 );
 
