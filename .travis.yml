@@ -4,6 +4,9 @@ rust:
   - beta
   - nightly
 
+# required for kcov
+sudo: required
+
 matrix:
   allow_failures:
     - rust: nightly
