@@ -518,4 +518,25 @@ mod test {
         assert_eq!( w.get_block(0), 0b10010110 );
         assert_eq!( w.get_block(1), 0b01101001 );
     }
+
+    #[test]
+    fn set_block() {
+        let mut v = vec![ false; 16 ];
+
+        assert_eq!( v.get_block(0), 0b00000000 );
+        assert_eq!( v.get_block(1), 0b00000000 );
+
+        v.set_block(0, 0b10101010 );
+        assert_eq!( v.get_block(0), 0b10101010 );
+        assert_eq!( v.get_block(1), 0b00000000 );
+
+        v.set_block(1, 0b01010101 );
+        assert_eq!( v.get_block(0), 0b10101010 );
+        assert_eq!( v.get_block(1), 0b01010101 );
+
+        assert_eq!( v.get_bit(0), false );
+        assert_eq!( v.get_bit(1), true );
+        assert_eq!( v.get_bit(2), false );
+        assert_eq!( v.get_bit(3), true );
+    }
 }
