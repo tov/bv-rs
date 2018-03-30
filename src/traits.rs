@@ -546,11 +546,17 @@ mod test {
 
         v.as_mut_slice().bit_slice(2..22).set_block(0, 0b11111111);
         assert_eq!( v.get_block(0), 0b11111100 );
+        assert_eq!( v.get_block(1), 0b00000011 );
+        assert_eq!( v.get_block(2), 0b00000000 );
 
         v.as_mut_slice().bit_slice(2..22).set_block(1, 0b11111111);
+        assert_eq!( v.get_block(0), 0b11111100 );
         assert_eq!( v.get_block(1), 0b11111111 );
+        assert_eq!( v.get_block(2), 0b00000011 );
 
         v.as_mut_slice().bit_slice(2..22).set_block(2, 0b11111111);
+        assert_eq!( v.get_block(0), 0b11111100 );
+        assert_eq!( v.get_block(1), 0b11111111 );
         assert_eq!( v.get_block(2), 0b00111111 );
     }
 }
