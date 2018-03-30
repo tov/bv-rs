@@ -546,4 +546,31 @@ mod test {
         assert_eq!( v.len(), 45 );
         assert_eq!( v.get_bit(34), true );
     }
+
+    #[test]
+    fn as_mut_slice() {
+        let mut v: BV<u8> = BV::new_fill(true, 77);
+        let w = v.as_mut_slice();
+        assert_eq!( w.len(), 77 );
+        assert_eq!( w.get_block(0), 0b11111111 );
+    }
+
+    #[test]
+    fn pop() {
+        let mut v: BV<u8> = bv![true, false, true];
+        assert_eq!( v.pop(), Some(true) );
+        assert_eq!( v.pop(), Some(false) );
+        assert_eq!( v.pop(), Some(true) );
+        assert_eq!( v.pop(), None );
+    }
+
+    #[test]
+    fn clear_and_is_empty() {
+        let mut v: BV<u8> = bv![true, false, true];
+        assert_eq!( v.len(), 3 );
+        assert!( !v.is_empty() );
+        v.clear();
+        assert_eq!( v.len(), 0 );
+        assert!( v.is_empty() );
+    }
 }
