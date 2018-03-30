@@ -1,5 +1,6 @@
-use super::storage::{BlockType, Address};
+use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
 use num_traits::{Zero, One, ToPrimitive};
+use super::storage::{BlockType, Address};
 
 /// Read-only bit vector operations.
 ///
@@ -332,6 +333,70 @@ impl BitVecPush for Vec<bool> {
 
     fn pop_bit(&mut self) -> Option<bool> {
         self.pop()
+    }
+}
+
+impl<'a> BitSliceable<Range<usize>> for &'a [bool] {
+    type Slice = &'a [bool];
+
+    fn slice(self, range: Range<usize>) -> &'a [bool] {
+        &self[range]
+    }
+}
+
+impl<'a> BitSliceable<Range<usize>> for &'a mut [bool] {
+    type Slice = &'a mut [bool];
+
+    fn slice(self, range: Range<usize>) -> &'a mut [bool] {
+        &mut self[range]
+    }
+}
+
+impl<'a> BitSliceable<RangeFrom<usize>> for &'a [bool] {
+    type Slice = &'a [bool];
+
+    fn slice(self, range: RangeFrom<usize>) -> &'a [bool] {
+        &self[range]
+    }
+}
+
+impl<'a> BitSliceable<RangeFrom<usize>> for &'a mut [bool] {
+    type Slice = &'a mut [bool];
+
+    fn slice(self, range: RangeFrom<usize>) -> &'a mut [bool] {
+        &mut self[range]
+    }
+}
+
+impl<'a> BitSliceable<RangeTo<usize>> for &'a [bool] {
+    type Slice = &'a [bool];
+
+    fn slice(self, range: RangeTo<usize>) -> &'a [bool] {
+        &self[range]
+    }
+}
+
+impl<'a> BitSliceable<RangeTo<usize>> for &'a mut [bool] {
+    type Slice = &'a mut [bool];
+
+    fn slice(self, range: RangeTo<usize>) -> &'a mut [bool] {
+        &mut self[range]
+    }
+}
+
+impl<'a> BitSliceable<RangeFull> for &'a [bool] {
+    type Slice = &'a [bool];
+
+    fn slice(self, _: RangeFull) -> &'a [bool] {
+        self
+    }
+}
+
+impl<'a> BitSliceable<RangeFull> for &'a mut [bool] {
+    type Slice = &'a mut [bool];
+
+    fn slice(self, _: RangeFull) -> &'a mut [bool] {
+        self
     }
 }
 
