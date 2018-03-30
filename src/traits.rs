@@ -539,4 +539,18 @@ mod test {
         assert_eq!( v.get_bit(2), false );
         assert_eq!( v.get_bit(3), true );
     }
+
+    #[test]
+    fn set_block_slice() {
+        let mut v = vec![ false; 24 ];
+
+        v.as_mut_slice().bit_slice(2..22).set_block(0, 0b11111111);
+        assert_eq!( v.get_block(0), 0b11111100 );
+
+        v.as_mut_slice().bit_slice(2..22).set_block(1, 0b11111111);
+        assert_eq!( v.get_block(1), 0b11111111 );
+
+        v.as_mut_slice().bit_slice(2..22).set_block(2, 0b11111111);
+        assert_eq!( v.get_block(2), 0b00111111 );
+    }
 }
