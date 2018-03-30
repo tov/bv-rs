@@ -28,7 +28,8 @@ pub trait BlockType: PrimInt {
     /// Returns `index / Self::nbits()`, computed by shifting.
     ///
     /// This is intended for converting a bit address into a block
-    /// address, which is why it takes `u64` and returns `usize`.
+    /// address, which is why it takes `u64` and returns `usize`. It can only fail (returning
+    /// `None`) if `usize` is 32 bits.
     #[inline]
     fn checked_div_nbits(index: u64) -> Option<usize> {
         (index >> Self::lg_nbits()).to_usize()
@@ -274,6 +275,52 @@ mod test {
     use quickcheck::{quickcheck, TestResult};
 
     #[test]
+    fn nbits() {
+        assert_eq!(8, u8::nbits());
+        assert_eq!(16, u16::nbits());
+        assert_eq!(32, u32::nbits());
+        assert_eq!(64, u64::nbits());
+    }
+
+    quickcheck!{
+        fn prop_div_nbits(n: u32) -> bool {
+            u32::div_nbits(n as u64) == (n / 32) as usize
+        }
+
+        fn prop_ceil_div_nbits1(n: u32) -> bool {
+            u32::ceil_div_nbits(n as u64) ==
+                (n as f32 / 32.0f32).ceil() as usize
+        }
+
+        fn prop_ceil_div_nbits2(n: u32) -> bool {
+            let result = u32::ceil_div_nbits(n as u64);
+            result * 32 >= n as usize &&
+                (result == 0 || (result - 1) * 32 < n as usize)
+        }
+
+        fn prop_mod_nbits(n: u32) -> bool {
+            u32::mod_nbits(n as u64) == n as usize % 32
+        }
+
+        fn prop_mul_nbits(n: u32) -> bool {
+            u32::mul_nbits(n as usize) == n as u64 * 32
+        }
+
+        fn prop_last_block_bits(n: u32) -> bool {
+            u32::last_block_bits(n as u64) ==
+                 if n % 32 == 0 { 32 } else { n % 32 } as usize
+        }
+    }
+
+    #[test]
+    fn lg_nbits() {
+        assert_eq!( u8::lg_nbits(), 3 );
+        assert_eq!( u16::lg_nbits(), 4 );
+        assert_eq!( u32::lg_nbits(), 5 );
+        assert_eq!( u64::lg_nbits(), 6 );
+    }
+
+    #[test]
     fn low_mask() {
         assert_eq!(0b00011111, u8::low_mask(5));
         assert_eq!(0b0011111111111111, u16::low_mask(14));
@@ -287,6 +334,9 @@ mod test {
         assert_eq!(0b00100000, u8::nth_mask(5));
         assert_eq!(0b00000010, u8::nth_mask(1));
         assert_eq!(0b00000001, u8::nth_mask(0));
+
+        assert_eq!(0b0000000000000001, u16::nth_mask(0));
+        assert_eq!(0b1000000000000000, u16::nth_mask(15));
     }
 
     #[test]
