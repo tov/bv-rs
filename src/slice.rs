@@ -453,3 +453,4 @@ impl<'a, Block: BlockType> fmt::Debug for BitSliceMut<'a, Block> {
         self.as_immut().fmt(f)
     }
 }
+

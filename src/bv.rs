@@ -583,4 +583,16 @@ mod test {
         assert_eq!( v.pop_bit(), Some(true) );
         assert_eq!( v.pop_bit(), None );
     }
+
+    #[test]
+    fn set_through_slice() {
+        let mut v: BV<u8> = bv![true, false, true];
+
+        {
+            let mut w = v.as_mut_slice().bit_slice(1..2);
+            w.set_bit(0, true);
+        }
+
+        assert_eq!( v, bv![true, true, true] );
+    }
 }
