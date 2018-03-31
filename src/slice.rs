@@ -484,5 +484,17 @@ mod test {
             assert_eq!( bs[4], false );
         }
     }
+
+    #[test]
+    fn debug_for_bit_slice() {
+        use std::io::Write;
+
+        let exp = "bv![true, false, true, false, true, true, false, false]";
+        let mut out: Vec<u8> = Vec::new();
+        let bs = BitSlice::from_slice(&[0b00110101u8]);
+        write!(&mut out, "{:?}", bs).unwrap();
+
+        assert_eq!( out.as_slice(), exp.as_bytes() );
+    }
 }
 
