@@ -470,5 +470,20 @@ mod test {
 
         assert_eq!( bytes[0], 0b00001101 );
     }
+
+    #[test]
+    fn bit_slice_index() {
+        let mut bytes = [0b00001111u8];
+        {
+            let bs = BitSlice::from_slice(&bytes);
+            assert_eq!( bs[3], true );
+            assert_eq!( bs[4], false );
+        }
+        {
+            let bs = BitSliceMut::from_slice(&mut bytes);
+            assert_eq!( bs[3], true );
+            assert_eq!( bs[4], false );
+        }
+    }
 }
 
