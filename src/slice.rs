@@ -460,7 +460,7 @@ mod test {
 
     #[test]
     fn bit_slice_from_slice() {
-        let mut bytes = [0b00001111u8, 0b11110000u8];
+        let mut bytes = [0b00001111u8];
         {
             let mut bs = BitSliceMut::from_slice(&mut bytes);
             assert_eq!( bs.get_block(0), 0b00001111 );
