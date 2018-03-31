@@ -595,4 +595,11 @@ mod test {
 
         assert_eq!( v, bv![true, true, true] );
     }
+
+    #[test]
+    fn set_bits_one_block_fastpath() {
+        let mut v: BV<u8> = bv![false; 8];
+        v.set_bits(2, 4, 0b1111);
+        assert_eq!( v.get_block(0), 0b00111100 );
+    }
 }
