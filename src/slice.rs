@@ -285,8 +285,7 @@ impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a [Block] {
     type Slice = BitSlice<'a, Block>;
 
     fn bit_slice(self, range: Range<u64>) -> Self::Slice {
-        BitSlice::from_slice(self).bit_slice
-        (range)
+        BitSlice::from_slice(self).bit_slice(range)
     }
 }
 
