@@ -51,7 +51,7 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
     ///
     /// The size is always a multiple of
     /// `Block::nbits()`. If you want a different size, slice.
-    pub fn from_slice(blocks: &[Block]) -> Self {
+    pub fn from_slice(blocks: &'a [Block]) -> Self {
         BitSlice {
             bits:   blocks.as_ptr(),
             offset: 0,
@@ -451,6 +451,24 @@ impl<'a, Block: BlockType> fmt::Debug for BitSlice<'a, Block> {
 impl<'a, Block: BlockType> fmt::Debug for BitSliceMut<'a, Block> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.as_immut().fmt(f)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn bit_slice_from_slice() {
+        let mut bytes = [0b00001111u8, 0b11110000u8];
+        {
+            let mut bs = BitSliceMut::from_slice(&mut bytes);
+            assert_eq!( bs.get_block(0), 0b00001111 );
+            bs.set_bit(1, false);
+            assert_eq!( bs.get_block(0), 0b00001101 );
+        }
+
+        assert_eq!( bytes[0], 0b00001101 );
     }
 }
 
