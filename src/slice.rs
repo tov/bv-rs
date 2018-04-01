@@ -447,7 +447,7 @@ impl<'a, Block: BlockType + hash::Hash> hash::Hash for BitSliceMut<'a, Block> {
 impl<'a, Block: BlockType> fmt::Debug for BitSlice<'a, Block> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "bv![")?;
-        if self.len() > 0 {
+        if !self.is_empty() {
             write!(f, "{}", self.get_bit(0))?;
         }
         for i in 1 .. self.len() {

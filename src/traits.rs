@@ -85,7 +85,7 @@ pub trait BitVec {
         let limit = start + count as u64;
         assert!(limit <= self.bit_len(), "BitVec::get_bits: out of bounds");
 
-        let address = Address::new::<Self::Block>(start + self.bit_offset() as u64);
+        let address = Address::new::<Self::Block>(start + u64::from(self.bit_offset()));
         let margin = Self::Block::nbits() - address.bit_offset;
 
         if margin >= count {
@@ -122,7 +122,7 @@ pub trait BitVecMut: BitVec {
     fn set_bit(&mut self, position: u64, value: bool) {
         assert!(position < self.bit_len(), "BitVecMut::set_bit: out of bounds");
 
-        let address = Address::new::<Self::Block>(position + self.bit_offset() as u64);
+        let address = Address::new::<Self::Block>(position + u64::from(self.bit_offset()));
         let old_block = self.get_block(address.block_index);
         let new_block = old_block.with_bit(address.bit_offset, value);
         self.set_block(address.block_index, new_block);
@@ -145,19 +145,19 @@ pub trait BitVecMut: BitVec {
     fn set_block(&mut self, position: usize, mut value: Self::Block) {
         let start = if position == 0 && self.bit_offset() > 0 {
             value = value >> self.bit_offset() as usize;
-            self.bit_offset() as u64
+            u64::from(self.bit_offset())
         } else {
             0
         };
 
         let limit = if position + 1 == self.block_len() {
-            Self::Block::last_block_bits(self.bit_len() + self.bit_offset() as u64)
+            Self::Block::last_block_bits(self.bit_len() + u64::from(self.bit_offset()))
         } else {
             Self::Block::nbits()
         };
 
         let offset = Self::Block::mul_nbits(position);
-        let bit_offset = self.bit_offset() as u64;
+        let bit_offset = u64::from(self.bit_offset());
 
         for i in start .. limit as u64 {
             let bit = value & Self::Block::one() != Self::Block::zero();
@@ -176,7 +176,7 @@ pub trait BitVecMut: BitVec {
         let limit = start + count as u64;
         assert!(limit <= self.bit_len(), "BitVecMut::set_bits: out of bounds");
 
-        let address = Address::new::<Self::Block>(start + self.bit_offset() as u64);
+        let address = Address::new::<Self::Block>(start + u64::from(self.bit_offset()));
         let margin = Self::Block::nbits() - address.bit_offset;
 
         if margin >= count {
@@ -212,7 +212,7 @@ pub trait BitVecPush: BitVecMut {
     /// Pushes `value` 0 or more times until the size of the bit
     /// vector is block-aligned.
     fn align_block(&mut self, value: bool) {
-        while Self::Block::mod_nbits(self.bit_len() + self.bit_offset() as u64) != 0 {
+        while Self::Block::mod_nbits(self.bit_len() + u64::from(self.bit_offset())) != 0 {
             self.push_bit(value);
         }
     }
