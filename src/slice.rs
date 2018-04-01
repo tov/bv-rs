@@ -65,6 +65,11 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
         self.len
     }
 
+    /// Returns whether there are no bits in the slice.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     /// Gets an iterator over the blocks of the slice.
     ///
     /// Note that this iterates over whole blocks, with a partial block only at the end. That
@@ -107,6 +112,11 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
     /// The number of bits in the slice.
     pub fn len(&self) -> u64 {
         self.len
+    }
+
+    /// Returns whether there are no bits in the slice.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     /// Converts a `BitSliceMut` into an immutable `BitSlice`.
@@ -198,7 +208,7 @@ impl<'a, Block: BlockType> BitSliceable<Range<u64>> for BitSlice<'a, Block> {
         assert!(range.start <= range.end, "BitSlice::slice: bad range");
         assert!(range.end <= self.len, "BitSlice::slice: out of bounds");
 
-        let start_bits   = self.offset as u64 + range.start;
+        let start_bits   = u64::from(self.offset) + range.start;
         let start_block  = Block::div_nbits(start_bits);
         let start_offset = Block::mod_nbits(start_bits) as u8;
 
@@ -218,7 +228,7 @@ impl<'a, Block: BlockType> BitSliceable<Range<u64>> for BitSliceMut<'a, Block> {
         assert!(range.start <= range.end, "BitSliceMut::slice: bad range");
         assert!(range.end <= self.len, "BitSliceMut::slice: out of bounds");
 
-        let start_bits   = self.offset as u64 + range.start;
+        let start_bits   = u64::from(self.offset) + range.start;
         let start_block  = Block::div_nbits(start_bits);
         let start_offset = Block::mod_nbits(start_bits) as u8;
 

@@ -21,7 +21,7 @@ pub trait BitVec {
 
     /// The length of the slice in blocks.
     fn block_len(&self) -> usize {
-        Self::Block::ceil_div_nbits(self.bit_len() + self.bit_offset() as u64)
+        Self::Block::ceil_div_nbits(self.bit_len() + u64::from(self.bit_offset()))
     }
 
     /// Gets the bit at `position`
@@ -35,7 +35,7 @@ pub trait BitVec {
     fn get_bit(&self, position: u64) -> bool {
         assert!(position < self.bit_len(), "BitVec::get_bit: out of bounds");
 
-        let address = Address::new::<Self::Block>(position + self.bit_offset() as u64);
+        let address = Address::new::<Self::Block>(position + u64::from(self.bit_offset()));
         let block = self.get_block(address.block_index);
         block.get_bit(address.bit_offset)
     }
@@ -64,9 +64,9 @@ pub trait BitVec {
         let mut mask = Self::Block::one();
 
         for i in 0 .. Self::Block::nbits() as u64 {
-            if bit_position + i >= self.bit_offset() as u64
-                && bit_position + i - (self.bit_offset() as u64) < self.bit_len()
-                && self.get_bit(bit_position + i - self.bit_offset() as u64) {
+            if bit_position + i >= u64::from(self.bit_offset())
+                && bit_position + i - u64::from(self.bit_offset()) < self.bit_len()
+                && self.get_bit(bit_position + i - u64::from(self.bit_offset())) {
                 result = result | mask;
             }
             mask = mask << 1;

@@ -28,6 +28,12 @@ fn copy_resize<Block: BlockType>(slice: &[Block], len: usize) -> Box<[Block]> {
     result.into_boxed_slice()
 }
 
+impl<Block: BlockType> Default for BV<Block> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<Block: BlockType> BV<Block> {
     /// Creates a new, empty bit-vector of one block.
     ///
