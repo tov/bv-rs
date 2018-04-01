@@ -395,7 +395,7 @@ impl<'a, Block: BlockType> Ord for BitSlice<'a, Block> {
             if elt_ord != cmp::Ordering::Equal { return elt_ord; }
         }
 
-        return cmp::Ordering::Equal;
+        cmp::Ordering::Equal
     }
 }
 
