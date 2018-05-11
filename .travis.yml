@@ -3,9 +3,9 @@ rust:
   - stable
   - beta
   - nightly
-  - 1.0
-  - 1.10
-  - 1.20
+  - v1.0
+  - v1.10
+  - v1.20
 
 env:
   - RUSTFLAGS="-C link-dead-code"
