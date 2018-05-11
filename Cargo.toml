@@ -11,10 +11,7 @@ license = "MIT/Apache-2.0"
 keywords = ["bitvector", "bit", "vector", "bitvec", "bitset"]
 
 [features]
-u128 = ["num-traits/i128"]
-
-[dependencies]
-num-traits = "0.2"
+u128 = []
 
 [dev-dependencies]
 quickcheck = "0.6.2"

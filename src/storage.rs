@@ -1,12 +1,19 @@
 use std::mem;
-
-use num_traits::{One, PrimInt};
-use num_traits::cast::ToPrimitive;
+use std::ops;
 
 /// Interface to primitive bit storage.
 ///
 /// Types implementing this trait can be used as the blocks of a bit-vector.
-pub trait BlockType: PrimInt {
+pub trait BlockType: Copy +
+                     PartialEq +
+                     Ord +
+                     ops::BitAnd<Output = Self> +
+                     ops::BitOr<Output = Self> +
+                     ops::Not<Output = Self> +
+                     ops::Shl<usize, Output = Self> +
+                     ops::Shr<usize, Output = Self> +
+                     ops::Sub<Output = Self>
+{
     /// The number of bits in a block.
     #[inline]
     fn nbits() -> usize {
@@ -70,6 +77,7 @@ pub trait BlockType: PrimInt {
     ///
     /// This is intended for converting a block address into a bit address,
     /// which is why it takes a `usize` and returns a `u64`.
+    #[inline]
     fn mul_nbits(index: usize) -> u64 {
         (index as u64) << Self::lg_nbits()
     }
@@ -201,6 +209,18 @@ pub trait BlockType: PrimInt {
         if self <= Self::one() { return 0; }
         Self::nbits() - 1 - self.leading_zeros() as usize
     }
+
+    /// Returns the number of leading zero bits in the given number.
+    fn leading_zeros(self) -> usize;
+
+    /// Converts the number to a `usize`, if it fits.
+    fn to_usize(self) -> Option<usize>;
+
+    /// Returns 0.
+    fn zero() -> Self;
+
+    /// Returns 1.
+    fn one() -> Self;
 }
 
 macro_rules! impl_block_type {
@@ -222,6 +242,30 @@ macro_rules! impl_block_type {
                 let b = (Self::div_nbits(k as u64) & 1) as Self * !0;
 
                 a | b
+            }
+
+            #[inline]
+            fn leading_zeros(self) -> usize {
+                self.leading_zeros() as usize
+            }
+
+            #[inline]
+            fn to_usize(self) -> Option<usize> {
+                if self as usize as Self == self {
+                    Some(self as usize)
+                } else {
+                    None
+                }
+            }
+
+            #[inline]
+            fn zero() -> Self {
+                0
+            }
+
+            #[inline]
+            fn one() -> Self {
+                1
             }
         }
     }

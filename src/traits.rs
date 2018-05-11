@@ -1,5 +1,4 @@
 use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
-use num_traits::{Zero, One, ToPrimitive};
 use super::storage::{BlockType, Address};
 
 /// Read-only bit vector operations.
