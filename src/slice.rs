@@ -189,7 +189,10 @@ impl<'a, Block: BlockType> ops::Index<u64> for BitSlice<'a, Block> {
     type Output = bool;
 
     fn index(&self, index: u64) -> &bool {
-        if self.get_bit(index) {&true} else {&false}
+        static TRUE: bool = true;
+        static FALSE: bool = false;
+
+        if self.get_bit(index) {&TRUE} else {&FALSE}
     }
 }
 
@@ -197,7 +200,10 @@ impl<'a, Block: BlockType> ops::Index<u64> for BitSliceMut<'a, Block> {
     type Output = bool;
 
     fn index(&self, index: u64) -> &bool {
-        if self.get_bit(index) {&true} else {&false}
+        static TRUE: bool = true;
+        static FALSE: bool = false;
+
+        if self.get_bit(index) {&TRUE} else {&FALSE}
     }
 }
 
