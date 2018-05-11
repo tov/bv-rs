@@ -79,7 +79,6 @@ impl_bits_prim!(usize);
 #[cfg(test)]
 mod test {
     use super::*;
-
     #[test]
     fn bit_len() {
         assert_eq!( 30u8.bit_len(), 8 );
@@ -143,5 +142,11 @@ mod test {
 
         x.set_bits(2, 4, 0b00001111);
         assert_eq!( x, 0b00111100 );
+    }
+
+    #[cfg(feature = "u128")]
+    #[test]
+    fn u128_feature () {
+        assert_eq!( 30u128.block_len(), 1 );
     }
 }

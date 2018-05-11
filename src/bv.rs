@@ -418,11 +418,14 @@ impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a mut BV<Block> {
     }
 }
 
+static TRUE: bool = true;
+static FALSE: bool = false;
+
 impl<Block: BlockType> ops::Index<u64> for BV<Block> {
     type Output = bool;
 
     fn index(&self, index: u64) -> &bool {
-        if self.get_bit(index) {&true} else {&false}
+        if self.get_bit(index) {&TRUE} else {&FALSE}
     }
 }
 
