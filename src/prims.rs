@@ -72,6 +72,8 @@ impl_bits_prim!(u8);
 impl_bits_prim!(u16);
 impl_bits_prim!(u32);
 impl_bits_prim!(u64);
+#[cfg(feature = "u128")]
+impl_bits_prim!(u128);
 impl_bits_prim!(usize);
 
 #[cfg(test)]

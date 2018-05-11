@@ -231,6 +231,8 @@ impl_block_type!(u8);
 impl_block_type!(u16);
 impl_block_type!(u32);
 impl_block_type!(u64);
+#[cfg(feature = "u128")]
+impl_block_type!(u128);
 impl_block_type!(usize);
 
 /// Represents the address of a bit, broken into a block component

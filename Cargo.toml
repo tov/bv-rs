@@ -10,6 +10,9 @@ readme = "README.md"
 license = "MIT/Apache-2.0"
 keywords = ["bitvector", "bit", "vector", "bitvec", "bitset"]
 
+[features]
+u128 = ["num-traits/i128"]
+
 [dependencies]
 num-traits = "0.2"
 
