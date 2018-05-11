@@ -503,7 +503,8 @@ mod test {
 
     #[test]
     fn debug_for_bit_slice() {
-        let bs = BitSlice::from_slice(&[0b00110101u8]);
+        let slice = [0b00110101u8];
+        let bs = BitSlice::from_slice(&slice);
         let exp = "bv![true, false, true, false, true, true, false, false]";
         let act = format!("{:?}", bs);
         assert_eq!( &*act, exp );
