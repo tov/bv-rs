@@ -1,11 +1,9 @@
 extern crate rustc_version;
 
-use rustc_version::{version, Version, Result};
+use rustc_version::{version, Version};
 
-fn main() -> Result<()> {
-    if version()? >= Version::parse("1.26.0")? || true {
+fn main() {
+    if version().unwrap() >= Version::parse("1.26.0").unwrap() {
         println!("cargo:rustc-cfg=u128");
     }
-
-    Ok(())
 }
