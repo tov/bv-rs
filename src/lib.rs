@@ -43,6 +43,8 @@
 //! ```
 //!
 //! to your crate root.
+//!
+//! This crate supports Rust version 1.20 and newer.
 
 #![warn(missing_docs)]
 
