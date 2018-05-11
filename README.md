@@ -21,7 +21,7 @@ It’s [on crates.io](https://crates.io/crates/bv), so you can add
 
 ```toml
 [dependencies]
-bv = "0.4"
+bv = "0.6"
 ```
 
 to your `Cargo.toml` and
