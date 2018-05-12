@@ -339,7 +339,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeToInclusive<u64>> for BitSlice<'a, 
     type Slice = Self;
 
     fn bit_slice(self, range: RangeToInclusive<u64>) -> Self {
-        self.bit_slice(0 ..= range.end)
+        self.bit_slice(0 .. range.end + 1)
     }
 }
 
@@ -348,7 +348,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeToInclusive<u64>> for BitSliceMut<'
     type Slice = Self;
 
     fn bit_slice(self, range: RangeToInclusive<u64>) -> Self {
-        self.bit_slice(0 ..= range.end)
+        self.bit_slice(0 .. range.end + 1)
     }
 }
 
