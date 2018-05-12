@@ -1,4 +1,6 @@
 use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
+#[cfg(inclusive_range)]
+use std::ops::{RangeInclusive, RangeToInclusive};
 use super::storage::{BlockType, Address};
 
 /// Read-only bit vector operations.
@@ -351,6 +353,24 @@ impl<'a> BitSliceable<Range<usize>> for &'a mut [bool] {
     }
 }
 
+#[cfg(inclusive_range)]
+impl<'a> BitSliceable<RangeInclusive<usize>> for &'a [bool] {
+    type Slice = &'a [bool];
+
+    fn bit_slice(self, range: RangeInclusive<usize>) -> &'a [bool] {
+        &self[range]
+    }
+}
+
+#[cfg(inclusive_range)]
+impl<'a> BitSliceable<RangeInclusive<usize>> for &'a mut [bool] {
+    type Slice = &'a mut [bool];
+
+    fn bit_slice(self, range: RangeInclusive<usize>) -> &'a mut [bool] {
+        &mut self[range]
+    }
+}
+
 impl<'a> BitSliceable<RangeFrom<usize>> for &'a [bool] {
     type Slice = &'a [bool];
 
@@ -379,6 +399,24 @@ impl<'a> BitSliceable<RangeTo<usize>> for &'a mut [bool] {
     type Slice = &'a mut [bool];
 
     fn bit_slice(self, range: RangeTo<usize>) -> &'a mut [bool] {
+        &mut self[range]
+    }
+}
+
+#[cfg(inclusive_range)]
+impl<'a> BitSliceable<RangeToInclusive<usize>> for &'a [bool] {
+    type Slice = &'a [bool];
+
+    fn bit_slice(self, range: RangeToInclusive<usize>) -> &'a [bool] {
+        &self[range]
+    }
+}
+
+#[cfg(inclusive_range)]
+impl<'a> BitSliceable<RangeToInclusive<usize>> for &'a mut [bool] {
+    type Slice = &'a mut [bool];
+
+    fn bit_slice(self, range: RangeToInclusive<usize>) -> &'a mut [bool] {
         &mut self[range]
     }
 }
