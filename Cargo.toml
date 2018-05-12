@@ -11,9 +11,6 @@ license = "MIT/Apache-2.0"
 keywords = ["bitvector", "bit", "vector", "bitvec", "bitset"]
 build = "build.rs"
 
-[features]
-u128 = []
-
 [dev-dependencies]
 quickcheck = "0.6.2"
 
