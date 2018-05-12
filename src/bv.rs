@@ -9,6 +9,7 @@ use super::traits::*;
 
 /// A bit-vector, akin to `Vec<bool>` but packed.
 #[derive(Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BV<Block = usize> {
     bits:   Box<[Block]>,
     len:    u64,
