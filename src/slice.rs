@@ -249,6 +249,7 @@ impl<'a, Block: BlockType> BitSliceable<Range<u64>> for BitSliceMut<'a, Block> {
     }
 }
 
+#[cfg(inclusive_range)]
 fn get_inclusive_bounds(range: &RangeInclusive<u64>) -> Option<(u64, u64)> {
     let mut r1 = range.clone();
     let mut r2 = range.clone();
