@@ -18,3 +18,7 @@ quickcheck = "0.6.2"
 
 [build-dependencies]
 rustc_version = "0.2"
+
+[package.metadata.docs.rs]
+features = ["serde"]
+
