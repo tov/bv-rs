@@ -16,9 +16,6 @@ serde = { version = "1.0", optional = true, features = ["derive"] }
 [dev-dependencies]
 quickcheck = "0.6.2"
 
-[build-dependencies]
-rustc_version = "0.2"
-
 [package.metadata.docs.rs]
 features = ["serde"]
 
