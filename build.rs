@@ -19,7 +19,7 @@ fn enable_cfg(feature: &str) {
 
 /// Tests if a type is defined.
 fn probe_type(type_string: &str) -> bool {
-    probe(&format!("type T = {}; fn main() {{ }}", type_string))
+    probe(&format!("pub type T = {}; fn main() {{ }}", type_string))
 }
 
 /// Tests if a program can be compiled.
