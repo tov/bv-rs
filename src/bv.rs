@@ -2,6 +2,8 @@ use std::cmp::{max, Ordering};
 use std::fmt;
 use std::hash::{Hash, Hasher};
 use std::ops::{self, Range, RangeFrom, RangeTo, RangeFull};
+#[cfg(inclusive_range)]
+use std::ops::{RangeInclusive, RangeToInclusive};
 
 use super::storage::*;
 use super::slice::*;
@@ -371,6 +373,24 @@ impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a mut BV<Block> {
     }
 }
 
+#[cfg(inclusive_range)]
+impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for &'a BV<Block> {
+    type Slice = BitSlice<'a, Block>;
+
+    fn bit_slice(self, range: RangeInclusive<u64>) -> BitSlice<'a, Block> {
+        self.as_slice().bit_slice(range)
+    }
+}
+
+#[cfg(inclusive_range)]
+impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for &'a mut BV<Block> {
+    type Slice = BitSliceMut<'a, Block>;
+
+    fn bit_slice(self, range: RangeInclusive<u64>) -> BitSliceMut<'a, Block> {
+        self.as_mut_slice().bit_slice(range)
+    }
+}
+
 impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a BV<Block> {
     type Slice = BitSlice<'a, Block>;
 
@@ -399,6 +419,24 @@ impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a mut BV<Block> {
     type Slice = BitSliceMut<'a, Block>;
 
     fn bit_slice(self, range: RangeTo<u64>) -> BitSliceMut<'a, Block> {
+        self.as_mut_slice().bit_slice(range)
+    }
+}
+
+#[cfg(inclusive_range)]
+impl<'a, Block: BlockType> BitSliceable<RangeToInclusive<u64>> for &'a BV<Block> {
+    type Slice = BitSlice<'a, Block>;
+
+    fn bit_slice(self, range: RangeToInclusive<u64>) -> BitSlice<'a, Block> {
+        self.as_slice().bit_slice(range)
+    }
+}
+
+#[cfg(inclusive_range)]
+impl<'a, Block: BlockType> BitSliceable<RangeToInclusive<u64>> for &'a mut BV<Block> {
+    type Slice = BitSliceMut<'a, Block>;
+
+    fn bit_slice(self, range: RangeToInclusive<u64>) -> BitSliceMut<'a, Block> {
         self.as_mut_slice().bit_slice(range)
     }
 }
