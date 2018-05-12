@@ -247,7 +247,7 @@ impl<Block: BlockType> BitVec for [Block] {
 
     #[inline]
     fn bit_len(&self) -> u64 {
-        self.len() as u64 * Block::nbits() as u64
+        u64::from(Block::mul_nbits(self.len()))
     }
 
     #[inline]
