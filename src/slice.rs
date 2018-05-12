@@ -616,5 +616,15 @@ mod test {
         let act = format!("{:?}", bs);
         assert_eq!( &*act, exp );
     }
+
+    #[cfg(inclusive_range)]
+    #[test]
+    fn range_to_inclusive() {
+        use BitSliceable;
+
+        let base = [0b00110101u8];
+        let slice = base.bit_slice(::std::ops::RangeToInclusive { end: 4 });
+        assert_eq!( slice.len(), 5 );
+    }
 }
 
