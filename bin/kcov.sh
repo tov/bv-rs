@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 KCOV=kcov-build/usr/local/bin/kcov
 
@@ -8,6 +8,6 @@ for file in target/debug/bv-*[^\.d]; do
     $KCOV --exclude-pattern=/.cargo,/usr/lib --verify "$COVDIR" "$file"
 done
 
-curl -s https://codecov.io/bash | bash || exit 4
+base <(curl -s https://codecov.io/bash) || exit 4
 
 echo "Uploaded code coverage"
