@@ -9,13 +9,7 @@ cache:
   directories:
   - $HOME/.cargo
   - $TRAVIS_BUILD_DIR/target
-  - $TRAVIS_BUILD_DIR/kcov-master
-
-env:
-  - RUSTFLAGS="-C link-dead-code"
-
-# required for kcov
-sudo: required
+  - $TRAVIS_BUILD_DIR/kcov-build
 
 matrix:
   allow_failures:
@@ -24,6 +18,13 @@ matrix:
 notifications:
   email:
     on_success: never
+
+### kcov:
+
+sudo: required
+
+env:
+  - RUSTFLAGS="-C link-dead-code"
 
 addons:
   apt:
@@ -36,4 +37,6 @@ addons:
       - binutils-dev
       - libiberty-dev
 
-after_success: ./kcov.sh
+before_cache: bin/install-kcov.sh
+
+after_success: bin/kcov.sh
