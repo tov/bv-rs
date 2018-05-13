@@ -1,4 +1,4 @@
-//! The main type exported by the library, [`BV`](struct.BV.html), is a packed,
+//! The main type exported by the library, [`Bv`](struct.Bv.html), is a packed,
 //! growable bit-vector. Its API mirrors that of `Vec` where reasonable. The
 //! library also defines slice operations that return
 //! [`BitSlice`](struct.BitSlice.html) or [`BitSliceMut`](struct.BitSliceMut.html),
@@ -12,10 +12,10 @@
 //! # Example
 //!
 //! ```
-//! use bv::{BV, BitVecMut};
+//! use bv::{Bv, BitVecMut};
 //!
-//! let mut bv1: BV = BV::new_fill(false, 50);
-//! let mut bv2: BV = BV::new_fill(false, 50);
+//! let mut bv1: Bv = Bv::new_fill(false, 50);
+//! let mut bv2: Bv = Bv::new_fill(false, 50);
 //!
 //! assert_eq!(bv1, bv2);
 //!
@@ -69,7 +69,7 @@ mod slice;
 pub use self::slice::{BitSlice, BitSliceMut, BitSliceBlockIter};
 
 mod bv;
-pub use self::bv::BV;
+pub use self::bv::Bv;
 
 mod prims;
 

@@ -1,4 +1,4 @@
-/// Like `vec!` but for `BV`.
+/// Like `vec!` but for `Bv`.
 ///
 /// # Examples
 ///
@@ -7,8 +7,8 @@
 /// use bv::*;
 ///
 /// fn main() {
-///     let mut bv1: BV = bv![ true; 3 ];
-///     let     bv2: BV = bv![ true, false, true ];
+///     let mut bv1: Bv = bv![ true; 3 ];
+///     let     bv2: Bv = bv![ true, false, true ];
 ///
 ///     assert_ne!(bv1, bv2);
 ///     bv1.set_bit(1, false);
@@ -18,12 +18,12 @@
 #[macro_export]
 macro_rules! bv {
     ( $e:expr ; $n:expr ) => {
-        $crate::BV::new_fill($e, $n)
+        $crate::Bv::new_fill($e, $n)
     };
 
     ( $( $e:expr ),* ) => {
         {
-            let mut result = $crate::BV::new();
+            let mut result = $crate::Bv::new();
             $(
                 result.push($e);
             )*

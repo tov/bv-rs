@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE-MIT)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache_2.0-blue.svg)](LICENSE-APACHE)
 
-The main type exported by the library, `BV`, is a packed, growable
+The main type exported by the library, `Bv`, is a packed, growable
 bit-vector. Its API mirrors that of `Vec` where reasonable. The library
 also defines slice operations that return `BitSlice` or `BitSliceMut`,
 akin to Rust’s array slices but for bit-vectors. A common API to
