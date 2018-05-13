@@ -2,7 +2,9 @@
 
 DESTDIR="`pwd`"/kcov-build
 
-if ! [ -d "$DESTDIR" ]; then
+ls -a
+
+if ! [ -f "$DESTDIR"/usr/local/bin/kcov ]; then
     wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz || exit 1
 
     tar xzf master.tar.gz
