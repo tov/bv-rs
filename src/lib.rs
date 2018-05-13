@@ -1,10 +1,10 @@
-//! The main type exported by the library, [`Bv`](struct.Bv.html), is a packed,
+//! The main type exported by the library, [`BitVec`](struct.BitVec.html), is a packed,
 //! growable bit-vector. Its API mirrors that of `Vec` where reasonable. The
 //! library also defines slice operations that return
 //! [`BitSlice`](struct.BitSlice.html) or [`BitSliceMut`](struct.BitSliceMut.html),
 //! akin to Rust’s array slices but for bit-vectors. A common API to
-//! bit-vectors and bit-slices is provided by the [`BitVec`](trait.BitVec.html),
-//! [`BitVecMut`](trait.BitVecMut.html), and [`BitVecPush`](trait.BitVecPush.html)
+//! bit-vectors and bit-slices is provided by the [`Bits`](trait.Bits.html),
+//! [`BitsMut`](trait.BitsMut.html), and [`BitsPush`](trait.BitsPush.html)
 //! traits, which also allow treating all primitive unsigned integer types
 //! (`uN`), and vectors and slices thereof, as well as vectors and
 //! slices of `bool`, as bit-vectors.
@@ -12,10 +12,10 @@
 //! # Example
 //!
 //! ```
-//! use bv::{Bv, BitVecMut};
+//! use bv::{BitVec, BitsMut};
 //!
-//! let mut bv1: Bv = Bv::new_fill(false, 50);
-//! let mut bv2: Bv = Bv::new_fill(false, 50);
+//! let mut bv1: BitVec = BitVec::new_fill(false, 50);
+//! let mut bv2: BitVec = BitVec::new_fill(false, 50);
 //!
 //! assert_eq!(bv1, bv2);
 //!
@@ -63,13 +63,13 @@ mod storage;
 pub use self::storage::BlockType;
 
 mod traits;
-pub use self::traits::{BitVec, BitVecMut, BitVecPush, BitSliceable};
+pub use self::traits::{Bits, BitsMut, BitsPush, BitSliceable};
 
 mod slice;
 pub use self::slice::{BitSlice, BitSliceMut, BitSliceBlockIter};
 
-mod bv;
-pub use self::bv::Bv;
+mod bit_vec;
+pub use self::bit_vec::BitVec;
 
 mod prims;
 

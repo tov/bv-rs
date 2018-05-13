@@ -12,7 +12,7 @@ use super::traits::*;
 /// A bit-vector, akin to `Vec<bool>` but packed.
 #[derive(Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct Bv<Block = usize> {
+pub struct BitVec<Block = usize> {
     bits:   Box<[Block]>,
     len:    u64,
 }
@@ -31,21 +31,21 @@ fn copy_resize<Block: BlockType>(slice: &[Block], len: usize) -> Box<[Block]> {
     result.into_boxed_slice()
 }
 
-impl<Block: BlockType> Default for Bv<Block> {
+impl<Block: BlockType> Default for BitVec<Block> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<Block: BlockType> Bv<Block> {
+impl<Block: BlockType> BitVec<Block> {
     /// Creates a new, empty bit-vector of one block.
     ///
     /// # Examples
     ///
     /// ```
-    /// use bv::{Bv, BitVec};
+    /// use bv::{BitVec, Bits};
     ///
-    /// let mut bv: Bv = Bv::new();
+    /// let mut bv: BitVec = BitVec::new();
     /// assert_eq!(bv.len(), 0);
     ///
     /// bv.push(true);
@@ -66,9 +66,9 @@ impl<Block: BlockType> Bv<Block> {
     /// # Examples
     ///
     /// ```
-    /// use bv::Bv;
+    /// use bv::BitVec;
     ///
-    /// let mut bv: Bv<u16> = Bv::with_capacity(20);
+    /// let mut bv: BitVec<u16> = BitVec::with_capacity(20);
     /// assert_eq!(bv.capacity(), 32);
     /// ```
     pub fn with_capacity(nbits: u64) -> Self {
@@ -80,9 +80,9 @@ impl<Block: BlockType> Bv<Block> {
     /// # Examples
     ///
     /// ```
-    /// use bv::Bv;
+    /// use bv::BitVec;
     ///
-    /// let mut bv: Bv<u16> = Bv::with_block_capacity(8);
+    /// let mut bv: BitVec<u16> = BitVec::with_block_capacity(8);
     /// assert_eq!(bv.capacity(), 128);
     /// ```
     pub fn with_block_capacity(nblocks: usize) -> Self {
@@ -99,7 +99,7 @@ impl<Block: BlockType> Bv<Block> {
     /// ```
     /// use bv::*;
     ///
-    /// let mut bv: Bv<u64> = Bv::new_fill(false, 100);
+    /// let mut bv: BitVec<u64> = BitVec::new_fill(false, 100);
     ///
     /// assert_eq!( bv.get_bit(0), false );
     /// assert_eq!( bv.len(), 100 );
@@ -119,7 +119,7 @@ impl<Block: BlockType> Bv<Block> {
 
     #[inline]
     fn from_block(init: Block, nblocks: usize) -> Self {
-        Bv {
+        BitVec {
             bits: vec![ init; nblocks ].into_boxed_slice(),
             len:  Block::mul_nbits(nblocks),
         }
@@ -130,9 +130,9 @@ impl<Block: BlockType> Bv<Block> {
     /// # Examples
     ///
     /// ```
-    /// use bv::Bv;
+    /// use bv::BitVec;
     ///
-    /// let mut bv: Bv = Bv::new();
+    /// let mut bv: BitVec = BitVec::new();
     /// assert_eq!(bv.len(), 0);
     /// bv.push(false);
     /// assert_eq!(bv.len(), 1);
@@ -152,7 +152,7 @@ impl<Block: BlockType> Bv<Block> {
     /// ```
     /// use bv::*;
     ///
-    /// let mut bv: Bv<u64> = Bv::new_fill(false, 100);
+    /// let mut bv: BitVec<u64> = BitVec::new_fill(false, 100);
     ///
     /// assert_eq!( bv.len(), 100 );
     /// assert_eq!( bv.block_len(), 2 );
@@ -253,14 +253,14 @@ impl<Block: BlockType> Bv<Block> {
         }
     }
 
-    /// Gets a slice to a `Bv`.
+    /// Gets a slice to a `BitVec`.
     pub fn as_slice(&self) -> BitSlice<Block> {
         unsafe {
             BitSlice::from_raw_parts(self.bits.as_ptr(), 0, self.len)
         }
     }
 
-    /// Gets a mutable slice to a `Bv`.
+    /// Gets a mutable slice to a `BitVec`.
     pub fn as_mut_slice(&mut self) -> BitSliceMut<Block> {
         unsafe {
             BitSliceMut::from_raw_parts(self.bits.as_mut_ptr(), 0, self.len)
@@ -303,7 +303,7 @@ impl<Block: BlockType> Bv<Block> {
     }
 }
 
-impl<Block: BlockType> BitVec for Bv<Block> {
+impl<Block: BlockType> Bits for BitVec<Block> {
     type Block = Block;
 
     fn bit_len(&self) -> u64 {
@@ -319,13 +319,13 @@ impl<Block: BlockType> BitVec for Bv<Block> {
     }
 }
 
-impl<Block: BlockType> BitVecMut for Bv<Block> {
+impl<Block: BlockType> BitsMut for BitVec<Block> {
     fn set_block(&mut self, position: usize, value: Block) {
         self.bits[position] = value;
     }
 }
 
-impl<Block: BlockType> BitVecPush for Bv<Block> {
+impl<Block: BlockType> BitsPush for BitVec<Block> {
     fn push_bit(&mut self, value: bool) {
         self.push(value);
     }
@@ -357,7 +357,7 @@ impl<Block: BlockType> BitVecPush for Bv<Block> {
     }
 }
 
-impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a Bv<Block> {
+impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a BitVec<Block> {
     type Slice = BitSlice<'a, Block>;
 
     fn bit_slice(self, range: Range<u64>) -> BitSlice<'a, Block> {
@@ -365,7 +365,7 @@ impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a Bv<Block> {
     }
 }
 
-impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a mut Bv<Block> {
+impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a mut BitVec<Block> {
     type Slice = BitSliceMut<'a, Block>;
 
     fn bit_slice(self, range: Range<u64>) -> BitSliceMut<'a, Block> {
@@ -374,7 +374,7 @@ impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a mut Bv<Block> {
 }
 
 #[cfg(inclusive_range)]
-impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for &'a Bv<Block> {
+impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for &'a BitVec<Block> {
     type Slice = BitSlice<'a, Block>;
 
     fn bit_slice(self, range: RangeInclusive<u64>) -> BitSlice<'a, Block> {
@@ -383,7 +383,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for &'a Bv<Block> {
 }
 
 #[cfg(inclusive_range)]
-impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for &'a mut Bv<Block> {
+impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for &'a mut BitVec<Block> {
     type Slice = BitSliceMut<'a, Block>;
 
     fn bit_slice(self, range: RangeInclusive<u64>) -> BitSliceMut<'a, Block> {
@@ -391,7 +391,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for &'a mut Bv<Bloc
     }
 }
 
-impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a Bv<Block> {
+impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a BitVec<Block> {
     type Slice = BitSlice<'a, Block>;
 
     fn bit_slice(self, range: RangeFrom<u64>) -> BitSlice<'a, Block> {
@@ -399,7 +399,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a Bv<Block> {
     }
 }
 
-impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a mut Bv<Block> {
+impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a mut BitVec<Block> {
     type Slice = BitSliceMut<'a, Block>;
 
     fn bit_slice(self, range: RangeFrom<u64>) -> BitSliceMut<'a, Block> {
@@ -407,7 +407,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a mut Bv<Block> {
     }
 }
 
-impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a Bv<Block> {
+impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a BitVec<Block> {
     type Slice = BitSlice<'a, Block>;
 
     fn bit_slice(self, range: RangeTo<u64>) -> BitSlice<'a, Block> {
@@ -415,7 +415,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a Bv<Block> {
     }
 }
 
-impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a mut Bv<Block> {
+impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a mut BitVec<Block> {
     type Slice = BitSliceMut<'a, Block>;
 
     fn bit_slice(self, range: RangeTo<u64>) -> BitSliceMut<'a, Block> {
@@ -424,7 +424,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a mut Bv<Block> {
 }
 
 #[cfg(inclusive_range)]
-impl<'a, Block: BlockType> BitSliceable<RangeToInclusive<u64>> for &'a Bv<Block> {
+impl<'a, Block: BlockType> BitSliceable<RangeToInclusive<u64>> for &'a BitVec<Block> {
     type Slice = BitSlice<'a, Block>;
 
     fn bit_slice(self, range: RangeToInclusive<u64>) -> BitSlice<'a, Block> {
@@ -433,7 +433,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeToInclusive<u64>> for &'a Bv<Block>
 }
 
 #[cfg(inclusive_range)]
-impl<'a, Block: BlockType> BitSliceable<RangeToInclusive<u64>> for &'a mut Bv<Block> {
+impl<'a, Block: BlockType> BitSliceable<RangeToInclusive<u64>> for &'a mut BitVec<Block> {
     type Slice = BitSliceMut<'a, Block>;
 
     fn bit_slice(self, range: RangeToInclusive<u64>) -> BitSliceMut<'a, Block> {
@@ -441,7 +441,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeToInclusive<u64>> for &'a mut Bv<Bl
     }
 }
 
-impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a Bv<Block> {
+impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a BitVec<Block> {
     type Slice = BitSlice<'a, Block>;
 
     fn bit_slice(self, _: RangeFull) -> BitSlice<'a, Block> {
@@ -449,7 +449,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a Bv<Block> {
     }
 }
 
-impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a mut Bv<Block> {
+impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a mut BitVec<Block> {
     type Slice = BitSliceMut<'a, Block>;
 
     fn bit_slice(self, _: RangeFull) -> BitSliceMut<'a, Block> {
@@ -457,7 +457,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a mut Bv<Block> {
     }
 }
 
-impl<Block: BlockType> ops::Index<u64> for Bv<Block> {
+impl<Block: BlockType> ops::Index<u64> for BitVec<Block> {
     type Output = bool;
 
     fn index(&self, index: u64) -> &bool {
@@ -468,33 +468,33 @@ impl<Block: BlockType> ops::Index<u64> for Bv<Block> {
     }
 }
 
-impl<Block: BlockType> PartialEq for Bv<Block> {
-    fn eq(&self, other: &Bv<Block>) -> bool {
+impl<Block: BlockType> PartialEq for BitVec<Block> {
+    fn eq(&self, other: &BitVec<Block>) -> bool {
         self.as_slice().eq(&other.as_slice())
     }
 }
 
-impl<Block: BlockType> PartialOrd for Bv<Block> {
-    fn partial_cmp(&self, other: &Bv<Block>) -> Option<Ordering> {
+impl<Block: BlockType> PartialOrd for BitVec<Block> {
+    fn partial_cmp(&self, other: &BitVec<Block>) -> Option<Ordering> {
         self.as_slice().partial_cmp(&other.as_slice())
     }
 }
 
-impl<Block: BlockType> Eq for Bv<Block> {}
+impl<Block: BlockType> Eq for BitVec<Block> {}
 
-impl<Block: BlockType> Ord for Bv<Block> {
+impl<Block: BlockType> Ord for BitVec<Block> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.as_slice().cmp(&other.as_slice())
     }
 }
 
-impl<Block: BlockType + Hash> Hash for Bv<Block> {
+impl<Block: BlockType + Hash> Hash for BitVec<Block> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.as_slice().hash(state);
     }
 }
 
-impl<Block: BlockType> fmt::Debug for Bv<Block> {
+impl<Block: BlockType> fmt::Debug for BitVec<Block> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.as_slice().fmt(f)
     }
@@ -506,7 +506,7 @@ mod test {
 
     #[test]
     fn bit_slicing() {
-        let v: Bv<u8> = bv![ false, true, true, false, true, false, false, true,
+        let v: BitVec<u8> = bit_vec![ false, true, true, false, true, false, false, true,
                              true, false, false, true, false, true, true, false ];
         assert!( !v.get_bit(0) );
         assert!(  v.get_bit(1) );
@@ -531,7 +531,7 @@ mod test {
 
     #[test]
     fn resize() {
-        let mut v: Bv<u8> = bv![ true; 13 ];
+        let mut v: BitVec<u8> = bit_vec![ true; 13 ];
         assert_eq!( v.len(), 13 );
 
         v.resize(50, false);
@@ -562,7 +562,7 @@ mod test {
 
     #[test]
     fn shrink_to_fit() {
-        let mut v: Bv<u8> = Bv::with_capacity(100);
+        let mut v: BitVec<u8> = BitVec::with_capacity(100);
         assert_eq!( v.capacity(), 104 );
 
         v.push(true);
@@ -577,7 +577,7 @@ mod test {
 
     #[test]
     fn into_boxed_slice() {
-        let v: Bv<u8> = bv![ true, false, true ];
+        let v: BitVec<u8> = bit_vec![ true, false, true ];
         assert_eq!( v.capacity(), 8 );
         let bs = v.into_boxed_slice();
         assert_eq!( bs.len(), 1 );
@@ -586,7 +586,7 @@ mod test {
 
     #[test]
     fn truncate() {
-        let mut v: Bv<u8> = Bv::new_fill(true, 80);
+        let mut v: BitVec<u8> = BitVec::new_fill(true, 80);
         assert_eq!( v.len(), 80 );
         assert_eq!( v.get_bit(34), true );
 
@@ -597,7 +597,7 @@ mod test {
 
     #[test]
     fn as_mut_slice() {
-        let mut v: Bv<u8> = Bv::new_fill(true, 77);
+        let mut v: BitVec<u8> = BitVec::new_fill(true, 77);
         let w = v.as_mut_slice();
         assert_eq!( w.len(), 77 );
         assert_eq!( w.get_block(0), 0b11111111 );
@@ -605,7 +605,7 @@ mod test {
 
     #[test]
     fn pop() {
-        let mut v: Bv<u8> = bv![true, false, true];
+        let mut v: BitVec<u8> = bit_vec![true, false, true];
         assert_eq!( v.pop(), Some(true) );
         assert_eq!( v.pop(), Some(false) );
         assert_eq!( v.pop(), Some(true) );
@@ -614,7 +614,7 @@ mod test {
 
     #[test]
     fn clear_and_is_empty() {
-        let mut v: Bv<u8> = bv![true, false, true];
+        let mut v: BitVec<u8> = bit_vec![true, false, true];
         assert_eq!( v.len(), 3 );
         assert!( !v.is_empty() );
         v.clear();
@@ -624,7 +624,7 @@ mod test {
 
     #[test]
     fn push_bit_and_pop_bit() {
-        let mut v: Bv<u8> = Bv::new();
+        let mut v: BitVec<u8> = BitVec::new();
         v.push_bit(true);
         v.push_bit(false);
         assert_eq!( v.pop_bit(), Some(false) );
@@ -634,19 +634,19 @@ mod test {
 
     #[test]
     fn set_through_slice() {
-        let mut v: Bv<u8> = bv![true, false, true];
+        let mut v: BitVec<u8> = bit_vec![true, false, true];
 
         {
             let mut w = v.as_mut_slice().bit_slice(1..2);
             w.set_bit(0, true);
         }
 
-        assert_eq!( v, bv![true, true, true] );
+        assert_eq!(v, bit_vec![true, true, true] );
     }
 
     #[test]
     fn set_bits_one_block_fastpath() {
-        let mut v: Bv<u8> = bv![false; 8];
+        let mut v: BitVec<u8> = bit_vec![false; 8];
         v.set_bits(2, 4, 0b1111);
         assert_eq!( v.get_block(0), 0b00111100 );
     }

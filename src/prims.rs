@@ -5,7 +5,7 @@ macro_rules! impl_bits_prim {
     ( $t:ident )
         =>
     {
-        impl BitVec for $t {
+        impl Bits for $t {
             type Block = $t;
 
             #[inline]
@@ -44,7 +44,7 @@ macro_rules! impl_bits_prim {
             }
         }
 
-        impl BitVecMut for $t {
+        impl BitsMut for $t {
             #[inline]
             fn set_bit(&mut self, position: u64, value: bool) {
                 assert!(position < self.bit_len(),

@@ -4,7 +4,7 @@ use std::ops::{self, Range, RangeFrom, RangeTo, RangeFull};
 #[cfg(inclusive_range)]
 use std::ops::{RangeInclusive, RangeToInclusive};
 
-use super::traits::{BitVec, BitVecMut, BitSliceable};
+use super::traits::{Bits, BitsMut, BitSliceable};
 use super::storage::BlockType;
 
 /*
@@ -76,7 +76,7 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
     ///
     /// Note that this iterates over whole blocks, with a partial block only at the end. That
     /// means that if the bit-slice offset is non-zero, these blocks may not correspond to the
-    /// blocks retrieved by `BitVec::get_block`.
+    /// blocks retrieved by `Bits::get_block`.
     pub fn block_iter(self) -> BitSliceBlockIter<'a, Block> {
         BitSliceBlockIter(self)
     }
@@ -137,7 +137,7 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
     }
 }
 
-impl<'a, Block: BlockType> BitVec for BitSlice<'a, Block> {
+impl<'a, Block: BlockType> Bits for BitSlice<'a, Block> {
     type Block = Block;
 
     fn bit_len(&self) -> u64 {
@@ -148,7 +148,7 @@ impl<'a, Block: BlockType> BitVec for BitSlice<'a, Block> {
         self.offset
     }
 
-    fn get_block(&self, position: usize) -> <Self as BitVec>::Block {
+    fn get_block(&self, position: usize) -> <Self as Bits>::Block {
         assert!(position < self.block_len(), "BitSlice::get_block: out of bounds");
 
         unsafe {
@@ -157,7 +157,7 @@ impl<'a, Block: BlockType> BitVec for BitSlice<'a, Block> {
     }
 }
 
-impl<'a, Block: BlockType> BitVec for BitSliceMut<'a, Block> {
+impl<'a, Block: BlockType> Bits for BitSliceMut<'a, Block> {
     type Block = Block;
 
     fn bit_len(&self) -> u64 {
@@ -177,7 +177,7 @@ impl<'a, Block: BlockType> BitVec for BitSliceMut<'a, Block> {
     }
 }
 
-impl<'a, Block: BlockType> BitVecMut for BitSliceMut<'a, Block> {
+impl<'a, Block: BlockType> BitsMut for BitSliceMut<'a, Block> {
     fn set_block(&mut self, position: usize, value: Block) {
         assert!(position < self.block_len(), "BitSliceMut::set_block: out of bounds");
 
@@ -559,7 +559,7 @@ impl<'a, Block: BlockType + hash::Hash> hash::Hash for BitSliceMut<'a, Block> {
 
 impl<'a, Block: BlockType> fmt::Debug for BitSlice<'a, Block> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "bv![")?;
+        write!(f, "bit_vec![")?;
         if !self.is_empty() {
             write!(f, "{}", self.get_bit(0))?;
         }
@@ -612,7 +612,7 @@ mod test {
     fn debug_for_bit_slice() {
         let slice = [0b00110101u8];
         let bs = BitSlice::from_slice(&slice);
-        let exp = "bv![true, false, true, false, true, true, false, false]";
+        let exp = "bit_vec![true, false, true, false, true, true, false, false]";
         let act = format!("{:?}", bs);
         assert_eq!( &*act, exp );
     }

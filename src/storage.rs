@@ -125,7 +125,7 @@ pub trait BlockType: Copy +
 
     /// The bit mask with the `bit_index`th bit set.
     ///
-    /// BitVec are index in little-endian style based at 0.
+    /// Bits are index in little-endian style based at 0.
     ///
     /// # Precondition
     ///
