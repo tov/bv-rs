@@ -5,9 +5,9 @@
 //! akin to Rust’s array slices but for bit-vectors. A common API to
 //! bit-vectors and bit-slices is provided by the [`Bits`](trait.Bits.html),
 //! [`BitsMut`](trait.BitsMut.html), and [`BitsPush`](trait.BitsPush.html)
-//! traits, which also allow treating all primitive unsigned integer types
-//! (`uN`), and vectors and slices thereof, as well as vectors and
-//! slices of `bool`, as bit-vectors.
+//! traits, which also allow treating as bit-vectors all primitive unsigned
+//! integer types (`uN`), and vectors and slices thereof, as well as unpacked
+//! vectors and slices of `bool`.
 //!
 //! # Example
 //!
@@ -33,7 +33,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! bv = "0.6"
+//! bv = "0.7"
 //! ```
 //!
 //! to your `Cargo.toml` and
