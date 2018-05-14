@@ -18,6 +18,25 @@ use super::storage::BlockType;
  */
 
 /// A slice of a bit-vector; akin to `&'a [bool]` but packed.
+///
+/// # Examples
+///
+/// ```
+/// use bv::*;
+///
+/// let array = [0b00110101u16];
+/// let mut slice = BitSlice::from_slice(&array);
+/// assert_eq!( slice[0], true );
+/// assert_eq!( slice[1], false );
+///
+/// slice = slice.bit_slice(..8);
+/// assert_eq!( slice[0], true );
+/// assert_eq!( slice[1], false );
+///
+/// slice = slice.bit_slice(1..8);
+/// assert_eq!( slice[0], false );
+/// assert_eq!( slice[1], true );
+/// ```
 #[derive(Copy, Clone)]
 pub struct BitSlice<'a, Block> {
     bits:   *const Block,
