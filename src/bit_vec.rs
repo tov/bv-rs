@@ -532,10 +532,10 @@ impl<Block: BlockType> BitVec<Block> {
     /// use bv::*;
     ///
     /// let mut bv: BitVec<u32> = bit_vec![ true ];
-    /// assert_eq!( bv.len(), 1 )
+    /// assert_eq!( bv.len(), 1 );
     /// assert_eq!( bv.capacity(), 32 );
     /// bv.clear();
-    /// assert_eq!( bv.len(), 0 )
+    /// assert_eq!( bv.len(), 0 );
     /// assert_eq!( bv.capacity(), 32 );
     /// ```
     pub fn clear(&mut self) {
