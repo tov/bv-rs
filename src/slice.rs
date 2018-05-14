@@ -73,6 +73,22 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
     ///
     /// This is unsafe because the size of the passed-in buffer is not
     /// checked. It must hold at least `offset + len` bits or the resulting behavior is undefined.
+    ///
+    /// Method [`from_slice`](struct.BitSlice.html#method.from_slice),
+    /// possibly followed by further slicing, is the preferred way to turn a slice or vector of
+    /// blocks into a `BitSlice`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::BitSlice;
+    ///
+    /// let v = vec![0b01010011u16, 0u16];
+    /// let slice = unsafe { BitSlice::from_raw_parts(v.as_ptr(), 0, 8) };
+    /// assert_eq!( slice[0], true );
+    /// assert_eq!( slice[1], true );
+    /// assert_eq!( slice[2], false );
+    /// ```
     pub unsafe fn from_raw_parts(bits: *const Block, offset: u8, len: u64) -> Self {
         BitSlice {
             bits,
@@ -86,6 +102,19 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
     ///
     /// The size is always a multiple of
     /// `Block::nbits()`. If you want a different size, slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::{BitSlice, BitSliceable};
+    ///
+    /// let v = vec![0b01010011u16, 0u16];
+    /// let slice = BitSlice::from_slice(&v).bit_slice(..7);
+    /// assert_eq!( slice.len(), 7 );
+    /// assert_eq!( slice[0], true );
+    /// assert_eq!( slice[1], true );
+    /// assert_eq!( slice[2], false );
+    /// ```
     pub fn from_slice(blocks: &'a [Block]) -> Self {
         BitSlice {
             bits:   blocks.as_ptr(),
@@ -96,11 +125,36 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
     }
 
     /// The number of bits in the slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let bv: BitVec = bit_vec![ true, true, false, true ];
+    /// let slice = bv.bit_slice(..3);
+    ///
+    /// assert_eq!( bv.len(), 4 );
+    /// assert_eq!( slice.len(), 3 );
+    /// ```
     pub fn len(&self) -> u64 {
         self.len
     }
 
     /// Returns whether there are no bits in the slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let bv: BitVec = bit_vec![ true, true, false, true ];
+    /// let slice0 = bv.bit_slice(3..3);
+    /// let slice1 = bv.bit_slice(3..4);
+    ///
+    /// assert!(  slice0.is_empty() );
+    /// assert!( !slice1.is_empty() );
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
