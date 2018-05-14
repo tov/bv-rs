@@ -10,6 +10,36 @@ use super::slice::*;
 use super::traits::*;
 
 /// A bit-vector, akin to `Vec<bool>` but packed.
+///
+/// `BitVec` stores its bits in an array of `Block`s, where `Block` is given as a type parameter
+/// that defaults to `usize`. You might find that a different `Block` size is preferable, but
+/// only benchmarking will tell.
+///
+/// Several useful methods are exported in traits, rather than inherent to `BitVec`. In
+/// particular, see:
+///
+///   - [`Bits::get_bit`](trait.Bits.html#method.get_bit) and
+///   - [`BitsMut::set_bit`](trait.BitsMut.html#method.set_bit).
+///
+/// You will likely want to `use` these traits (or `bv::*`) when you use `BitVec`.
+///
+/// # Examples
+///
+/// ```
+/// use bv::BitVec;
+///
+/// let mut bv: BitVec = BitVec::new();
+/// assert_eq!(bv.len(), 0);
+///
+/// bv.push(true);
+/// bv.push(false);
+/// bv.push(true);
+/// assert_eq!(bv.len(), 3);
+///
+/// assert_eq!(bv[0], true);
+/// assert_eq!(bv[1], false);
+/// assert_eq!(bv[2], true);
+/// ```
 #[derive(Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BitVec<Block = usize> {

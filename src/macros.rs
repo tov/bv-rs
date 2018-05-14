@@ -1,4 +1,12 @@
-/// Like `vec!` but for `BitVec`.
+/// Like `vec!` but for [`BitVec`](struct.BitVec.html).
+///
+/// The `bit_vec!` macro creates a `BitVec` literal. It takes two forms:
+///
+///   - A single `bool`, followed by a semicolon and number of times to repeat. This is
+///     equivalent to a call to [`BitVec::new_fill`](struct.BitVec.html#method.new_fill).
+///
+///   - A sequence of comma-separated `bool`s; this creates a `BitVec` and pushes each `bool` in
+///     turn.
 ///
 /// # Examples
 ///
