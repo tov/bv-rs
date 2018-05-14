@@ -25,11 +25,7 @@ use super::storage::BlockType;
 /// use bv::*;
 ///
 /// let array = [0b00110101u16];
-/// let mut slice = BitSlice::from_slice(&array);
-/// assert_eq!( slice[0], true );
-/// assert_eq!( slice[1], false );
-///
-/// slice = slice.bit_slice(..8);
+/// let mut slice = array.bit_slice(..8);
 /// assert_eq!( slice[0], true );
 /// assert_eq!( slice[1], false );
 ///
@@ -46,6 +42,24 @@ pub struct BitSlice<'a, Block> {
 }
 
 /// A mutable slice of a bit-vector; akin to `&'a mut [bool]` but packed.
+///
+/// # Examples
+///
+/// ```
+/// use bv::*;
+///
+/// let mut array = [0b00110101u16];
+///
+/// {
+///     let mut slice = BitSliceMut::from_slice(&mut array);
+///     assert_eq!( slice[0], true );
+///     assert_eq!( slice[1], false );
+///
+///     slice.set_bit(0, false);
+/// }
+///
+/// assert_eq!( array[0], 0b00110100u16 );
+/// ```
 pub struct BitSliceMut<'a, Block> {
     bits:   *mut Block,
     offset: u8,
