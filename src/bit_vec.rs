@@ -171,6 +171,7 @@ impl<Block: BlockType> BitVec<Block> {
     /// bv.push(false);
     /// assert_eq!(bv.len(), 3);
     /// ```
+    #[inline]
     pub fn len(&self) -> u64 {
         self.len
     }
@@ -192,11 +193,43 @@ impl<Block: BlockType> BitVec<Block> {
     }
 
     /// The capacity of the bit-vector in bits.
+    ///
+    /// This is the number of bits that can be held without reallocating.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let bv: BitVec<u64> = bit_vec![false; 100];
+    ///
+    /// assert_eq!( bv.len(), 100 );
+    /// assert_eq!( bv.capacity(), 128 );
+    /// ```
+    ///
+    /// Note that this example holds because `bit_vec!` does not introduces excess
+    /// capacity.
     pub fn capacity(&self) -> u64 {
         Block::mul_nbits(self.block_capacity())
     }
 
     /// The capacity of the bit-vector in blocks.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let bv: BitVec<u64> = BitVec::with_capacity(250);
+    ///
+    /// assert_eq!( bv.len(), 0 );
+    /// assert_eq!( bv.block_len(), 0 );
+    /// assert_eq!( bv.capacity(), 256 );
+    /// assert_eq!( bv.block_capacity(), 4 );
+    /// ```
+    ///
+    /// Note that this example holds because `bit_vec!` does not introduces excess
+    /// capacity.
     pub fn block_capacity(&self) -> usize {
         self.bits.len()
     }
@@ -204,6 +237,17 @@ impl<Block: BlockType> BitVec<Block> {
     /// Adjust the capacity to hold at least `additional` additional bits.
     ///
     /// May reserve more to avoid frequent reallocations.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let mut bv: BitVec<u32> = bit_vec![ false, false, true ];
+    /// assert_eq!( bv.capacity(), 32 );
+    /// bv.reserve(100);
+    /// assert!( bv.capacity() >= 103 );
+    /// ```
     pub fn reserve(&mut self, additional: u64) {
         let old_cap = self.capacity();
         self.reserve_exact(max(1, max(additional, old_cap)));
@@ -212,12 +256,34 @@ impl<Block: BlockType> BitVec<Block> {
     /// Adjust the capacity to hold at least `additional` additional blocks.
     ///
     /// May reserve more to avoid frequent reallocations.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let mut bv: BitVec<u32> = bit_vec![ false, false, true ];
+    /// assert_eq!( bv.block_capacity(), 1 );
+    /// bv.block_reserve(3);
+    /// assert!( bv.block_capacity() >= 4 );
+    /// ```
     pub fn block_reserve(&mut self, additional: usize) {
         let old_cap = self.block_capacity();
         self.block_reserve_exact(max(1, max(additional, old_cap)));
     }
 
     /// Adjust the capacity to hold at least `additional` additional bits.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let mut bv: BitVec<u32> = bit_vec![ false, false, true ];
+    /// assert_eq!( bv.capacity(), 32 );
+    /// bv.reserve_exact(100);
+    /// assert_eq!( bv.capacity(), 128 );
+    /// ```
     pub fn reserve_exact(&mut self, additional: u64) {
         let new_cap = Block::ceil_div_nbits(self.len() + additional);
         if new_cap > self.block_capacity() {
@@ -226,6 +292,17 @@ impl<Block: BlockType> BitVec<Block> {
     }
 
     /// Adjusts the capacity to at least `additional` blocks beyond those used.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let mut bv: BitVec<u32> = bit_vec![ false, false, true ];
+    /// assert_eq!( bv.block_capacity(), 1 );
+    /// bv.block_reserve_exact(3);
+    /// assert_eq!( bv.block_capacity(), 4 );
+    /// ```
     pub fn block_reserve_exact(&mut self, additional: usize) {
         let new_cap = self.block_len() + additional;
         if new_cap > self.block_capacity() {
@@ -234,6 +311,23 @@ impl<Block: BlockType> BitVec<Block> {
     }
 
     /// Shrinks the capacity of the vector as much as possible.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::BitVec;
+    ///
+    /// let mut bv: BitVec<u8> = BitVec::new();
+    ///
+    /// for i in 0 .. 23 {
+    ///     bv.push(i % 3 == 0);
+    /// }
+    ///
+    /// assert!(bv.capacity() >= 24);
+    ///
+    /// bv.shrink_to_fit();
+    /// assert_eq!(bv.capacity(), 24);
+    /// ```
     pub fn shrink_to_fit(&mut self) {
         if self.block_capacity() > self.block_len() {
             self.bits = copy_resize(&self.bits, self.block_len());
@@ -243,6 +337,18 @@ impl<Block: BlockType> BitVec<Block> {
     /// Converts the vector into `Box<[Block]>`.
     ///
     /// Note that this will *not* drop any excess capacity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let bv: BitVec<u8> = bit_vec![true, true, false, false, true, false, true, false];
+    /// let bs = bv.into_boxed_slice();
+    ///
+    /// assert!( bs.len() >= 1 );
+    /// assert_eq!( bs[0], 0b01010011 );
+    /// ```
     pub fn into_boxed_slice(self) -> Box<[Block]> {
         self.bits
     }
