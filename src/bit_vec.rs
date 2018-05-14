@@ -525,11 +525,35 @@ impl<Block: BlockType> BitVec<Block> {
     /// Removes all elements from the bit-vector.
     ///
     /// Does not change the capacity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let mut bv: BitVec<u32> = bit_vec![ true ];
+    /// assert_eq!( bv.len(), 1 )
+    /// assert_eq!( bv.capacity(), 32 );
+    /// bv.clear();
+    /// assert_eq!( bv.len(), 0 )
+    /// assert_eq!( bv.capacity(), 32 );
+    /// ```
     pub fn clear(&mut self) {
         self.len = 0;
     }
 
     /// Does the bit-vector have no elements?
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let mut bv: BitVec<u32> = bit_vec![ true ];
+    /// assert!( !bv.is_empty() );
+    /// bv.clear();
+    /// assert!(  bv.is_empty() );
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.len == 0
     }
