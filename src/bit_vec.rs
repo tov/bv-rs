@@ -358,6 +358,21 @@ impl<Block: BlockType> BitVec<Block> {
     /// If `len` is greater than the vector's current length, this has no effect.
     ///
     /// Note that this method has no effect on the capacity of the bit-vector.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let mut v1: BitVec = bit_vec![ true, true, false, false ];
+    /// let     v2: BitVec = bit_vec![ true, true ];
+    ///
+    /// assert_ne!( v1, v2 );
+    ///
+    /// v1.truncate(2);
+    ///
+    /// assert_eq!( v1, v2 );
+    /// ```
     pub fn truncate(&mut self, len: u64) {
         if len < self.len {
             self.len = len;
@@ -365,6 +380,22 @@ impl<Block: BlockType> BitVec<Block> {
     }
 
     /// Resizes the bit-vector, filling with `value` if it has to grow.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let     v1: BitVec = bit_vec![ true, true, false, false ];
+    /// let mut v2: BitVec = bit_vec![ true, true ];
+    /// let mut v3: BitVec = bit_vec![ true, true ];
+    ///
+    /// v2.resize(4, false);
+    /// v3.resize(4, true);
+    ///
+    /// assert_eq!( v1, v2 );
+    /// assert_ne!( v1, v3 );
+    /// ```
     pub fn resize(&mut self, len: u64, value: bool) {
         match len.cmp(&self.len) {
             Ordering::Less => {
@@ -390,6 +421,20 @@ impl<Block: BlockType> BitVec<Block> {
     }
 
     /// Gets a slice to a `BitVec`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let bv: BitVec = bit_vec![true, false, true];
+    /// let slice = bv.as_slice();
+    ///
+    /// assert_eq!( slice.len(), 3 );
+    /// assert_eq!( slice[0], true );
+    /// assert_eq!( slice[1], false );
+    /// assert_eq!( slice[2], true );
+    /// ```
     pub fn as_slice(&self) -> BitSlice<Block> {
         unsafe {
             BitSlice::from_raw_parts(self.bits.as_ptr(), 0, self.len)
@@ -397,6 +442,21 @@ impl<Block: BlockType> BitVec<Block> {
     }
 
     /// Gets a mutable slice to a `BitVec`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let mut bv: BitVec = bit_vec![true, false, true];
+    ///
+    /// {
+    ///     let mut slice = bv.as_mut_slice();
+    ///     slice.set_bit(1, true);
+    /// }
+    ///
+    /// assert_eq!( bv[1], true );
+    /// ```
     pub fn as_mut_slice(&mut self) -> BitSliceMut<Block> {
         unsafe {
             BitSliceMut::from_raw_parts(self.bits.as_mut_ptr(), 0, self.len)
@@ -404,6 +464,30 @@ impl<Block: BlockType> BitVec<Block> {
     }
 
     /// Adds the given `bool` to the end of the bit-vector.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let mut bv0: BitVec = bit_vec![ ];
+    /// let     bv1: BitVec = bit_vec![ true ];
+    /// let     bv2: BitVec = bit_vec![ true, false ];
+    /// let     bv3: BitVec = bit_vec![ true, false, true ];
+    ///
+    /// assert_ne!( bv0, bv1 );
+    /// assert_ne!( bv0, bv2 );
+    /// assert_ne!( bv0, bv3 );
+    ///
+    /// bv0.push(true);
+    /// assert_eq!( bv0, bv1 );
+    ///
+    /// bv0.push(false);
+    /// assert_eq!( bv0, bv2 );
+    ///
+    /// bv0.push(true);
+    /// assert_eq!( bv0, bv3 );
+    /// ```
     pub fn push(&mut self, value: bool) {
         if self.len() == self.capacity() - 1 {
             self.reserve(1);
@@ -414,7 +498,19 @@ impl<Block: BlockType> BitVec<Block> {
         self.set_bit(old_len, value);
     }
 
-    /// Removes and returnst the last element of the bit-vector, or `None` if empty.
+    /// Removes and returns the last element of the bit-vector, or `None` if empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let mut bv: BitVec = bit_vec![ true, false, true ];
+    /// assert_eq!( bv.pop(), Some(true) );
+    /// assert_eq!( bv.pop(), Some(false) );
+    /// assert_eq!( bv.pop(), Some(true) );
+    /// assert_eq!( bv.pop(), None );
+    /// ```
     pub fn pop(&mut self) -> Option<bool> {
         if self.len > 0 {
             let new_len = self.len - 1;
