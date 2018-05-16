@@ -46,6 +46,8 @@
 //!
 //! This crate supports Rust version 1.20 and newer.
 
+#![doc(html_root_url = "http://tov.github.io/bv-rs/bv/")]
+
 #![warn(missing_docs)]
 
 #[cfg(feature = "serde")]
