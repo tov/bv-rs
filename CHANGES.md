@@ -1,3 +1,9 @@
+  - 0.7.2 (2018/05/16)
+
+    Added a good number of doc examples.
+
+    Added `html_doc_root` for cross-linking of docs.
+
   - 0.7.1 (2018/05/13)
 
     Documentation fixes.
