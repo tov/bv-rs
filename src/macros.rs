@@ -38,4 +38,15 @@ macro_rules! bit_vec {
             result
         }
     };
+
+    ( $( $e:expr, )* ) => {
+        bit_vec![ $($e),* ]
+    };
+}
+
+#[test]
+fn bit_vec_macro_allows_trailing_comma() {
+    let bv1: super::BitVec = bit_vec![true, false, true];
+    let bv2: super::BitVec = bit_vec![true, false, true,];
+    assert_eq!( bv1, bv2 );
 }
