@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://tov.github.io/bv-rs/bv/")]
+#![doc(html_root_url = "https://tov.github.io/bv-rs")]
 //! The main type exported by the library, [`BitVec`](struct.BitVec.html), is a packed,
 //! growable bit-vector. Its API mirrors that of `Vec` where reasonable. The
 //! library also defines slice operations that return
