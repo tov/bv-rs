@@ -50,3 +50,10 @@ fn bit_vec_macro_allows_trailing_comma() {
     let bv2: super::BitVec = bit_vec![true, false, true,];
     assert_eq!( bv1, bv2 );
 }
+
+#[test]
+fn type_1_hygiene() {
+    let result = true;
+    let bv: super::BitVec = bit_vec![result];
+    assert!( bv[0] );
+}
