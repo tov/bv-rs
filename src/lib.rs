@@ -34,7 +34,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! bv = "0.7"
+//! bv = "0.7.3"
 //! ```
 //!
 //! to your `Cargo.toml` and
