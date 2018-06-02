@@ -1,5 +1,6 @@
 upload-doc = true
 pre-release-replacements = [
   { file="README.md", search="bv = \"[0-9.]*\"", replace="bv = \"{{version}}\"" },
-  { file="src/lib.rs", search="bv = \"[0-9.]*\"", replace="bv = \"{{version}}\"" }
+  { file="src/lib.rs", search="bv = \"[0-9.]*\"", replace="bv = \"{{version}}\"" },
+  { file="CHANGELOG.md", search="\\[Unreleased\\]", replace="[{{version}}] - {{date}}" }
 ]
