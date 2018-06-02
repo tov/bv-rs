@@ -10,6 +10,9 @@ The format is based on [Keep a Changelog] and this project adheres to
 
 ## [Unreleased]
 
+### Added
+- `bit_vec!` macro allows trailing comma.
+
 ## [0.7.2] - 2018-05-16
 
 ### Added
