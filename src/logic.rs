@@ -3,7 +3,7 @@
 use Bits;
 use BlockType;
 
-use std::cmp::{max, min};
+use std::cmp;
 
 /// Extension trait for bitwise logic operations on bit vectors.
 ///
@@ -72,32 +72,17 @@ struct BitsBinOp<T, U> {
     op1: T,
     op2: U,
     len: u64,
-    off: u8,
 }
-// Invariant:
-//  - off != 0  ==>  off == op1.bit_offset() == op2.bit_offset()
 
-// Precondition: `offset == bits.bit_offset() || offset == 0`.
-fn get_unaligned_block<T: Bits>(bits: &T, offset: u8, position: usize) -> T::Block {
-    if offset == bits.bit_offset() {
-        if position < bits.block_len() {
-            bits.get_block(position)
-        } else {
-            T::Block::zero()
-        }
+fn get_block_default<T: Bits>(bits: &T, position: usize) -> T::Block {
+    if position < bits.block_len() {
+        bits.get_block(position)
     } else {
-        debug_assert_eq!( offset, 0 );
-        let start = T::Block::mul_nbits(position);
-        if start < bits.bit_len() {
-            let nbits = min(T::Block::nbits() as u64, bits.bit_len() - start);
-            bits.get_bits(start, nbits as usize)
-        } else {
-            T::Block::zero()
-        }
+        T::Block::zero()
     }
 }
 
-fn get_overflow_bit<T: Bits>(bits: &T, position: u64) -> bool {
+fn get_bit_default<T: Bits>(bits: &T, position: u64) -> bool {
     if position < bits.bit_len() {
         bits.get_bit(position)
     } else {
@@ -107,29 +92,24 @@ fn get_overflow_bit<T: Bits>(bits: &T, position: u64) -> bool {
 
 impl<T: Bits, U: Bits<Block = T::Block>> BitsBinOp<T, U> {
     fn new(op1: T, op2: U) -> Self {
-        let len = max(op1.bit_len(), op2.bit_len());
-
-        let op1_off = op1.bit_offset();
-        let op2_off = op2.bit_offset();
-        let off = if op1_off == op2_off {op1_off} else {0};
-
-        BitsBinOp { op1, op2, len, off }
+        let len = cmp::max(op1.bit_len(), op2.bit_len());
+        BitsBinOp { op1, op2, len, }
     }
 
     fn bit1(&self, position: u64) -> bool {
-        get_overflow_bit(&self.op1, position)
+        get_bit_default(&self.op1, position)
     }
 
     fn bit2(&self, position: u64) -> bool {
-        get_overflow_bit(&self.op2, position)
+        get_bit_default(&self.op2, position)
     }
 
     fn block1(&self, position: usize) -> T::Block {
-        get_unaligned_block(&self.op1, self.off, position)
+        get_block_default(&self.op1, position)
     }
 
     fn block2(&self, position: usize) -> T::Block {
-        get_unaligned_block(&self.op2, self.off, position)
+        get_block_default(&self.op2, position)
     }
 }
 
@@ -138,10 +118,6 @@ impl<T: Bits> Bits for BitsNot<T> {
 
     fn bit_len(&self) -> u64 {
         self.0.bit_len()
-    }
-
-    fn bit_offset(&self) -> u8 {
-        self.0.bit_offset()
     }
 
     fn get_bit(&self, position: u64) -> bool {
@@ -163,10 +139,6 @@ impl<T, U> Bits for BitsAnd<T, U>
         self.0.len
     }
 
-    fn bit_offset(&self) -> u8 {
-        self.0.off
-    }
-
     fn get_bit(&self, position: u64) -> bool {
         self.0.bit1(position) & self.0.bit2(position)
     }
@@ -186,10 +158,6 @@ impl<T, U> Bits for BitsOr<T, U>
         self.0.len
     }
 
-    fn bit_offset(&self) -> u8 {
-        self.0.off
-    }
-
     fn get_bit(&self, position: u64) -> bool {
         self.0.bit1(position) | self.0.bit2(position)
     }
@@ -207,10 +175,6 @@ impl<T, U> Bits for BitsXor<T, U>
 
     fn bit_len(&self) -> u64 {
         self.0.len
-    }
-
-    fn bit_offset(&self) -> u8 {
-        self.0.off
     }
 
     fn get_bit(&self, position: u64) -> bool {
