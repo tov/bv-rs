@@ -9,6 +9,7 @@ pub trait BlockType: Copy +
                      Ord +
                      ops::BitAnd<Output = Self> +
                      ops::BitOr<Output = Self> +
+                     ops::BitXor<Output = Self> +
                      ops::Not<Output = Self> +
                      ops::Shl<usize, Output = Self> +
                      ops::Shr<usize, Output = Self> +
