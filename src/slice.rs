@@ -718,6 +718,7 @@ impl<'a, Block: BlockType> fmt::Debug for BitSliceMut<'a, Block> {
 
 #[cfg(test)]
 mod test {
+    use BitVec;
     use super::*;
 
     #[test]
@@ -746,6 +747,30 @@ mod test {
             assert_eq!( bs[3], true );
             assert_eq!( bs[4], false );
         }
+    }
+
+    #[test]
+    fn bit_slice_update_across_blocks() {
+        let mut bv: BitVec<u8> = bit_vec![ true; 20 ];
+        bv.set_bit(3, false);
+        bv.set_bit(7, false);
+
+        {
+            let mut slice: BitSliceMut<u8> = (&mut bv).bit_slice(4..12);
+            slice.set_bit(1, false);
+            slice.set_bit(5, false);
+        }
+
+        assert!(  bv[0] );
+        assert!(  bv[1] );
+        assert!(  bv[2] );
+        assert!( !bv[3] );
+        assert!(  bv[4] );
+        assert!( !bv[5] );
+        assert!(  bv[6] );
+        assert!( !bv[7] );
+        assert!(  bv[8] );
+        assert!( !bv[9] );
     }
 
     #[test]
