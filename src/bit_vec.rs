@@ -159,9 +159,27 @@ impl<Block: BlockType> BitVec<Block> {
     /// the same block type.
     pub fn from_bits<B: Bits<Block = Block>>(bits: B) -> Self {
         let mut result: Self = Self::with_capacity(bits.bit_len());
-        for i in 0 .. bits.block_len() {
-            result.push_block(bits.get_block(i));
+
+        let block_len = bits.block_len();
+
+        if bits.bit_offset() == 0 {
+            for i in 0..block_len {
+                result.push_block(bits.get_block(i));
+            }
+        } else if block_len == 0 {
+            // Nothing
+        } else {
+            for i in 0..(block_len - 1) {
+                let start = B::Block::mul_nbits(i);
+                let size  = B::Block::nbits();
+                result.push_block(bits.get_bits(start, size));
+            }
+
+            let start = B::Block::mul_nbits(block_len - 1);
+            let size  = bits.bit_len() - start;
+            result.push_block(bits.get_bits(start, size as usize));
         }
+
         result.resize(bits.bit_len(), false);
         result
     }
@@ -930,5 +948,19 @@ mod test {
         assert!( !bv[3] );
         assert!(  bv[4] );
         assert!(  bv[19] );
+    }
+
+    #[test]
+    fn from_bits_slice() {
+        let mut bits: BitVec = bit_vec![true; 20];
+        bits.set_bit(3, false);
+        let slice = bits.bit_slice(1..);
+        let bv = BitVec::from_bits(&slice);
+        assert_eq!( bv.len(), 19 );
+        assert!(  bv[0] );
+        assert!(  bv[1] );
+        assert!( !bv[2] );
+        assert!(  bv[3] );
+        assert!(  bv[18] );
     }
 }
