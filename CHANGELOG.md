@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog] and this project adheres to
 ## [Unreleased]
 
 ### Added
+- `logic::BitsLogic` trait, for bit-wise logic operations over types
+  that implement `Bits`
 - `bit_vec!` macro allows trailing comma.
 - `BitVec::from_bits`, which takes any types that implements `Bits` and
   copies it into a `BitVec` with the same block size.
