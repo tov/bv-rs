@@ -263,4 +263,14 @@ mod test {
         let and_bits = (&bv_slice1).bits_and(&bv_slice2);
         assert_0001(&and_bits);
     }
+
+    #[test]
+    fn and_with_different_offset() {
+        let bv1: BitVec<u8> = bit_vec![ true, true, false, false, true, true ];
+        let bv2: BitVec<u8> = bit_vec![ true, false, true, false, true ];
+        let bv_slice1 = bv1.bit_slice(2..);
+        let bv_slice2 = bv2.bit_slice(1..);
+        let and_bits = (&bv_slice1).bits_and(&bv_slice2);
+        assert_0001(&and_bits);
+    }
 }
