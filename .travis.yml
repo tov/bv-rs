@@ -1,15 +1,10 @@
 language: rust
+cache: cargo
 rust:
   - stable
   - beta
   - nightly
   - 1.20.0
-
-cache:
-  directories:
-  - $HOME/.cargo
-  - $TRAVIS_BUILD_DIR/target
-  - $TRAVIS_BUILD_DIR/kcov-build
 
 matrix:
   allow_failures:
@@ -19,24 +14,17 @@ notifications:
   email:
     on_success: never
 
-### kcov:
+# For Tarpaulin code coverage
 
 sudo: required
-
-env:
-  - RUSTFLAGS="-C link-dead-code"
-
+dist: trusty
 addons:
   apt:
     packages:
-      - libcurl4-openssl-dev
-      - libelf-dev
-      - libdw-dev
-      - cmake
-      - gcc
-      - binutils-dev
-      - libiberty-dev
+      - libssl-dev
 
-before_cache: bin/install-kcov.sh
-
-after_success: bin/kcov.sh
+after_success: |
+  if [[ "$TRAVIS_RUST_VERSION" == stable ]]; then
+    bash <(curl https://raw.githubusercontent.com/xd009642/tarpaulin/master/travis-install.sh)
+    cargo tarpaulin --ciserver travis-ci --coveralls $TRAVIS_JOB_ID
+  fi
