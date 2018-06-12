@@ -69,18 +69,22 @@ impl<T: Bits> BitsLogic for T {}
 
 /// The result of [`BitsLogic::bits_not`](trait.BitsLogic.html#method.bits_not),
 /// which inverts the bits of a bit vector.
+#[derive(Clone, Debug)]
 pub struct BitsNot<T>(T);
 
 /// The result of [`BitsLogic::bits_and`](trait.BitsLogic.html#method.bits_and)
 /// on types that implement `Bits`.
+#[derive(Clone, Debug)]
 pub struct BitsAnd<T, U>(BitsBinOp<T, U>);
 
 /// The result of [`BitsLogic::bits_or`](trait.BitsLogic.html#method.bits_or)
 /// on types that implement `Bits`.
+#[derive(Clone, Debug)]
 pub struct BitsOr<T, U>(BitsBinOp<T, U>);
 
 /// The result of [`BitsLogic::bits_xor`](trait.BitsLogic.html#method.bits_xor)
 /// on types that implement `Bits`.
+#[derive(Clone, Debug)]
 pub struct BitsXor<T, U>(BitsBinOp<T, U>);
 
 /// Used to store the two operands to a bitwise logical operation on
@@ -88,6 +92,7 @@ pub struct BitsXor<T, U>(BitsBinOp<T, U>);
 /// the operands) and the offset of the result (see invariant below).
 /// (Note that both `len` and `off` are derivable from `op1` and `op2`,
 /// but it probably makes sense to cache them.)
+#[derive(Clone, Debug)]
 struct BitsBinOp<T, U> {
     op1: T,
     op2: U,
