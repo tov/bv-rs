@@ -230,8 +230,7 @@ unsafe fn get_bit_with_offset<Block: BlockType>(
     let address   = Address::new::<Block>(position + offset as u64);
     let ptr       = bits.offset(address.block_index as isize);
     let block     = ptr::read(ptr);
-    let mask      = Block::one() << address.bit_offset;
-    (block & mask) != Block::zero()
+    block.get_bit(address.bit_offset)
 }
 
 unsafe fn set_bit_with_offset<Block: BlockType>(
@@ -240,8 +239,7 @@ unsafe fn set_bit_with_offset<Block: BlockType>(
     let address   = Address::new::<Block>(position + offset as u64);
     let ptr       = bits.offset(address.block_index as isize);
     let old_block = ptr::read(ptr);
-    let mask      = Block::one() << address.bit_offset;
-    let new_block = if value {old_block | mask} else {old_block & !mask};
+    let new_block = old_block.with_bit(address.bit_offset, value);
     ptr::write(ptr, new_block);
 }
 
@@ -264,11 +262,9 @@ unsafe fn get_block_with_offset<Block: BlockType>(
 
     let shift1 = offset as usize;
     let shift2 = Block::nbits() - shift1;
-    let mask2  = Block::low_mask(shift1);
-    let mask1  = !mask2;
 
-    let chunk1 = (block1 & mask1) >> shift1;
-    let chunk2 = (block2 & mask2) << shift2;
+    let chunk1 = block1.get_bits(shift1, shift2);
+    let chunk2 = block2.get_bits(0, shift1) << shift2;
 
     (chunk1 | chunk2) & value_mask
 }
