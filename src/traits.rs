@@ -263,6 +263,30 @@ pub trait BitSliceable<Range> {
     fn bit_slice(self, range: Range) -> Self::Slice;
 }
 
+impl<'a, T: Bits> Bits for &'a T {
+    type Block = T::Block;
+
+    fn bit_len(&self) -> u64 {
+        T::bit_len(*self)
+    }
+
+    fn bit_offset(&self) -> u8 {
+        T::bit_offset(*self)
+    }
+
+    fn get_bit(&self, position: u64) -> bool {
+        T::get_bit(*self, position)
+    }
+
+    fn get_block(&self, position: usize) -> Self::Block {
+        T::get_block(*self, position)
+    }
+
+    fn get_bits(&self, start: u64, count: usize) -> Self::Block {
+        T::get_bits(*self, start, count)
+    }
+}
+
 impl<Block: BlockType> Bits for [Block] {
     type Block = Block;
 
