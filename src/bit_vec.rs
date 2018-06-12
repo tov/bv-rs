@@ -160,24 +160,8 @@ impl<Block: BlockType> BitVec<Block> {
     pub fn from_bits<B: Bits<Block = Block>>(bits: B) -> Self {
         let mut result: Self = Self::with_capacity(bits.bit_len());
 
-        let block_len = bits.block_len();
-
-        if bits.bit_offset() == 0 {
-            for i in 0..block_len {
-                result.push_block(bits.get_block(i));
-            }
-        } else if block_len == 0 {
-            // Nothing
-        } else {
-            for i in 0..(block_len - 1) {
-                let start = B::Block::mul_nbits(i);
-                let size  = B::Block::nbits();
-                result.push_block(bits.get_bits(start, size));
-            }
-
-            let start = B::Block::mul_nbits(block_len - 1);
-            let size  = bits.bit_len() - start;
-            result.push_block(bits.get_bits(start, size as usize));
+        for i in 0..bits.block_len() {
+            result.push_block(bits.get_block(i));
         }
 
         result.resize(bits.bit_len(), false);
@@ -595,10 +579,6 @@ impl<Block: BlockType> Bits for BitVec<Block> {
         self.len()
     }
 
-    fn bit_offset(&self) -> u8 {
-        0
-    }
-
     fn get_block(&self, position: usize) -> Block {
         self.bits[position]
     }
@@ -792,7 +772,7 @@ mod test {
     #[test]
     fn bit_slicing() {
         let v: BitVec<u8> = bit_vec![ false, true, true, false, true, false, false, true,
-                             true, false, false, true, false, true, true, false ];
+                                      true, false, false, true, false, true, true, false ];
         assert!( !v.get_bit(0) );
         assert!(  v.get_bit(1) );
         assert!(  v.get_bit(2) );
@@ -800,7 +780,6 @@ mod test {
 
         let w = v.bit_slice(2..14);
         assert_eq!( w.bit_len(), 12 );
-        assert_eq!( w.bit_offset(), 2 );
 
         assert!(  w.get_bit(0) );
         assert!( !w.get_bit(1) );
@@ -810,8 +789,8 @@ mod test {
         assert_eq!( w.get_bits(2, 8), 0b10011001 );
         assert_eq!( w.get_bits(3, 8), 0b01001100 );
 
-        assert_eq!( w.get_block(0), 0b10010110 );
-        assert_eq!( w.get_block(1), 0b01101001 );
+        assert_eq!( w.get_block(0), 0b01100101 );
+        assert_eq!( w.get_block(1), 0b00001010 );
     }
 
     #[test]
@@ -923,6 +902,7 @@ mod test {
 
         {
             let mut w = v.as_mut_slice().bit_slice(1..2);
+            assert_eq!(w.get_block(0), 0);
             w.set_bit(0, true);
         }
 

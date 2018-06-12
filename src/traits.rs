@@ -7,8 +7,7 @@ use super::storage::{BlockType, Address};
 ///
 /// Minimal complete definition is:
 ///
-///   - `bit_len`,
-///   - `bit_offset`, and
+///   - `bit_len` and
 ///   - `get_bit` or `get_block`, since each is defined in terms of the other.
 ///
 /// Note that `get_block` in terms of `get_bit` is inefficient, and thus
@@ -20,13 +19,9 @@ pub trait Bits {
     /// The length of the slice in bits.
     fn bit_len(&self) -> u64;
 
-    /// The number of bits into the first block that the bit vector starts.
-    /// Must be less than `Block::nbits()`.
-    fn bit_offset(&self) -> u8;
-
     /// The length of the slice in blocks.
     fn block_len(&self) -> usize {
-        Self::Block::ceil_div_nbits(self.bit_len() + u64::from(self.bit_offset()))
+        Self::Block::ceil_div_nbits(self.bit_len())
     }
 
     /// Gets the bit at `position`
@@ -40,7 +35,7 @@ pub trait Bits {
     fn get_bit(&self, position: u64) -> bool {
         assert!(position < self.bit_len(), "Bits::get_bit: out of bounds");
 
-        let address = Address::new::<Self::Block>(position + u64::from(self.bit_offset()));
+        let address = Address::new::<Self::Block>(position);
         let block = self.get_block(address.block_index);
         block.get_bit(address.bit_offset)
     }
@@ -69,9 +64,7 @@ pub trait Bits {
         let mut mask = Self::Block::one();
 
         for i in 0 .. Self::Block::nbits() as u64 {
-            if bit_position + i >= u64::from(self.bit_offset())
-                && bit_position + i - u64::from(self.bit_offset()) < self.bit_len()
-                && self.get_bit(bit_position + i - u64::from(self.bit_offset())) {
+            if bit_position + i < self.bit_len() && self.get_bit(bit_position + i) {
                 result = result | mask;
             }
             mask = mask << 1;
@@ -90,7 +83,7 @@ pub trait Bits {
         let limit = start + count as u64;
         assert!(limit <= self.bit_len(), "Bits::get_bits: out of bounds");
 
-        let address = Address::new::<Self::Block>(start + u64::from(self.bit_offset()));
+        let address = Address::new::<Self::Block>(start);
         let margin = Self::Block::nbits() - address.bit_offset;
 
         if margin >= count {
@@ -127,7 +120,7 @@ pub trait BitsMut: Bits {
     fn set_bit(&mut self, position: u64, value: bool) {
         assert!(position < self.bit_len(), "BitsMut::set_bit: out of bounds");
 
-        let address = Address::new::<Self::Block>(position + u64::from(self.bit_offset()));
+        let address = Address::new::<Self::Block>(position);
         let old_block = self.get_block(address.block_index);
         let new_block = old_block.with_bit(address.bit_offset, value);
         self.set_block(address.block_index, new_block);
@@ -148,25 +141,17 @@ pub trait BitsMut: Bits {
     ///
     /// Panics if `position` is out of bounds.
     fn set_block(&mut self, position: usize, mut value: Self::Block) {
-        let start = if position == 0 && self.bit_offset() > 0 {
-            value = value >> self.bit_offset() as usize;
-            u64::from(self.bit_offset())
-        } else {
-            0
-        };
-
         let limit = if position + 1 == self.block_len() {
-            Self::Block::last_block_bits(self.bit_len() + u64::from(self.bit_offset()))
+            Self::Block::last_block_bits(self.bit_len())
         } else {
             Self::Block::nbits()
         };
 
         let offset = Self::Block::mul_nbits(position);
-        let bit_offset = u64::from(self.bit_offset());
 
-        for i in start .. limit as u64 {
+        for i in 0 .. limit as u64 {
             let bit = value & Self::Block::one() != Self::Block::zero();
-            self.set_bit(offset + i - bit_offset, bit);
+            self.set_bit(offset + i, bit);
             value = value >> 1;
         }
     }
@@ -181,7 +166,7 @@ pub trait BitsMut: Bits {
         let limit = start + count as u64;
         assert!(limit <= self.bit_len(), "BitsMut::set_bits: out of bounds");
 
-        let address = Address::new::<Self::Block>(start + u64::from(self.bit_offset()));
+        let address = Address::new::<Self::Block>(start);
         let margin = Self::Block::nbits() - address.bit_offset;
 
         if margin >= count {
@@ -217,7 +202,7 @@ pub trait BitsPush: BitsMut {
     /// Pushes `value` 0 or more times until the size of the bit
     /// vector is block-aligned.
     fn align_block(&mut self, value: bool) {
-        while Self::Block::mod_nbits(self.bit_len() + u64::from(self.bit_offset())) != 0 {
+        while Self::Block::mod_nbits(self.bit_len()) != 0 {
             self.push_bit(value);
         }
     }
@@ -270,10 +255,6 @@ impl<'a, T: Bits> Bits for &'a T {
         T::bit_len(*self)
     }
 
-    fn bit_offset(&self) -> u8 {
-        T::bit_offset(*self)
-    }
-
     fn get_bit(&self, position: u64) -> bool {
         T::get_bit(*self, position)
     }
@@ -293,11 +274,6 @@ impl<Block: BlockType> Bits for [Block] {
     #[inline]
     fn bit_len(&self) -> u64 {
         u64::from(Block::mul_nbits(self.len()))
-    }
-
-    #[inline]
-    fn bit_offset(&self) -> u8 {
-        0
     }
 
     #[inline]
@@ -326,11 +302,6 @@ impl Bits for [bool] {
         self.len() as u64
     }
 
-    #[inline]
-    fn bit_offset(&self) -> u8 {
-        0
-    }
-
     fn get_bit(&self, position: u64) -> bool {
         self[position.to_usize().expect("Vec<bool>::get_bit: overflow")]
     }
@@ -350,11 +321,6 @@ impl Bits for Vec<bool> {
     #[inline]
     fn bit_len(&self) -> u64 {
         self.as_slice().bit_len()
-    }
-
-    #[inline]
-    fn bit_offset(&self) -> u8 {
-        self.as_slice().bit_offset()
     }
 
     #[inline]
@@ -538,7 +504,6 @@ mod test {
                       false, true, true, false, true, false, false, true ];
 
         assert_eq!( v.bit_len(), 16 );
-        assert_eq!( v.bit_offset(), 0 );
         assert_eq!( v.block_len(), 2 );
 
         assert!(  v.get_bit(0) );
@@ -585,7 +550,6 @@ mod test {
 
         let w = v.bit_slice(2..14);
         assert_eq!( w.bit_len(), 12 );
-        assert_eq!( w.bit_offset(), 2 );
 
         assert!(  w.get_bit(0) );
         assert!( !w.get_bit(1) );
@@ -595,8 +559,8 @@ mod test {
         assert_eq!( w.get_bits(2, 8), 0b10011001 );
         assert_eq!( w.get_bits(3, 8), 0b01001100 );
 
-        assert_eq!( w.get_block(0), 0b10010110 );
-        assert_eq!( w.get_block(1), 0b01101001 );
+        assert_eq!( w.get_block(0), 0b01100101 );
+        assert_eq!( w.get_block(1), 0b00001010 );
     }
 
     #[test]

@@ -14,11 +14,6 @@ macro_rules! impl_bits_prim {
             }
 
             #[inline]
-            fn bit_offset(&self) -> u8 {
-                0
-            }
-
-            #[inline]
             fn block_len(&self) -> usize {
                 1
             }
@@ -85,14 +80,6 @@ mod test {
         assert_eq!( 30u16.bit_len(), 16 );
         assert_eq!( 30u32.bit_len(), 32 );
         assert_eq!( 30u64.bit_len(), 64 );
-    }
-
-    #[test]
-    fn bit_offset() {
-        assert_eq!( 30u8.bit_offset(), 0 );
-        assert_eq!( 30u16.bit_offset(), 0 );
-        assert_eq!( 30u32.bit_offset(), 0 );
-        assert_eq!( 30u64.bit_offset(), 0 );
     }
 
     #[test]

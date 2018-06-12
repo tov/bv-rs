@@ -224,6 +224,67 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
     }
 }
 
+unsafe fn get_block_with_offset<Block: BlockType>(
+    bits: *const Block, offset: u8, len: u64, position: usize) -> Block {
+
+    let value_mask = Block::low_mask(cmp::min(len - Block::mul_nbits(position),
+                                              Block::nbits() as u64) as usize);
+
+    let block1 = ptr::read(bits.offset(position as isize));
+    if offset == 0 {
+        return block1 & value_mask;
+    }
+
+    let block2 = if position + 1 < Block::ceil_div_nbits(len + offset as u64) {
+        ptr::read(bits.offset(position as isize + 1))
+    } else {
+        Block::zero()
+    };
+
+    let shift1 = offset as usize;
+    let shift2 = Block::nbits() - shift1;
+    let mask2  = Block::low_mask(shift1);
+    let mask1  = !mask2;
+
+    let chunk1 = (block1 & mask1) >> shift1;
+    let chunk2 = (block2 & mask2) << shift2;
+
+    (chunk1 | chunk2) & value_mask
+}
+
+unsafe fn set_block_with_offset<Block: BlockType>(
+    bits: *mut Block, offset: u8, len: u64, position: usize, value: Block) {
+
+    let start_bit     = Block::mul_nbits(position);
+    let mut limit_bit = start_bit + Block::nbits() as u64;
+
+    if offset == 0 && limit_bit <= len {
+        ptr::write(bits.offset(position as isize), value);
+        return;
+    } else {
+        limit_bit = len;
+    }
+
+    let mask_size1  = cmp::min((limit_bit - start_bit) as usize,
+                               Block::nbits() - offset as usize);
+    let value_mask1 = Block::low_mask(mask_size1) << offset as usize;
+    let old_block1  = ptr::read(bits.offset(position as isize));
+    let new_block1  = (old_block1 & !value_mask1)
+                    | ((value << offset as usize) & value_mask1);
+    ptr::write(bits.offset(position as isize), new_block1);
+
+    if position + 1 < Block::ceil_div_nbits(len + offset as u64) {
+        let mask_size2  = cmp::min((limit_bit - Block::mul_nbits(position)) as usize,
+                                   offset as usize);
+        let value_mask2 = Block::low_mask(mask_size2);
+        let old_block2  = ptr::read(bits.offset(position as isize + 1));
+        let new_block2  = (old_block2 & !value_mask2)
+                        | ((value >> (Block::nbits() - offset as usize)) & value_mask2);
+        ptr::write(bits.offset(position as isize + 1), new_block2);
+
+    }
+}
+
 impl<'a, Block: BlockType> Bits for BitSlice<'a, Block> {
     type Block = Block;
 
@@ -231,15 +292,11 @@ impl<'a, Block: BlockType> Bits for BitSlice<'a, Block> {
         self.len
     }
 
-    fn bit_offset(&self) -> u8 {
-        self.offset
-    }
-
     fn get_block(&self, position: usize) -> <Self as Bits>::Block {
         assert!(position < self.block_len(), "BitSlice::get_block: out of bounds");
 
         unsafe {
-            ptr::read(self.bits.offset(position as isize))
+            get_block_with_offset(self.bits, self.offset, self.len, position)
         }
     }
 }
@@ -251,15 +308,11 @@ impl<'a, Block: BlockType> Bits for BitSliceMut<'a, Block> {
         self.len
     }
 
-    fn bit_offset(&self) -> u8 {
-        self.offset
-    }
-
     fn get_block(&self, position: usize) -> Block {
         assert!(position < self.block_len(), "BitSliceMut::get_block: out of bounds");
 
         unsafe {
-            ptr::read(self.bits.offset(position as isize))
+            get_block_with_offset(self.bits, self.offset, self.len, position)
         }
     }
 }
@@ -269,7 +322,7 @@ impl<'a, Block: BlockType> BitsMut for BitSliceMut<'a, Block> {
         assert!(position < self.block_len(), "BitSliceMut::set_block: out of bounds");
 
         unsafe {
-            ptr::write(self.bits.offset(position as isize), value)
+            set_block_with_offset(self.bits, self.offset, self.len, position, value);
         }
     }
 }
@@ -565,7 +618,7 @@ impl<'a, Block: BlockType> Iterator for BitSliceBlockIter<'a, Block> {
         if self.0.len == 0 { return None; }
 
         let nbits  = cmp::min(Block::nbits() as u64, self.0.len);
-        let result = Some(self.0.get_bits(0, nbits as usize));
+        let result = Some(self.0.get_block(0));
 
         self.0 = self.0.bit_slice(nbits ..);
 
