@@ -5,7 +5,7 @@ use std::ops::{self, Range, RangeFrom, RangeTo, RangeFull};
 use std::ops::{RangeInclusive, RangeToInclusive};
 
 use super::traits::{Bits, BitsMut, BitSliceable};
-use super::storage::BlockType;
+use super::storage::{Address, BlockType};
 
 /*
  * We represent bit-slices as raw pointers to `Block`s. The slice stores an
@@ -224,6 +224,27 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
     }
 }
 
+unsafe fn get_bit_with_offset<Block: BlockType>(
+    bits: *const Block, offset: u8, position: u64) -> bool {
+
+    let address   = Address::new::<Block>(position + offset as u64);
+    let ptr       = bits.offset(address.block_index as isize);
+    let block     = ptr::read(ptr);
+    let mask      = Block::one() << address.bit_offset;
+    (block & mask) != Block::zero()
+}
+
+unsafe fn set_bit_with_offset<Block: BlockType>(
+    bits: *mut Block, offset: u8, position: u64, value: bool) {
+
+    let address   = Address::new::<Block>(position + offset as u64);
+    let ptr       = bits.offset(address.block_index as isize);
+    let old_block = ptr::read(ptr);
+    let mask      = Block::one() << address.bit_offset;
+    let new_block = if value {old_block | mask} else {old_block & !mask};
+    ptr::write(ptr, new_block);
+}
+
 unsafe fn get_block_with_offset<Block: BlockType>(
     bits: *const Block, offset: u8, len: u64, position: usize) -> Block {
 
@@ -292,7 +313,14 @@ impl<'a, Block: BlockType> Bits for BitSlice<'a, Block> {
         self.len
     }
 
-    fn get_block(&self, position: usize) -> <Self as Bits>::Block {
+    fn get_bit(&self, position: u64) -> bool {
+        assert!(position < self.bit_len(), "BitSlice::get_bit: out of bounds");
+        unsafe {
+            get_bit_with_offset(self.bits, self.offset, position)
+        }
+    }
+
+    fn get_block(&self, position: usize) -> Block {
         assert!(position < self.block_len(), "BitSlice::get_block: out of bounds");
 
         unsafe {
@@ -308,6 +336,13 @@ impl<'a, Block: BlockType> Bits for BitSliceMut<'a, Block> {
         self.len
     }
 
+    fn get_bit(&self, position: u64) -> bool {
+        assert!(position < self.bit_len(), "BitSliceMut::get_bit: out of bounds");
+        unsafe {
+            get_bit_with_offset(self.bits, self.offset, position)
+        }
+    }
+
     fn get_block(&self, position: usize) -> Block {
         assert!(position < self.block_len(), "BitSliceMut::get_block: out of bounds");
 
@@ -318,6 +353,14 @@ impl<'a, Block: BlockType> Bits for BitSliceMut<'a, Block> {
 }
 
 impl<'a, Block: BlockType> BitsMut for BitSliceMut<'a, Block> {
+    fn set_bit(&mut self, position: u64, value: bool) {
+        assert!(position < self.bit_len(), "BitSliceMut::set_bit: out of bounds");
+
+        unsafe {
+            set_bit_with_offset(self.bits, self.offset, position, value);
+        }
+    }
+
     fn set_block(&mut self, position: usize, value: Block) {
         assert!(position < self.block_len(), "BitSliceMut::set_block: out of bounds");
 
