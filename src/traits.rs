@@ -5,10 +5,14 @@ use super::storage::{BlockType, Address};
 
 /// Read-only bit vector operations.
 ///
-/// Minimal complete definition is `get_bit` or `get_block`, since each
-/// is defined in terms of the other. Note that `get_block` in terms of
-/// `get_bit` is inefficient, and thus you should implement `get_block`
-/// directly if possible.
+/// Minimal complete definition is:
+///
+///   - `bit_len`,
+///   - `bit_offset`, and
+///   - `get_bit` or `get_block`, since each is defined in terms of the other.
+///
+/// Note that `get_block` in terms of `get_bit` is inefficient, and thus
+/// you should implement `get_block` directly if possible.
 pub trait Bits {
     /// The underlying block type used to store the bits of the vector.
     type Block: BlockType;
