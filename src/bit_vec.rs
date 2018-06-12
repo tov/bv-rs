@@ -155,6 +155,17 @@ impl<Block: BlockType> BitVec<Block> {
         }
     }
 
+    /// Creates a new `BitVec` from any value implementing the `Bits` trait with
+    /// the same block type.
+    pub fn from_bits<B: Bits<Block = Block>>(bits: B) -> Self {
+        let mut result: Self = Self::with_capacity(bits.bit_len());
+        for i in 0 .. bits.block_len() {
+            result.push_block(bits.get_block(i));
+        }
+        result.resize(bits.bit_len(), false);
+        result
+    }
+
     /// The number of bits in the bit-vector.
     ///
     /// # Examples
@@ -905,5 +916,19 @@ mod test {
         let mut v: BitVec<u8> = bit_vec![false; 8];
         v.set_bits(2, 4, 0b1111);
         assert_eq!( v.get_block(0), 0b00111100 );
+    }
+
+    #[test]
+    fn from_bits() {
+        let mut bits = vec![true; 20];
+        bits[3] = false;
+        let bv = BitVec::from_bits(&bits);
+        assert_eq!( bv.len(), 20 );
+        assert!(  bv[0] );
+        assert!(  bv[1] );
+        assert!(  bv[2] );
+        assert!( !bv[3] );
+        assert!(  bv[4] );
+        assert!(  bv[19] );
     }
 }

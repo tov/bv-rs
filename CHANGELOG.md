@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog] and this project adheres to
 
 ### Added
 - `bit_vec!` macro allows trailing comma.
+- `BitVec::from_bits`, which takes any types that implements `Bits` and
+  copies it into a `BitVec` with the same block size.
 
 ## [0.7.2] - 2018-05-16
 
