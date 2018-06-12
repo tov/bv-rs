@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog] and this project adheres to
 - `bit_vec!` macro allows trailing comma.
 - `BitVec::from_bits`, which takes any types that implements `Bits` and
   copies it into a `BitVec` with the same block size.
+  
+### Removed
+- `Bits::bit_offset` method. Blocks returned from a `Bits` instance are now
+  assumed to be aligned.
 
 ## [0.7.2] - 2018-05-16
 
