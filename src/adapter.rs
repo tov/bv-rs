@@ -32,10 +32,10 @@ use std::cmp;
 ///
 /// let and_bv = bv1.bits_and(&bv2);
 ///
-/// assert_eq!( and_bv.get_bit(0), false );
-/// assert_eq!( and_bv.get_bit(1), false );
-/// assert_eq!( and_bv.get_bit(2), false );
-/// assert_eq!( and_bv.get_bit(3), true );
+/// assert_eq!( and_bv[0], false );
+/// assert_eq!( and_bv[1], false );
+/// assert_eq!( and_bv[2], false );
+/// assert_eq!( and_bv[3], true );
 ///
 /// let bv3 = BitVec::from_bits(and_bv);
 /// assert_eq!( bv3, bit_vec![false, false, false, true] );
