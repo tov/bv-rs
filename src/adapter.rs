@@ -13,6 +13,10 @@ use BlockType;
 
 use std::cmp;
 
+use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
+#[cfg(inclusive_range)]
+use std::ops::{RangeInclusive, RangeToInclusive};
+
 /// Extension trait for bit-wise logical operators on bit slices.
 ///
 /// The methods return lazy adapter objects that query the underlying bit vectors
@@ -304,19 +308,51 @@ macro_rules! impl_bits_bin_op {
             }
         }
 
-        impl<'a, R, T, U> BitSliceable<R> for &'a $target<T, U>
-            where R: Clone,
-                  &'a T: BitSliceable<R>,
-                  &'a U: BitSliceable<R>,
-                  <&'a T as BitSliceable<R>>::Slice: Bits,
-                  <&'a U as BitSliceable<R>>::Slice: Bits<Block = <<&'a T as BitSliceable<R>>::Slice as Bits>::Block> {
+        impl<'a, T, U> BitSliceable<Range<u64>> for &'a $target<T, U>
+            where T: Bits,
+                  U: Bits<Block = T::Block> {
 
-            type Slice = $target<<&'a T as BitSliceable<R>>::Slice,
-                                 <&'a U as BitSliceable<R>>::Slice>;
+            type Slice = BitSliceAdapter<Self>;
 
-            fn bit_slice(self, range: R) -> Self::Slice {
-                $target(BitsBinOp::new((&self.0.op1).bit_slice(range.clone()),
-                                       (&self.0.op2).bit_slice(range)))
+            fn bit_slice(self, range: Range<u64>) -> Self::Slice {
+                assert!( range.start <= range.end,
+                         format!("{}::slice: bad range", stringify!($target)) );
+                BitSliceAdapter::new(self, range.start, range.end - range.start)
+            }
+        }
+
+        impl<'a, T, U> BitSliceable<RangeFrom<u64>> for &'a $target<T, U>
+            where T: Bits,
+                  U: Bits<Block = T::Block> {
+
+            type Slice = BitSliceAdapter<Self>;
+
+            fn bit_slice(self, range: RangeFrom<u64>) -> Self::Slice {
+                let len = self.bit_len();
+                self.bit_slice(range.start .. len)
+            }
+        }
+
+        impl<'a, T, U> BitSliceable<RangeTo<u64>> for &'a $target<T, U>
+            where T: Bits,
+                  U: Bits<Block = T::Block> {
+
+            type Slice = BitSliceAdapter<Self>;
+
+            fn bit_slice(self, range: RangeTo<u64>) -> Self::Slice {
+                BitSliceAdapter::new(self, 0, range.end)
+            }
+        }
+
+        impl<'a, T, U> BitSliceable<RangeFull> for &'a $target<T, U>
+            where T: Bits,
+                  U: Bits<Block = T::Block> {
+
+            type Slice = BitSliceAdapter<Self>;
+
+            fn bit_slice(self, _range: RangeFull) -> Self::Slice {
+                let len = self.bit_len();
+                BitSliceAdapter::new(self, 0, len)
             }
         }
     };
@@ -454,6 +490,24 @@ impl<T: Bits> BitSliceAdapter<T> {
         assert!( start + len <= bits.bit_len(),
                  "BitSliceAdapter::new: out of bounds");
         BitSliceAdapter { bits, start, len }
+    }
+
+    /// Reslices an existing slice adapter.
+    ///
+    /// Takes the index o fthe start bit, relative to the indexing
+    /// of the adapter.
+    ///
+    /// # Panics
+    ///
+    /// Out of bounds if `start + len > self.bit_len()`.
+    pub fn reslice(self, start: u64, len: u64) -> Self {
+        assert!( start + len <= self.bit_len(),
+                 "BitSliceAdapter::reslice: out of bounds" );
+        BitSliceAdapter {
+            bits:  self.bits,
+            start: self.start + start,
+            len,
+        }
     }
 }
 
