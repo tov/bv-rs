@@ -646,4 +646,24 @@ mod test {
                                 false, true, true, false, false, false,
                                 false, true, true, false, false, false]);
     }
+
+    #[test]
+    fn pad() {
+        let bv1: BitVec = bit_vec![true, false, true, false];
+        let bv2: BitVec = bit_vec![true, true];
+
+        let bv3 = bv1.bit_or(bv2.bit_pad(bv1.bit_len())).to_bit_vec();
+
+        assert_eq!( bv3, bit_vec![true, true, true, false] );
+    }
+
+    #[test]
+    fn slice_adapter() {
+        let bv1: BitVec = bit_vec![true, false, true, false, true, false, true, false];
+        let bv2: BitVec = bit_vec![true, true, false, false, true, true, false, false];
+
+        let bv3 = bv1.bit_xor(&bv2).bit_slice(1..7).to_bit_vec();
+
+        assert_eq!( bv3, bit_vec![true, true, false, false, true, true] );
+    }
 }
