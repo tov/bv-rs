@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog] and this project adheres to
      not replace the more specialized `BitSlice`.)
 - `Bits::to_bit_vec` method, which copies the bits into a new `BitVec`.
 - `bit_vec!` macro allows trailing comma.
+- `BitVec::get` and `BitVec::set` methods, aliasing `Bits::get_bit` and
+  `BitsMut::set_bit`, respectively.
   
 ### Removed
 - `Bits::bit_offset` method. Blocks returned from a `Bits` instance are now

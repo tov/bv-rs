@@ -73,7 +73,7 @@ impl<Block: BlockType> BitVec<Block> {
     /// # Examples
     ///
     /// ```
-    /// use bv::{BitVec, Bits};
+    /// use bv::BitVec;
     ///
     /// let mut bv: BitVec = BitVec::new();
     /// assert_eq!(bv.len(), 0);
@@ -83,9 +83,9 @@ impl<Block: BlockType> BitVec<Block> {
     /// bv.push(true);
     /// assert_eq!(bv.len(), 3);
     ///
-    /// assert_eq!(bv.get_bit(0), true);
-    /// assert_eq!(bv.get_bit(1), false);
-    /// assert_eq!(bv.get_bit(2), true);
+    /// assert_eq!(bv[0], true);
+    /// assert_eq!(bv[1], false);
+    /// assert_eq!(bv[2], true);
     /// ```
     pub fn new() -> Self {
         Self::with_block_capacity(1)
@@ -131,7 +131,7 @@ impl<Block: BlockType> BitVec<Block> {
     ///
     /// let mut bv: BitVec<u64> = BitVec::new_fill(false, 100);
     ///
-    /// assert_eq!( bv.get_bit(0), false );
+    /// assert_eq!( bv.get(0), false );
     /// assert_eq!( bv.len(), 100 );
     /// ```
     pub fn new_fill(value: bool, len: u64) -> Self {
@@ -474,6 +474,32 @@ impl<Block: BlockType> BitVec<Block> {
         unsafe {
             BitSliceMut::from_raw_parts(self.bits.as_mut_ptr(), 0, self.len)
         }
+    }
+
+    /// Gets the value of the bit at the given position.
+    ///
+    /// This is an alias for [`Bits::get_bit`].
+    ///
+    /// # Panics
+    ///
+    /// If the position is out of bounds.
+    ///
+    /// [`Bits::get_bit`]: ../trait.Bits.html#get_bit.method
+    pub fn get(&mut self, position: u64) -> bool {
+        self.get_bit(position)
+    }
+
+    /// Sets the value of the bit at the given position.
+    ///
+    /// This is an alias for [`BitsMut::set_bit`].
+    ///
+    /// # Panics
+    ///
+    /// If the position is out of bounds.
+    ///
+    /// [`BitsMut::set_bit`]: ../trait.BitsMut.html#set_bit.method
+    pub fn set(&mut self, position: u64, value: bool) {
+        self.set_bit(position, value);
     }
 
     /// Adds the given `bool` to the end of the bit-vector.
