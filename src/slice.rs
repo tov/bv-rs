@@ -205,14 +205,32 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
         self.len() == 0
     }
 
-    /// Converts a `BitSliceMut` into an immutable `BitSlice`.
-    pub fn as_immut(&self) -> BitSlice<Block> {
+    /// Converts a mutable bit slice to immutable.
+    pub fn as_bit_slice(&self) -> BitSlice<'a, Block> {
         BitSlice {
             bits:   self.bits,
             offset: self.offset,
             len:    self.len,
             marker: PhantomData,
         }
+    }
+}
+
+impl<'a, 'b, Block: BlockType> From<&'b BitSliceMut<'a, Block>> for BitSlice<'a, Block> {
+    fn from(slice: &'b BitSliceMut<'a, Block>) -> Self {
+        slice.as_bit_slice()
+    }
+}
+
+impl<'a, Block: BlockType> From<&'a [Block]> for BitSlice<'a, Block> {
+    fn from(slice: &'a [Block]) -> Self {
+        BitSlice::from_slice(slice)
+    }
+}
+
+impl<'a, Block: BlockType> From<&'a mut [Block]> for BitSliceMut<'a, Block> {
+    fn from(slice: &'a mut [Block]) -> Self {
+        BitSliceMut::from_slice(slice)
     }
 }
 
@@ -671,7 +689,7 @@ impl<'a, Block: BlockType> Ord for BitSlice<'a, Block> {
 
 impl<'a, Block: BlockType> PartialEq for BitSliceMut<'a, Block> {
     fn eq(&self, other: &BitSliceMut<Block>) -> bool {
-        self.as_immut().eq(&other.as_immut())
+        self.as_bit_slice().eq(&other.as_bit_slice())
     }
 }
 
@@ -685,7 +703,7 @@ impl<'a, Block: BlockType> PartialOrd for BitSliceMut<'a, Block> {
 
 impl<'a, Block: BlockType> Ord for BitSliceMut<'a, Block> {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
-        self.as_immut().cmp(&other.as_immut())
+        self.as_bit_slice().cmp(&other.as_bit_slice())
     }
 }
 
@@ -700,7 +718,7 @@ impl<'a, Block: BlockType + hash::Hash> hash::Hash for BitSlice<'a, Block> {
 
 impl<'a, Block: BlockType + hash::Hash> hash::Hash for BitSliceMut<'a, Block> {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
-        self.as_immut().hash(state);
+        self.as_bit_slice().hash(state);
     }
 }
 
@@ -719,7 +737,7 @@ impl<'a, Block: BlockType> fmt::Debug for BitSlice<'a, Block> {
 
 impl<'a, Block: BlockType> fmt::Debug for BitSliceMut<'a, Block> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.as_immut().fmt(f)
+        self.as_bit_slice().fmt(f)
     }
 }
 

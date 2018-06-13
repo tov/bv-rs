@@ -22,6 +22,11 @@ The format is based on [Keep a Changelog] and this project adheres to
 - `bit_vec!` macro allows trailing comma.
 - `BitVec::get` and `BitVec::set` methods, aliasing `Bits::get_bit` and
   `BitsMut::set_bit`, respectively.
+- `From` impls for converting array slices to `BitSlice`, mutable array 
+  slices to `BitSliceMut`, and `BitSliceMut` to `BitSlice`.
+  
+### Changed
+- `BitSliceMut::as_immut` renamed to `BitSliceMut::as_bit_slice`.
   
 ### Removed
 - `Bits::bit_offset` method. Blocks returned from a `Bits` instance are now

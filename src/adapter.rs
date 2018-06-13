@@ -2,7 +2,7 @@
 //!
 //! This module defines an extension trait [`BitsExt`] that is implemented
 //! for every type that implements [`Bits`]. The trait provides bit-wise
-//! logical operations on bit-vector-likes.
+//! logical and other operations on bit-vector-likes.
 //!
 //! [`Bits`]: ../trait.Bits.html
 //! [`BitsExt`]: trait.BitsExt.html
@@ -333,10 +333,10 @@ impl<'a, T: Bits> BitSliceable<RangeToInclusive<u64>> for &'a BitSliceAdapter<T>
     }
 }
 
-/// Extension trait for bit-wise logical operators on bit slices.
+/// Extension trait for adapter operations on bit slices.
 ///
 /// The methods return lazy adapter objects that query the underlying bit vectors
-/// and perform logic operations as needed. To eagerly evaluate a result, copy
+/// and perform operations as needed. To eagerly evaluate a result, copy
 /// it into a vector using the [`Bits::to_bit_vec`] method, as in the example below.
 ///
 /// [`Bits::to_bit_vec`]: ../trait.Bits.html#method.to_bit_vec
