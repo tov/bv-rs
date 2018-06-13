@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog] and this project adheres to
   `BitsMut::set_bit`, respectively.
 - `From` impls for converting array slices to `BitSlice`, mutable array 
   slices to `BitSliceMut`, and `BitSliceMut` to `BitSlice`.
+- `Bits`, `BitsMut`, and `BitSlice` impls for sized arrays from sizes 0 to 31.
   
 ### Changed
 - `BitSliceMut::as_immut` renamed to `BitSliceMut::as_bit_slice`.
