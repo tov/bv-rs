@@ -228,7 +228,7 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
 unsafe fn get_bit_with_offset<Block: BlockType>(
     bits: *const Block, offset: u8, position: u64) -> bool {
 
-    let address   = Address::new::<Block>(position + offset as u64);
+    let address   = Address::new::<Block>(position + u64::from(offset));
     let ptr       = bits.offset(address.block_index as isize);
     let block     = ptr::read(ptr);
     block.get_bit(address.bit_offset)
@@ -237,7 +237,7 @@ unsafe fn get_bit_with_offset<Block: BlockType>(
 unsafe fn set_bit_with_offset<Block: BlockType>(
     bits: *mut Block, offset: u8, position: u64, value: bool) {
 
-    let address   = Address::new::<Block>(position + offset as u64);
+    let address   = Address::new::<Block>(position + u64::from(offset));
     let ptr       = bits.offset(address.block_index as isize);
     let old_block = ptr::read(ptr);
     let new_block = old_block.with_bit(address.bit_offset, value);
@@ -255,7 +255,7 @@ unsafe fn get_block_with_offset<Block: BlockType>(
         return block1 & value_mask;
     }
 
-    let block2 = if position + 1 < Block::ceil_div_nbits(len + offset as u64) {
+    let block2 = if position + 1 < Block::ceil_div_nbits(len + u64::from(offset)) {
         ptr::read(bits.offset(position as isize + 1))
     } else {
         Block::zero()
@@ -293,7 +293,7 @@ unsafe fn set_block_with_offset<Block: BlockType>(
     let new_block1  = old_block1.with_bits(shift1, bits_size1, value);
     ptr::write(ptr1, new_block1);
 
-    if position + 1 < Block::ceil_div_nbits(len + offset as u64) {
+    if position + 1 < Block::ceil_div_nbits(len + u64::from(offset)) {
         let ptr2        = ptr1.offset(1);
         let bits_size2  = cmp::min((limit_bit - Block::mul_nbits(position + 1)) as usize, shift1);
         let old_block2  = ptr::read(ptr2);

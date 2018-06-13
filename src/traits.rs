@@ -317,7 +317,7 @@ impl<Block: BlockType> Bits for [Block] {
 
     #[inline]
     fn bit_len(&self) -> u64 {
-        u64::from(Block::mul_nbits(self.len()))
+        Block::mul_nbits(self.len())
     }
 
     #[inline]
