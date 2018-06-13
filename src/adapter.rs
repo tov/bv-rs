@@ -9,7 +9,6 @@
 
 use Bits;
 use BitSliceable;
-use BitVec;
 use BlockType;
 
 use std::cmp;
@@ -18,9 +17,9 @@ use std::cmp;
 ///
 /// The methods return lazy adapter objects that query the underlying bit vectors
 /// and perform logic operations as needed. To eagerly evaluate a result, copy
-/// it into a vector using the [`to_bit_vec`] method, as in the example below.
+/// it into a vector using the [`Bits::to_bit_vec`] method, as in the example below.
 ///
-/// [`to_bit_vec`]: #method.to_bit_vec
+/// [`Bits::to_bit_vec`]: ../trait.Bits.html#method.to_bit_vec
 ///
 /// # Examples
 ///
@@ -42,13 +41,6 @@ use std::cmp;
 /// assert_eq!( bv3, bit_vec![false, false, false, true] );
 /// ```
 pub trait BitsExt: Bits {
-
-    /// Copies the bits into a new allocated [`BitVec`].
-    ///
-    /// [`BitVec`]: ../struct.BitVec.html
-    fn to_bit_vec(&self) -> BitVec<Self::Block> {
-        BitVec::from_bits(self)
-    }
 
     /// Concatenates two bit vectors, with the bits of `self` followed by the bits
     /// of `other`.

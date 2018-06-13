@@ -4,6 +4,7 @@ use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
 #[cfg(inclusive_range)]
 use std::ops::{RangeInclusive, RangeToInclusive};
 use super::storage::{BlockType, Address};
+use BitVec;
 
 /// Read-only bit vector operations.
 ///
@@ -102,6 +103,13 @@ pub trait Bits {
         let high_bits = block2.get_bits(0, extra);
 
         (high_bits << margin) | low_bits
+    }
+
+    /// Copies the bits into a new allocated [`BitVec`].
+    ///
+    /// [`BitVec`]: ../struct.BitVec.html
+    fn to_bit_vec(&self) -> BitVec<Self::Block> {
+        BitVec::from_bits(self)
     }
 }
 
