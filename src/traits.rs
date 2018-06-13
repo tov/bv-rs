@@ -319,6 +319,10 @@ impl<Block: BlockType> Bits for Box<Bits<Block = Block>> {
         (**self).bit_len()
     }
 
+    fn block_len(&self) -> usize {
+        (**self).block_len()
+    }
+
     fn get_bit(&self, position: u64) -> bool {
         (**self).get_bit(position)
     }
@@ -337,6 +341,10 @@ impl<Block: BlockType> Bits for Box<BitsMut<Block = Block>> {
 
     fn bit_len(&self) -> u64 {
         (**self).bit_len()
+    }
+
+    fn block_len(&self) -> usize {
+        (**self).block_len()
     }
 
     fn get_bit(&self, position: u64) -> bool {
