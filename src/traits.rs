@@ -248,7 +248,7 @@ pub trait BitSliceable<Range> {
     fn bit_slice(self, range: Range) -> Self::Slice;
 }
 
-impl<'a, T: Bits> Bits for &'a T {
+impl<'a, T: Bits + ?Sized> Bits for &'a T {
     type Block = T::Block;
 
     fn bit_len(&self) -> u64 {

@@ -9,7 +9,7 @@
 //! let bv1: BitVec = bit_vec![false, false, true, true];
 //! let bv2: BitVec = bit_vec![false, true, false, true];
 //!
-//! let and_bv = (&bv1).bits_and(&bv2);
+//! let and_bv = bv1.bits_and(&bv2);
 //!
 //! assert_eq!( and_bv.get_bit(0), false );
 //! assert_eq!( and_bv.get_bit(1), false );
@@ -30,8 +30,16 @@ use std::cmp;
 /// The operations return lazy bit vectors, which can be forced and copied
 /// into strict bit vectors with `BitVec::from_bits`.
 pub trait BitsLogic: Bits {
+
     /// Returns an object that inverts the values of all the bits in `self`.
-    fn bits_not(self) -> BitsNot<Self>
+    fn bits_not(&self) -> BitsNot<&Self> {
+        BitsNot(self)
+    }
+
+    /// Returns an object that inverts the values of all the bits in `self`.
+    ///
+    /// Consumes `self`.
+    fn into_bits_not(self) -> BitsNot<Self>
         where Self: Sized
     {
         BitsNot(self)
@@ -39,7 +47,17 @@ pub trait BitsLogic: Bits {
 
     /// Returns an object that lazily computes the bit-wise conjunction
     /// of two bit-vector-likes.
-    fn bits_and<Other>(self, other: Other) -> BitsAnd<Self, Other>
+    fn bits_and<Other>(&self, other: Other) -> BitsAnd<&Self, Other>
+        where Other: Bits<Block = Self::Block> {
+
+        BitsAnd(BitsBinOp::new(self, other))
+    }
+
+    /// Returns an object that lazily computes the bit-wise conjunction
+    /// of two bit-vector-likes.
+    ///
+    /// Consumes `self`.
+    fn into_bits_and<Other>(self, other: Other) -> BitsAnd<Self, Other>
         where Self: Sized,
               Other: Bits<Block = Self::Block> {
 
@@ -48,7 +66,17 @@ pub trait BitsLogic: Bits {
 
     /// Returns an object that lazily computes the bit-wise disjunction
     /// of two bit-vector-likes.
-    fn bits_or<Other>(self, other: Other) -> BitsOr<Self, Other>
+    fn bits_or<Other>(&self, other: Other) -> BitsOr<&Self, Other>
+        where Other: Bits<Block = Self::Block> {
+
+        BitsOr(BitsBinOp::new(self, other))
+    }
+
+    /// Returns an object that lazily computes the bit-wise disjunction
+    /// of two bit-vector-likes.
+    ///
+    /// Consumes `self`.
+    fn into_bits_or<Other>(self, other: Other) -> BitsOr<Self, Other>
         where Self: Sized,
               Other: Bits<Block = Self::Block> {
 
@@ -57,7 +85,17 @@ pub trait BitsLogic: Bits {
 
     /// Returns an object that lazily computes the bit-wise xor of two
     /// bit-vector-likes.
-    fn bits_xor<Other>(self, other: Other) -> BitsXor<Self, Other>
+    fn bits_xor<Other>(&self, other: Other) -> BitsXor<&Self, Other>
+        where Other: Bits<Block = Self::Block> {
+
+        BitsXor(BitsBinOp::new(self, other))
+    }
+
+    /// Returns an object that lazily computes the bit-wise xor of two
+    /// bit-vector-likes.
+    ///
+    /// Consumes `self`.
+    fn into_bits_xor<Other>(self, other: Other) -> BitsXor<Self, Other>
         where Self: Sized,
               Other: Bits<Block = Self::Block> {
 
@@ -231,7 +269,7 @@ mod test {
     #[test]
     fn simple_not() {
         let bv: BitVec = bit_vec![true, true, true, false,];
-        let not_bits = (&bv).bits_not();
+        let not_bits = bv.bits_not();
         assert_0001(&not_bits);
     }
 
@@ -239,7 +277,7 @@ mod test {
     fn simple_and() {
         let bv1: BitVec<u8> = bit_vec![ false, false, true, true, ];
         let bv2: BitVec<u8> = bit_vec![ false, true, false, true, ];
-        let and_bits = (&bv1).bits_and(&bv2);
+        let and_bits = bv1.bits_and(&bv2);
         assert_0001(&and_bits);
     }
 
@@ -249,7 +287,7 @@ mod test {
         let bv2: BitVec<u8> = bit_vec![ true, false, true, false, true ];
         let bv_slice1 = bv1.bit_slice(1..);
         let bv_slice2 = bv2.bit_slice(1..);
-        let and_bits = (&bv_slice1).bits_and(&bv_slice2);
+        let and_bits = bv_slice1.bits_and(&bv_slice2);
         assert_0001(&and_bits);
     }
 
@@ -259,7 +297,7 @@ mod test {
         let bv2: BitVec<u8> = bit_vec![ true, false, true, false, true ];
         let bv_slice1 = bv1.bit_slice(2..);
         let bv_slice2 = bv2.bit_slice(1..);
-        let and_bits = (&bv_slice1).bits_and(&bv_slice2);
+        let and_bits = bv_slice1.bits_and(&bv_slice2);
         assert_0001(&and_bits);
     }
 }
