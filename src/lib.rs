@@ -57,6 +57,8 @@ extern crate serde;
 #[macro_use]
 extern crate quickcheck;
 
+mod util;
+
 #[macro_use]
 mod macros;
 
