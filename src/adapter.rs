@@ -591,21 +591,21 @@ impl<T, U> Bits for BitConcat<T, U>
 
     fn get_block(&self, position: usize) -> Self::Block {
         let start_bit = Self::Block::mul_nbits(position);
-        let end_bit   = cmp::min(start_bit + Self::Block::nbits() as u64,
+        let limit_bit = cmp::min(start_bit + Self::Block::nbits() as u64,
                                  self.bit_len());
 
         let len0 = self.0.bit_len();
-        if end_bit < len0 {
+        if limit_bit <= len0 {
             self.0.get_block(position)
         } else if start_bit < len0 {
             let chunk1 = self.0.get_block(position);
             let chunk2 = self.1.get_block(0);
-            let from1  = (len0 - start_bit) as usize;
+            let from1  = cmp::min(Self::Block::nbits(), (len0 - start_bit) as usize);
             let from2  = Self::Block::nbits() - from1;
             chunk1.get_bits(0, from1) |
                 (chunk2.get_bits(0, from2) << from1)
         } else {
-            self.1.get_bits(start_bit - len0, (end_bit - start_bit) as usize)
+            self.1.get_bits(start_bit - len0, (limit_bit - start_bit) as usize)
         }
     }
 }

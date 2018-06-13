@@ -10,7 +10,192 @@ use bv::adapter::*;
 
 use quickcheck::{Arbitrary, Gen};
 
+use std::cmp;
+
+quickcheck! {
+    fn prop_u8(program: Program) -> bool {
+        program.evaluate::<u8>().check()
+    }
+
+    fn prop_u16(program: Program) -> bool {
+        program.evaluate::<u16>().check()
+    }
+
+    fn prop_u64(program: Program) -> bool {
+        program.evaluate::<u64>().check()
+    }
+
+    fn prop_usize(program: Program) -> bool {
+        program.evaluate::<usize>().check()
+    }
+}
+
+// The result of evaluting a random program, on both the reference
+// implementation and the actual implementation under test.
+struct ProgramResult<Block: BlockType> {
+    expected: RefImpl,
+    actual:   Box<Bits<Block = Block>>,
+}
+
+impl<Block: BlockType> ProgramResult<Block> {
+    // Check that a program result is valid; that is, the vectors agree.
+    fn check(&self) -> bool {
+        self.expected == RefImpl::from_bits(&self.actual)
+    }
+}
+
 #[derive(Clone, Debug)]
+enum Program {
+    Constant(RefImpl),
+    Not(Box<Program>),
+    And(Box<Program>, Box<Program>),
+    Or(Box<Program>, Box<Program>),
+    Xor(Box<Program>, Box<Program>),
+    Concat(Box<Program>, Box<Program>),
+    Slice(Box<Program>, usize, usize),
+    Force(Box<Program>),
+}
+
+impl Arbitrary for Program {
+    fn arbitrary<G: Gen>(g: &mut G) -> Self {
+        use Program::*;
+
+        let recur  = |g: &mut G| Box::new(Program::arbitrary(g));
+        let choice = g.gen_range(21, 91);
+
+        match choice {
+            21...50 => Constant(RefImpl::arbitrary(g)),
+            51...55 => Not(recur(g)),
+            56...60 => And(recur(g), recur(g)),
+            61...65 => Or(recur(g), recur(g)),
+            66...70 => Xor(recur(g), recur(g)),
+            71...75 => Concat(recur(g), recur(g)),
+            76...80 => {
+                let program = recur(g);
+                let len     = program.len();
+                if len >= 2 {
+                    let start = g.gen_range(0, len / 2);
+                    let limit = g.gen_range(len / 2, len);
+                    Slice(program, start, limit - start)
+                } else {
+                    Slice(program, 0, len)
+                }
+            }
+            _       => Force(Box::new(Program::arbitrary(g))),
+        }
+    }
+
+    fn shrink(&self) -> Box<Iterator<Item=Self>> {
+        use Program::*;
+
+        let add = |r: &mut Vec<Program>, p: &Box<Program>| r.push(Program::clone(&**p));
+
+        let mut res = Vec::new();
+
+        match *self {
+            Constant(ref bv)       => res.extend(bv.shrink().map(Constant)),
+            Not(ref p)             => add(&mut res, p),
+            And(ref p1, ref p2)    => { add(&mut res, p1); add(&mut res, p2); }
+            Or(ref p1, ref p2)     => { add(&mut res, p1); add(&mut res, p2); }
+            Xor(ref p1, ref p2)    => { add(&mut res, p1); add(&mut res, p2); }
+            Concat(ref p1, ref p2) => { add(&mut res, p1); add(&mut res, p2); }
+            Slice(ref p, _, _)     => add(&mut res, p),
+            Force(ref p)           => add(&mut res, p),
+        }
+
+        Box::new(res.into_iter())
+    }
+}
+
+impl Program {
+    fn len(&self) -> usize {
+        use Program::*;
+
+        match *self {
+            Constant(ref bv)        => bv.0.len(),
+            Not(ref p)              => p.len(),
+            And(ref p1, ref p2)     => cmp::min(p1.len(), p2.len()),
+            Or(ref p1, ref p2)      => cmp::min(p1.len(), p2.len()),
+            Xor(ref p1, ref p2)     => cmp::min(p1.len(), p2.len()),
+            Concat(ref p1, ref p2)  => p1.len() + p2.len(),
+            Slice(_, _, len)        => len as usize,
+            Force(ref p)            => p.len(),
+        }
+    }
+
+    fn evaluate<Block: BlockType + 'static>(&self) -> ProgramResult<Block> {
+        use Program::*;
+
+        match *self {
+            Constant(ref bv) => ProgramResult {
+                expected: bv.clone(),
+                actual:   Box::new(bv.to_bit_vec()),
+            },
+
+            Not(ref p) => {
+                let res = p.evaluate();
+                ProgramResult {
+                    expected: res.expected.not(),
+                    actual:   Box::new(res.actual.into_bit_not()),
+                }
+            }
+
+            And(ref p1, ref p2) => {
+                let res1 = p1.evaluate();
+                let res2 = p2.evaluate();
+                ProgramResult {
+                    expected: res1.expected.and(&res2.expected),
+                    actual:   Box::new(res1.actual.into_bit_and(res2.actual)),
+                }
+            }
+
+            Or(ref p1, ref p2) => {
+                let res1 = p1.evaluate();
+                let res2 = p2.evaluate();
+                ProgramResult {
+                    expected: res1.expected.or(&res2.expected),
+                    actual:   Box::new(res1.actual.into_bit_or(res2.actual)),
+                }
+            }
+
+            Xor(ref p1, ref p2) => {
+                let res1 = p1.evaluate();
+                let res2 = p2.evaluate();
+                ProgramResult {
+                    expected: res1.expected.xor(&res2.expected),
+                    actual:   Box::new(res1.actual.into_bit_xor(res2.actual)),
+                }
+            }
+
+            Concat(ref p1, ref p2) => {
+                let res1 = p1.evaluate();
+                let res2 = p2.evaluate();
+                ProgramResult {
+                    expected: res1.expected.concat(&res2.expected),
+                    actual:   Box::new(res1.actual.into_bit_concat(res2.actual)),
+                }
+            }
+
+            Slice(ref p, start, len) => {
+                let res = p.evaluate();
+                ProgramResult {
+                    expected: res.expected.slice(start, len),
+                    actual:   Box::new(BitSliceAdapter::new(res.actual, start as u64, len as u64)),
+                }
+            }
+
+            Force(ref p) => {
+                let res = p.evaluate();
+                ProgramResult {
+                    expected: res.expected,
+                    actual:   Box::new(res.actual.to_bit_vec()),
+                }
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 struct RefImpl(Vec<bool>);
 
 impl Arbitrary for RefImpl {
@@ -32,23 +217,47 @@ impl RefImpl {
         result
     }
 
-    fn to_bit_vec<Block: BlockType>(bits: &RefImpl) -> BitVec<Block> {
-        let mut result = BitVec::with_capacity(bits.0.len() as u64);
-        for i in 0 .. bits.0.len() {
-            result.push(bits.0[i])
+    fn to_bit_vec<Block: BlockType>(&self) -> BitVec<Block> {
+        let mut result = BitVec::with_capacity(self.0.len() as u64);
+        for i in 0 .. self.0.len() {
+            result.push(self.0[i])
+        }
+        result
+    }
+
+    fn not(&self) -> Self {
+        RefImpl(self.0.iter().map(|&b| !b).collect())
+    }
+
+    fn bin_op<F: Fn(bool, bool) -> bool>(&self, other: &RefImpl, op: F) -> Self {
+        RefImpl(self.0.iter().zip(other.0.iter())
+            .map(|(&b1, &b2)| op(b1, b2)).collect())
+    }
+
+    fn and(&self, other: &RefImpl) -> Self {
+        self.bin_op(other, |b1, b2| b1 & b2)
+    }
+
+    fn or(&self, other: &RefImpl) -> Self {
+        self.bin_op(other, |b1, b2| b1 | b2)
+    }
+
+    fn xor(&self, other: &RefImpl) -> Self {
+        self.bin_op(other, |b1, b2| b1 ^ b2)
+    }
+
+    fn concat(&self, other: &RefImpl) -> Self {
+        let mut result = self.clone();
+        result.0.extend(other.0.iter().cloned());
+        result
+    }
+
+    fn slice(&self, start: usize, len: usize) -> Self {
+        let mut result = RefImpl(Vec::new());
+        for i in start .. (start + len) {
+            result.0.push(self.0[i]);
         }
         result
     }
 }
 
-#[derive(Clone, Debug)]
-enum Program {
-    Constant(RefImpl),
-    Not(Box<Program>),
-    And(Box<Program>, Box<Program>),
-    Or(Box<Program>, Box<Program>),
-    Xor(Box<Program>, Box<Program>),
-    Concat(Box<Program>, Box<Program>),
-    Slice(Box<Program>, u64, u64),
-    Force(Box<Program>),
-}
