@@ -757,8 +757,8 @@ impl_index_from_bits! {
     impl[Block: BlockType] Index<u64> for BitVec<Block>;
 }
 
-impl<Block: BlockType> PartialEq for BitVec<Block> {
-    fn eq(&self, other: &BitVec<Block>) -> bool {
+impl<Other: Bits> PartialEq<Other> for BitVec<Other::Block> {
+    fn eq(&self, other: &Other) -> bool {
         BlockIter::new(self) == BlockIter::new(other)
     }
 }
@@ -975,7 +975,14 @@ mod test {
     #[test]
     fn disequality() {
         let bv1: BitVec = bit_vec![true, true, false];
-        let bv2: BitVec = bit_vec![true, true];
+        let bv2         = bit_vec![true, true];
         assert_ne!( bv1, bv2 );
+    }
+
+    #[test]
+    fn mixed_equality() {
+        let bv: BitVec<u8> = bit_vec![true, false, true];
+        let array: &[bool] = &[true, false, true];
+        assert_eq!( bv, array );
     }
 }

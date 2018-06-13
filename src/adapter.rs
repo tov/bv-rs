@@ -11,6 +11,7 @@ use Bits;
 use BitsMut;
 use BitSliceable;
 use BlockType;
+use iter::BlockIter;
 use util;
 
 use std::cmp;
@@ -79,6 +80,15 @@ impl<T: Bits> BitSliceAdapter<T> {
             start: self.start + start,
             len,
         }
+    }
+}
+
+impl<T, U> PartialEq<U> for BitSliceAdapter<T>
+    where T: Bits,
+          U: Bits<Block = T::Block> {
+
+    fn eq(&self, other: &U) -> bool {
+        BlockIter::new(self) == BlockIter::new(other)
     }
 }
 
@@ -588,6 +598,15 @@ impl_bit_sliceable_adapter! {
     impl['a, T: Bits] BitSliceable for &'a BitNot<T>;
 }
 
+impl<T, U> PartialEq<U> for BitNot<T>
+    where T: Bits,
+          U: Bits<Block = T::Block> {
+
+    fn eq(&self, other: &U) -> bool {
+        BlockIter::new(self) == BlockIter::new(other)
+    }
+}
+
 macro_rules! impl_bits_bin_op {
     ( $target:ident as $block_op:tt $bool_op:tt ) => {
         impl<T, U> Bits for $target<T, U>
@@ -630,6 +649,16 @@ macro_rules! impl_bits_bin_op {
 
         impl_bit_sliceable_adapter! {
             impl['a, T: Bits, U: Bits<Block = T::Block>] BitSliceable for &'a $target<T, U>;
+        }
+
+        impl<T, U, V> PartialEq<V> for $target<T, U>
+            where T: Bits,
+                  U: Bits<Block = T::Block>,
+                  V: Bits<Block = T::Block> {
+
+            fn eq(&self, other: &V) -> bool {
+                BlockIter::new(self) == BlockIter::new(other)
+            }
         }
     };
 }
@@ -734,6 +763,22 @@ impl<T, U> Bits for BitConcat<T, U>
         } else {
             self.1.get_bits(start_bit - len0, (limit_bit - start_bit) as usize)
         }
+    }
+}
+
+impl<T: Bits> PartialEq<T> for BitFill<T::Block> {
+    fn eq(&self, other: &T) -> bool {
+        BlockIter::new(self) == BlockIter::new(other)
+    }
+}
+
+impl<T, U, V> PartialEq<V> for BitConcat<T, U>
+    where T: Bits,
+          U: Bits<Block = T::Block>,
+          V: Bits<Block = T::Block> {
+
+    fn eq(&self, other: &V) -> bool {
+        BlockIter::new(self) == BlockIter::new(other)
     }
 }
 
@@ -855,5 +900,12 @@ mod test {
         }
 
         assert_eq!( bv, bit_vec![true, true, true, false] );
+    }
+
+    #[test]
+    fn mixed_equality() {
+        let bv1: BitVec = bit_vec![false, false, true, true];
+        let bv2: BitVec = bit_vec![false, true, false, true];
+        assert_eq!( bv1.bit_xor(&bv2), bit_vec![false, true, true, false] );
     }
 }

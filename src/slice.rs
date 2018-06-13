@@ -629,9 +629,9 @@ impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a mut [Block] {
     }
 }
 
-impl<'a, Block: BlockType> PartialEq for BitSlice<'a, Block> {
-    fn eq(&self, other: &BitSlice<Block>) -> bool {
-        self.cmp(other) == cmp::Ordering::Equal
+impl<'a, Other: Bits> PartialEq<Other> for BitSlice<'a, Other::Block> {
+    fn eq(&self, other: &Other) -> bool {
+        BlockIter::new(self) == BlockIter::new(other)
     }
 }
 
@@ -651,9 +651,9 @@ impl<'a, Block: BlockType> Ord for BitSlice<'a, Block> {
     }
 }
 
-impl<'a, Block: BlockType> PartialEq for BitSliceMut<'a, Block> {
-    fn eq(&self, other: &BitSliceMut<Block>) -> bool {
-        self.as_bit_slice().eq(&other.as_bit_slice())
+impl<'a, Other: Bits> PartialEq<Other> for BitSliceMut<'a, Other::Block> {
+    fn eq(&self, other: &Other) -> bool {
+        BlockIter::new(self) == BlockIter::new(other)
     }
 }
 
