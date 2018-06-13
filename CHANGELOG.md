@@ -14,10 +14,10 @@ The format is based on [Keep a Changelog] and this project adheres to
 - `adapter::BitsExt` trait, for adapter operations over types that implement `Bits`.
   Adapters include:
    - bit-wise logic adapters `BitNot`, `BitAnd`, `BitOr`, and `BitXor`;
-   - `BitFill`;
-   - `BitConcat`; and
-   - `BitSliceAdapter`. (Note that `BitSliceAdapter` does not replace the more specialized 
-     `BitSlice`.)
+   - constant adapter `BitFill`;
+   - concatenation adapter `BitConcat`; and
+   - and slicing adapter `BitSliceAdapter`. (Note that `BitSliceAdapter` does 
+     not replace the more specialized `BitSlice`.)
 - `Bits::to_bit_vec` method, which copies the bits into a new `BitVec`.
 - `bit_vec!` macro allows trailing comma.
   
