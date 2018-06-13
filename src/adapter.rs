@@ -430,6 +430,61 @@ impl_index_from_bits! {
     impl[T: Bits, U: Bits<Block = T::Block>] Index<u64> for BitConcat<T, U>;
 }
 
+/// An adapter that turns any implementation of `Bits` into a slice.
+///
+/// This is likely less efficient than [`BitSlice`].
+///
+/// [`BitSlice`]: ../struct.BitSlice.html
+#[derive(Copy, Clone, Debug)]
+pub struct BitSliceAdapter<T> {
+    bits:  T,
+    start: u64,
+    len:   u64,
+}
+
+impl<T: Bits> BitSliceAdapter<T> {
+    /// Creates a new slice adaptor from the given bit-vector-like.
+    ///
+    /// Takes the index of the start bit, and the length to slice.
+    ///
+    /// # Panics
+    ///
+    /// Out of bounds if `start + len > bits.bit_len()`.
+    pub fn new(bits: T, start: u64, len: u64) -> Self {
+        assert!( start + len <= bits.bit_len(),
+                 "BitSliceAdapter::new: out of bounds");
+        BitSliceAdapter { bits, start, len }
+    }
+}
+
+impl<T: Bits> Bits for BitSliceAdapter<T> {
+    type Block = T::Block;
+
+    fn bit_len(&self) -> u64 {
+        self.len
+    }
+
+    fn get_bit(&self, position: u64) -> bool {
+        assert!( position < self.bit_len(),
+                 "BitSliceAdapter::get_bit: out of bounds" );
+        self.bits.get_bit(position + self.start)
+    }
+
+    fn get_block(&self, position: usize) -> Self::Block {
+        let real_start = self.start + T::Block::mul_nbits(position);
+        let real_limit = cmp::min(real_start + T::Block::nbits() as u64,
+                                  self.start + self.len);
+        assert!( real_start <= real_limit,
+                 "BitSliceAdapter::get_block: out of bounds" );
+        let real_len   = (real_limit - real_start) as usize;
+        self.bits.get_bits(real_start, real_len)
+    }
+}
+
+impl_index_from_bits! {
+    impl[T: Bits] Index<u64> for BitSliceAdapter<T>;
+}
+
 #[cfg(test)]
 mod test {
     use {Bits, BitVec, BitSliceable};
