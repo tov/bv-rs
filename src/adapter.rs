@@ -245,7 +245,7 @@ impl<R, T> BitSliceable<R> for BitsNot<T>
 }
 
 macro_rules! impl_bits_bin_op {
-    ( $target:ident as $op:tt ) => {
+    ( $target:ident as $block_op:tt $bool_op:tt ) => {
         impl<T, U> Bits for $target<T, U>
             where T: Bits,
                   U: Bits<Block = T::Block>
@@ -257,11 +257,11 @@ macro_rules! impl_bits_bin_op {
             }
 
             fn get_bit(&self, position: u64) -> bool {
-                self.0.bit1(position) $op self.0.bit2(position)
+                self.0.bit1(position) $bool_op self.0.bit2(position)
             }
 
             fn get_block(&self, position: usize) -> Self::Block {
-                self.0.block1(position) $op self.0.block2(position)
+                self.0.block1(position) $block_op self.0.block2(position)
             }
         }
 
@@ -286,9 +286,9 @@ macro_rules! impl_bits_bin_op {
     };
 }
 
-impl_bits_bin_op!(BitsAnd as &);
-impl_bits_bin_op!(BitsOr  as |);
-impl_bits_bin_op!(BitsXor as ^);
+impl_bits_bin_op!(BitsAnd as & &&);
+impl_bits_bin_op!(BitsOr  as | ||);
+impl_bits_bin_op!(BitsXor as ^ ^);
 
 /// An adapter that emulates a constant-valued bit-vector of a given
 /// size.
