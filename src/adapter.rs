@@ -413,6 +413,10 @@ impl<R, T> BitSliceable<R> for BitNot<T>
     }
 }
 
+impl_bit_sliceable_adapter! {
+    impl['a, T: Bits] BitSliceable for &'a BitNot<T>;
+}
+
 macro_rules! impl_bits_bin_op {
     ( $target:ident as $block_op:tt $bool_op:tt ) => {
         impl<T, U> Bits for $target<T, U>
@@ -565,6 +569,13 @@ impl<T, U> Bits for BitConcat<T, U>
 impl_index_from_bits! {
     impl[Block: BlockType] Index<u64> for BitFill<Block>;
     impl[T: Bits, U: Bits<Block = T::Block>] Index<u64> for BitConcat<T, U>;
+}
+
+impl_bit_sliceable_adapter! {
+    impl[Block: BlockType] BitSliceable for BitFill<Block>;
+    impl['a, Block: BlockType] BitSliceable for &'a BitFill<Block>;
+    impl[T: Bits, U: Bits<Block = T::Block>] BitSliceable for BitConcat<T, U>;
+    impl['a, T: Bits, U: Bits<Block = T::Block>] BitSliceable for &'a BitConcat<T, U>;
 }
 
 #[cfg(test)]
