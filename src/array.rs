@@ -219,6 +219,34 @@ macro_rules! impl_traits_for_array {
                     (self as &'a [Block]).bit_slice(range)
                 }
             }
+
+            impl Bits for [bool; $size] {
+                type Block = u8;
+
+                fn bit_len(&self) -> u64 {
+                    $size
+                }
+
+                fn get_bit(&self, position: u64) -> bool {
+                    self[position as usize]
+                }
+            }
+
+            impl BitsMut for [bool; $size] {
+                fn set_bit(&mut self, position: u64, value: bool) {
+                    self[position as usize] = value;
+                }
+            }
+
+            impl<'a, R> BitSliceable<R> for &'a [bool; $size]
+                where &'a [bool]: BitSliceable<R> {
+
+                type Slice = <&'a [bool] as BitSliceable<R>>::Slice;
+
+                fn bit_slice(self, range: R) -> Self::Slice {
+                    (self as &'a [bool]).bit_slice(range)
+                }
+            }
         )+
     };
 }
