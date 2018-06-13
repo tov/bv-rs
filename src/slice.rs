@@ -768,7 +768,7 @@ mod test {
         let bs = BitSlice::from_slice(&slice);
         let exp = "bit_vec![true, false, true, false, true, true, false, false]";
         let act = format!("{:?}", bs);
-        assert_eq!( &*act, exp );
+        assert_eq!( act, exp );
     }
 
     #[cfg(inclusive_range)]
