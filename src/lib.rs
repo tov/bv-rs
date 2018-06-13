@@ -74,8 +74,8 @@ pub use self::slice::{BitSlice, BitSliceMut};
 mod bit_vec;
 pub use self::bit_vec::BitVec;
 
+mod array;
 mod iter;
-
 mod prims;
 
 pub mod adapter;
