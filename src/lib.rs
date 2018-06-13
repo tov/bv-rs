@@ -1,16 +1,24 @@
 #![doc(html_root_url = "https://tov.github.io/bv-rs")]
-//! The main type exported by the library, [`BitVec`](struct.BitVec.html), is a packed,
-//! growable bit-vector. Its API mirrors that of `Vec` where reasonable. The
-//! library also defines slice operations that return
-//! [`BitSlice`](struct.BitSlice.html) or [`BitSliceMut`](struct.BitSliceMut.html),
-//! akin to Rust’s array slices but for bit-vectors. A common API to
-//! bit-vectors and bit-slices is provided by the [`Bits`](trait.Bits.html),
-//! [`BitsMut`](trait.BitsMut.html), and [`BitsPush`](trait.BitsPush.html)
-//! traits, which also allow treating as bit-vectors all primitive unsigned
-//! integer types (`uN`), and vectors and slices thereof, as well as unpacked
-//! vectors and slices of `bool`.
+//! The main type exported by the library, [`BitVec`], is a packed,
+//! growable bit-vector. Its API mirrors that of `Vec` where reasonable.
 //!
-//! # Example
+//! The library also defines slice operations that return
+//! [`BitSlice`] or [`BitSliceMut`], akin to Rust’s array slices but for
+//! bit-vectors. A common API to bit-vectors and bit-slices is provided by the [`Bits`],
+//! [`BitsMut`], and [`BitsPush`] traits. These traits also allow treating a variety
+//! of other types as bit vectors:
+//!
+//!  - all primitive unsigned integer types (*e.g.,* `u64`, `u32`),
+//!  - vectors and slices thereof (*e.g.*, `Vec<usize>`, `&[u8]`, `[u16; 4]`), and
+//!  - unpacked vectors and arrays of `bool` (*e.g.*, `[bool; 15]`).
+//!
+//! Additionally, the [`adapter`] module exports the [`adapter::BitsExt`] trait,
+//! which provides adapter methods including bit-wise logic and concatenation. These
+//! adapters work for all types that implement [`Bits`].
+//!
+//! # Examples
+//!
+//! A first example with [`BitVec`]:
 //!
 //! ```
 //! use bv::BitVec;
@@ -26,6 +34,18 @@
 //! assert_eq!(bv1.pop(), Some(true));
 //! assert_eq!(bv2.pop(), Some(false));
 //! assert_eq!(bv1, bv2);
+//! ```
+//!
+//! Adapters, from [`adapter::BitsExt`]
+//!
+//! ```
+//! use bv::*;
+//! use bv::adapter::BitsExt;
+//!
+//! let array = &[0b1100u8];
+//! let vec   = vec![false, true, false, true];
+//! let xor   = array.bit_xor(&vec);
+//! assert_eq!( xor, bit_vec![false, true, true, false] );
 //! ```
 //!
 //! # Usage
@@ -46,6 +66,15 @@
 //! to your crate root.
 //!
 //! This crate supports Rust version 1.20 and newer.
+//!
+//! [`BitVec`]: struct.BitVec.html
+//! [`Bits`]: trait.Bits.html
+//! [`BitsMut`]: trait.BitsMut.html
+//! [`BitsPush`]: trait.BitsPush.html
+//! [`BitSlice`]: struct.BitSlice.html
+//! [`BitSliceMut`]: struct.BitSliceMut.html
+//! [`adapter`]: adapter/
+//! [`adapter::BitsExt`]: adapter/trait.BitsExt.html
 
 #![warn(missing_docs)]
 
