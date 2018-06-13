@@ -74,4 +74,4 @@ pub use self::bit_vec::BitVec;
 
 mod prims;
 
-pub mod logic;
+pub mod adapter;

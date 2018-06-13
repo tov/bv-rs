@@ -1,44 +1,44 @@
-//! Bit-wise logical operators on bit slices.
+//! Lazy bit vector adapters, including bit-wise logic.
 //!
 //! This module defines an extension trait [`BitsLogic`] that is implemented
-//! for every type that implements [`Bits`]. The methods return lazy adapter
-//! objects that query the underlying bit vectors and perform logic operations
-//! as needed. To eagerly evaluate a result, copy it into a vector using
-//! [`BitVec::from_bits`], as in the example below.
+//! for every type that implements [`Bits`]. The trait provides bit-wise
+//! logical operations on bit-vector-likes.
 //!
 //! [`Bits`]: ../trait.Bits.html
 //! [`BitsLogic`]: trait.BitsLogic.html
-//! [`BitVec::from_bits`]: ../struct.BitVec.html#method.from_bits
-//!
-//! # Examples
-//!
-//! ```
-//! use bv::*;
-//! use bv::logic::BitsLogic;
-//!
-//! let bv1: BitVec = bit_vec![false, false, true, true];
-//! let bv2: BitVec = bit_vec![false, true, false, true];
-//!
-//! let and_bv = bv1.bits_and(&bv2);
-//!
-//! assert_eq!( and_bv.get_bit(0), false );
-//! assert_eq!( and_bv.get_bit(1), false );
-//! assert_eq!( and_bv.get_bit(2), false );
-//! assert_eq!( and_bv.get_bit(3), true );
-//!
-//! let bv3 = BitVec::from_bits(and_bv);
-//! assert_eq!( bv3, bit_vec![false, false, false, true] );
-//! ```
 
 use Bits;
 use BitSliceable;
-use BlockType;
 
 use std::cmp;
 
-/// Extension trait for bitwise logic operations on bit vectors.
+/// Extension trait for bit-wise logical operators on bit slices.
 ///
-/// See the [module-level documentation](index.html).
+/// The methods return lazy adapter objects that query the underlying bit vectors
+/// and perform logic operations as needed. To eagerly evaluate a result, copy
+/// it into a vector using [`BitVec::from_bits`], as in the example below.
+///
+/// [`BitVec::from_bits`]: ../struct.BitVec.html#method.from_bits
+///
+/// # Examples
+///
+/// ```
+/// use bv::*;
+/// use bv::adapter::BitsLogic;
+///
+/// let bv1: BitVec = bit_vec![false, false, true, true];
+/// let bv2: BitVec = bit_vec![false, true, false, true];
+///
+/// let and_bv = bv1.bits_and(&bv2);
+///
+/// assert_eq!( and_bv.get_bit(0), false );
+/// assert_eq!( and_bv.get_bit(1), false );
+/// assert_eq!( and_bv.get_bit(2), false );
+/// assert_eq!( and_bv.get_bit(3), true );
+///
+/// let bv3 = BitVec::from_bits(and_bv);
+/// assert_eq!( bv3, bit_vec![false, false, false, true] );
+/// ```
 pub trait BitsLogic: Bits {
 
     /// Returns an object that inverts the values of all the bits in `self`.
@@ -144,7 +144,7 @@ pub struct BitsOr<T, U>(BitsBinOp<T, U>);
 pub struct BitsXor<T, U>(BitsBinOp<T, U>);
 
 /// Used to store the two operands to a bitwise logical operation on
-/// `Bits`es, along with the length of the result (max the length of
+/// `Bits`es, along with the length of the result (min the length of
 /// the operands) and the offset of the result (see invariant below).
 /// (Note that both `len` and `off` are derivable from `op1` and `op2`,
 /// but it probably makes sense to cache them.)
@@ -155,42 +155,26 @@ struct BitsBinOp<T, U> {
     len: u64,
 }
 
-fn get_block_default<T: Bits>(bits: &T, position: usize) -> T::Block {
-    if position < bits.block_len() {
-        bits.get_block(position)
-    } else {
-        T::Block::zero()
-    }
-}
-
-fn get_bit_default<T: Bits>(bits: &T, position: u64) -> bool {
-    if position < bits.bit_len() {
-        bits.get_bit(position)
-    } else {
-        false
-    }
-}
-
 impl<T: Bits, U: Bits<Block = T::Block>> BitsBinOp<T, U> {
     fn new(op1: T, op2: U) -> Self {
-        let len = cmp::max(op1.bit_len(), op2.bit_len());
+        let len = cmp::min(op1.bit_len(), op2.bit_len());
         BitsBinOp { op1, op2, len, }
     }
 
     fn bit1(&self, position: u64) -> bool {
-        get_bit_default(&self.op1, position)
+        self.op1.get_bit(position)
     }
 
     fn bit2(&self, position: u64) -> bool {
-        get_bit_default(&self.op2, position)
+        self.op2.get_bit(position)
     }
 
     fn block1(&self, position: usize) -> T::Block {
-        get_block_default(&self.op1, position)
+        self.op1.get_block(position)
     }
 
     fn block2(&self, position: usize) -> T::Block {
-        get_block_default(&self.op2, position)
+        self.op2.get_block(position)
     }
 }
 
