@@ -68,7 +68,7 @@ impl<Block: BlockType> Default for BitVec<Block> {
 }
 
 impl<Block: BlockType> BitVec<Block> {
-    /// Creates a new, empty bit-vector of one block.
+    /// Creates a new, empty bit-vector with a capacity of one block.
     ///
     /// # Examples
     ///
