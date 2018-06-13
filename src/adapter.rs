@@ -454,10 +454,13 @@ mod test {
         let bv3: BitVec<u8> = bit_vec![false, false, false];
 
         let bv123 = bv1.bits_append(&bv2).into_bits_append(&bv3);
-        let app = bv123.bits_append(&bv123);
-        let bv = BitVec::from_bits(&app);
+        let app12 = bv123.bits_append(&bv123);
+        let app24 = app12.bits_append(&app12);
+        let bv = BitVec::from_bits(&app24);
 
         assert_eq!(bv, bit_vec![false, true, true, false, false, false,
+                                false, true, true, false, false, false,
+                                false, true, true, false, false, false,
                                 false, true, true, false, false, false]);
     }
 }
