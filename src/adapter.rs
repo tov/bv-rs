@@ -310,8 +310,7 @@ impl_bits_bin_op!(BitAnd as & &&);
 impl_bits_bin_op!(BitOr  as | ||);
 impl_bits_bin_op!(BitXor as ^ ^);
 
-/// An adapter that emulates a constant-valued bit-vector of a given
-/// size.
+/// Emulates a constant-valued bit-vector of a given size.
 #[derive(Debug, Clone)]
 pub struct BitFill<Block> {
     len: u64,
