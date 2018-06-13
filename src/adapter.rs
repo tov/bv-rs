@@ -30,7 +30,7 @@ use std::cmp;
 /// let bv1: BitVec = bit_vec![false, false, true, true];
 /// let bv2: BitVec = bit_vec![false, true, false, true];
 ///
-/// let and_bv = bv1.bits_and(&bv2);
+/// let and_bv = bv1.bit_and(&bv2);
 ///
 /// assert_eq!( and_bv[0], false );
 /// assert_eq!( and_bv[1], false );
@@ -42,30 +42,30 @@ use std::cmp;
 /// ```
 pub trait BitsExt: Bits {
 
-    /// Appends two bit vectors, with the bits of `self` followed by the bits
+    /// Concatenates two bit vectors, with the bits of `self` followed by the bits
     /// of `other`.
-    fn bits_append<Other>(&self, other: Other) -> BitsAppend<&Self, Other>
+    fn bit_concat<Other>(&self, other: Other) -> BitConcat<&Self, Other>
         where Other: Bits<Block = Self::Block> {
 
-        BitsAppend(self, other)
+        BitConcat(self, other)
     }
 
-    /// Appends two bit vectors, with the bits of `self` followed by the bits
+    /// Concatenates two bit vectors, with the bits of `self` followed by the bits
     /// of `other`.
     ///
     /// Consumes `self`.
-    fn into_bits_append<Other>(self, other: Other) -> BitsAppend<Self, Other>
+    fn into_bit_concat<Other>(self, other: Other) -> BitConcat<Self, Other>
         where Self: Sized,
               Other: Bits<Block = Self::Block> {
 
-        BitsAppend(self, other)
+        BitConcat(self, other)
     }
 
     /// Pads `self` with 0s on the right to reach at least `len` bits in length.
     ///
     /// If `self` is already long enough, the length is unchanged.
-    fn bits_pad(&self, len: u64) -> BitsAppend<&Self, BitFill<Self::Block>> {
-        self.into_bits_pad(len)
+    fn bit_pad(&self, len: u64) -> BitConcat<&Self, BitFill<Self::Block>> {
+        self.into_bit_pad(len)
     }
 
     /// Pads `self` with 0s on the right to reach at least `len` bits in length.
@@ -73,26 +73,26 @@ pub trait BitsExt: Bits {
     /// If `self` is already long enough, the length is unchanged.
     ///
     /// Consumes `self`.
-    fn into_bits_pad(self, len: u64) -> BitsAppend<Self, BitFill<Self::Block>>
+    fn into_bit_pad(self, len: u64) -> BitConcat<Self, BitFill<Self::Block>>
         where Self: Sized {
 
         let have = self.bit_len();
         let need = if len > have {len - have} else {0};
-        self.into_bits_append(BitFill::zeroes(need))
+        self.into_bit_concat(BitFill::zeroes(need))
     }
 
     /// Returns an object that inverts the values of all the bits in `self`.
-    fn bits_not(&self) -> BitsNot<&Self> {
-        BitsNot(self)
+    fn bit_not(&self) -> BitNot<&Self> {
+        BitNot(self)
     }
 
     /// Returns an object that inverts the values of all the bits in `self`.
     ///
     /// Consumes `self`.
-    fn into_bits_not(self) -> BitsNot<Self>
+    fn into_bit_not(self) -> BitNot<Self>
         where Self: Sized
     {
-        BitsNot(self)
+        BitNot(self)
     }
 
     /// Returns an object that lazily computes the bit-wise conjunction
@@ -100,10 +100,10 @@ pub trait BitsExt: Bits {
     ///
     /// If the lengths of the operands differ, the result will have be
     /// the minimum of the two.
-    fn bits_and<Other>(&self, other: Other) -> BitsAnd<&Self, Other>
+    fn bit_and<Other>(&self, other: Other) -> BitAnd<&Self, Other>
         where Other: Bits<Block = Self::Block> {
 
-        BitsAnd(BitsBinOp::new(self, other))
+        BitAnd(BitsBinOp::new(self, other))
     }
 
     /// Returns an object that lazily computes the bit-wise conjunction
@@ -113,10 +113,10 @@ pub trait BitsExt: Bits {
     /// the minimum of the two.
     ///
     /// Consumes `self`.
-    fn into_bits_and<Other>(self, other: Other) -> BitsAnd<Self, Other>
+    fn into_bit_and<Other>(self, other: Other) -> BitAnd<Self, Other>
         where Self: Sized,
               Other: Bits<Block = Self::Block> {
-        BitsAnd(BitsBinOp::new(self, other))
+        BitAnd(BitsBinOp::new(self, other))
     }
 
     /// Returns an object that lazily computes the bit-wise disjunction
@@ -124,10 +124,10 @@ pub trait BitsExt: Bits {
     ///
     /// If the lengths of the operands differ, the result will have be
     /// the minimum of the two.
-    fn bits_or<Other>(&self, other: Other) -> BitsOr<&Self, Other>
+    fn bit_or<Other>(&self, other: Other) -> BitOr<&Self, Other>
         where Other: Bits<Block = Self::Block> {
 
-        BitsOr(BitsBinOp::new(self, other))
+        BitOr(BitsBinOp::new(self, other))
     }
 
     /// Returns an object that lazily computes the bit-wise disjunction
@@ -137,11 +137,11 @@ pub trait BitsExt: Bits {
     /// the minimum of the two.
     ///
     /// Consumes `self`.
-    fn into_bits_or<Other>(self, other: Other) -> BitsOr<Self, Other>
+    fn into_bit_or<Other>(self, other: Other) -> BitOr<Self, Other>
         where Self: Sized,
               Other: Bits<Block = Self::Block> {
 
-        BitsOr(BitsBinOp::new(self, other))
+        BitOr(BitsBinOp::new(self, other))
     }
 
     /// Returns an object that lazily computes the bit-wise xor of two
@@ -149,10 +149,10 @@ pub trait BitsExt: Bits {
     ///
     /// If the lengths of the operands differ, the result will have be
     /// the minimum of the two.
-    fn bits_xor<Other>(&self, other: Other) -> BitsXor<&Self, Other>
+    fn bit_xor<Other>(&self, other: Other) -> BitXor<&Self, Other>
         where Other: Bits<Block = Self::Block> {
 
-        BitsXor(BitsBinOp::new(self, other))
+        BitXor(BitsBinOp::new(self, other))
     }
 
     /// Returns an object that lazily computes the bit-wise xor of two
@@ -162,43 +162,43 @@ pub trait BitsExt: Bits {
     /// the minimum of the two.
     ///
     /// Consumes `self`.
-    fn into_bits_xor<Other>(self, other: Other) -> BitsXor<Self, Other>
+    fn into_bit_xor<Other>(self, other: Other) -> BitXor<Self, Other>
         where Self: Sized,
               Other: Bits<Block = Self::Block> {
 
-        BitsXor(BitsBinOp::new(self, other))
+        BitXor(BitsBinOp::new(self, other))
     }
 }
 
 impl<T: Bits> BitsExt for T {}
 
-/// The result of [`BitsExt::bits_not`](trait.BitsExt.html#method.bits_not).
+/// The result of [`BitsExt::bit_not`](trait.BitsExt.html#method.bit_not).
 ///
 /// The resulting bit vector adapter *not*s the bits of the underlying
 /// bit-vector-like.
 #[derive(Clone, Debug)]
-pub struct BitsNot<T>(T);
+pub struct BitNot<T>(T);
 
-/// The result of [`BitsExt::bits_and`](trait.BitsExt.html#method.bits_and).
+/// The result of [`BitsExt::bit_and`](trait.BitsExt.html#method.bit_and).
 ///
 /// The resulting bit vector adapter *and*s the bits of the two underlying
 /// bit-vector-likes.
 #[derive(Clone, Debug)]
-pub struct BitsAnd<T, U>(BitsBinOp<T, U>);
+pub struct BitAnd<T, U>(BitsBinOp<T, U>);
 
-/// The result of [`BitsExt::bits_or`](trait.BitsExt.html#method.bits_or).
+/// The result of [`BitsExt::bit_or`](trait.BitsExt.html#method.bit_or).
 ///
 /// The resulting bit vector adapter *or*s the bits of the two underlying
 /// bit-vector-likes.
 #[derive(Clone, Debug)]
-pub struct BitsOr<T, U>(BitsBinOp<T, U>);
+pub struct BitOr<T, U>(BitsBinOp<T, U>);
 
-/// The result of [`BitsExt::bits_xor`](trait.BitsExt.html#method.bits_xor).
+/// The result of [`BitsExt::bit_xor`](trait.BitsExt.html#method.bit_xor).
 ///
 /// The resulting bit vector adapter *xor*s the bits of the two underlying
 /// bit-vector-likes.
 #[derive(Clone, Debug)]
-pub struct BitsXor<T, U>(BitsBinOp<T, U>);
+pub struct BitXor<T, U>(BitsBinOp<T, U>);
 
 /// Used to store the two operands to a bitwise logical operation on
 /// `Bits`es, along with the length of the result (min the length of
@@ -234,7 +234,7 @@ impl<T: Bits, U: Bits<Block = T::Block>> BitsBinOp<T, U> {
     }
 }
 
-impl<T: Bits> Bits for BitsNot<T> {
+impl<T: Bits> Bits for BitNot<T> {
     type Block = T::Block;
 
     fn bit_len(&self) -> u64 {
@@ -251,16 +251,16 @@ impl<T: Bits> Bits for BitsNot<T> {
 }
 
 impl_index_from_bits! {
-    impl[T: Bits] Index<u64> for BitsNot<T>;
+    impl[T: Bits] Index<u64> for BitNot<T>;
 }
 
-impl<R, T> BitSliceable<R> for BitsNot<T>
+impl<R, T> BitSliceable<R> for BitNot<T>
     where T: BitSliceable<R> {
 
-    type Slice = BitsNot<T::Slice>;
+    type Slice = BitNot<T::Slice>;
 
     fn bit_slice(self, range: R) -> Self::Slice {
-        BitsNot(self.0.bit_slice(range))
+        BitNot(self.0.bit_slice(range))
     }
 }
 
@@ -306,9 +306,9 @@ macro_rules! impl_bits_bin_op {
     };
 }
 
-impl_bits_bin_op!(BitsAnd as & &&);
-impl_bits_bin_op!(BitsOr  as | ||);
-impl_bits_bin_op!(BitsXor as ^ ^);
+impl_bits_bin_op!(BitAnd as & &&);
+impl_bits_bin_op!(BitOr  as | ||);
+impl_bits_bin_op!(BitXor as ^ ^);
 
 /// An adapter that emulates a constant-valued bit-vector of a given
 /// size.
@@ -363,14 +363,14 @@ impl<Block: BlockType> BitFill<Block> {
 }
 
 /// The result of
-/// [`BitsExt::bits_append`](trait.BitsExt.html#method.bits_append).
+/// [`BitsExt::bit_concat`](trait.BitsExt.html#method.bit_concat).
 ///
-/// The resulting bit vector adapter appends the bits of the two underlying
+/// The resulting bit vector adapter concatenates the bits of the two underlying
 /// bit-vector-likes.
 #[derive(Debug, Clone)]
-pub struct BitsAppend<T, U>(T, U);
+pub struct BitConcat<T, U>(T, U);
 
-impl<T, U> Bits for BitsAppend<T, U>
+impl<T, U> Bits for BitConcat<T, U>
     where T: Bits,
           U: Bits<Block = T::Block> {
 
@@ -412,7 +412,7 @@ impl<T, U> Bits for BitsAppend<T, U>
 
 impl_index_from_bits! {
     impl[Block: BlockType] Index<u64> for BitFill<Block>;
-    impl[T: Bits, U: Bits<Block = T::Block>] Index<u64> for BitsAppend<T, U>;
+    impl[T: Bits, U: Bits<Block = T::Block>] Index<u64> for BitConcat<T, U>;
 }
 
 #[cfg(test)]
@@ -435,7 +435,7 @@ mod test {
     #[test]
     fn simple_not() {
         let bv: BitVec = bit_vec![true, true, true, false,];
-        let not_bits = bv.bits_not();
+        let not_bits = bv.bit_not();
         assert_0001(&not_bits);
     }
 
@@ -443,7 +443,7 @@ mod test {
     fn simple_and() {
         let bv1: BitVec<u8> = bit_vec![ false, false, true, true, ];
         let bv2: BitVec<u8> = bit_vec![ false, true, false, true, ];
-        let and_bits = bv1.bits_and(&bv2);
+        let and_bits = bv1.bit_and(&bv2);
         assert_0001(&and_bits);
     }
 
@@ -453,7 +453,7 @@ mod test {
         let bv2: BitVec<u8> = bit_vec![ true, false, true, false, true ];
         let bv_slice1 = bv1.bit_slice(1..);
         let bv_slice2 = bv2.bit_slice(1..);
-        let and_bits = bv_slice1.bits_and(&bv_slice2);
+        let and_bits = bv_slice1.bit_and(&bv_slice2);
         assert_0001(&and_bits);
     }
 
@@ -463,7 +463,7 @@ mod test {
         let bv2: BitVec<u8> = bit_vec![ true, false, true, false, true ];
         let bv_slice1 = bv1.bit_slice(2..);
         let bv_slice2 = bv2.bit_slice(1..);
-        let and_bits = bv_slice1.bits_and(&bv_slice2);
+        let and_bits = bv_slice1.bit_and(&bv_slice2);
         assert_0001(&and_bits);
     }
 
@@ -473,9 +473,9 @@ mod test {
         let bv2: BitVec<u8> = bit_vec![true, true];
         let bv3: BitVec<u8> = bit_vec![false, false, false];
 
-        let bv123 = bv1.bits_append(&bv2).into_bits_append(&bv3);
-        let app12 = bv123.bits_append(&bv123);
-        let app24 = app12.bits_append(&app12);
+        let bv123 = bv1.bit_concat(&bv2).into_bit_concat(&bv3);
+        let app12 = bv123.bit_concat(&bv123);
+        let app24 = app12.bit_concat(&app12);
         let bv = BitVec::from_bits(&app24);
 
         assert_eq!(bv, bit_vec![false, true, true, false, false, false,
