@@ -445,12 +445,11 @@ impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for BitSliceMut<'a,
         assert!(end < self.len, "BitSliceMut::slice: out of bounds");
 
         let start_bits   = u64::from(self.offset) + start;
-        let start_block  = Block::div_nbits(start_bits);
-        let start_offset = Block::mod_nbits(start_bits) as u8;
+        let start_addr   = Address::new::<Block>(start_bits);
 
         BitSliceMut {
-            bits:   unsafe { self.bits.offset(start_block as isize) },
-            offset: start_offset,
+            bits:   unsafe { self.bits.offset(start_addr.block_index as isize) },
+            offset: start_addr.bit_offset as u8,
             len:    end - start + 1,
             marker: PhantomData,
         }
