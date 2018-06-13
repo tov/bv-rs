@@ -161,11 +161,7 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
     }
 
     /// Gets an iterator over the blocks of the slice.
-    ///
-    /// Note that this iterates over whole blocks, with a partial block only at the end. That
-    /// means that if the bit-slice offset is non-zero, these blocks may not correspond to the
-    /// blocks retrieved by `Bits::get_block`.
-    pub fn block_iter(self) -> BitSliceBlockIter<'a, Block> {
+    fn block_iter(self) -> BitSliceBlockIter<'a, Block> {
         BitSliceBlockIter(self)
     }
 }
@@ -217,11 +213,6 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
             len:    self.len,
             marker: PhantomData,
         }
-    }
-
-    /// Gets an iterator over the blocks of the slice.
-    pub fn block_iter(&self) -> BitSliceBlockIter<Block> {
-        BitSliceBlockIter(self.as_immut())
     }
 }
 
@@ -625,7 +616,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a mut [Block] {
 }
 
 /// An iterator over the blocks of a bit slice.
-pub struct BitSliceBlockIter<'a, Block>(BitSlice<'a, Block>);
+struct BitSliceBlockIter<'a, Block: BlockType>(BitSlice<'a, Block>);
 
 impl<'a, Block: BlockType> Iterator for BitSliceBlockIter<'a, Block> {
     type Item = Block;

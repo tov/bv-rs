@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog] and this project adheres to
 ### Removed
 - `Bits::bit_offset` method. Blocks returned from a `Bits` instance are now
   assumed to be aligned.
+- `BitSliceBlockIter` struct and methods for creating it.
 
 ## [0.7.2] - 2018-05-16
 

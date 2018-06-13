@@ -69,7 +69,7 @@ mod traits;
 pub use self::traits::{Bits, BitsMut, BitsPush, BitSliceable};
 
 mod slice;
-pub use self::slice::{BitSlice, BitSliceMut, BitSliceBlockIter};
+pub use self::slice::{BitSlice, BitSliceMut};
 
 mod bit_vec;
 pub use self::bit_vec::BitVec;
