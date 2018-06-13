@@ -332,6 +332,40 @@ impl<Block: BlockType> Bits for Box<Bits<Block = Block>> {
     }
 }
 
+impl<Block: BlockType> Bits for Box<BitsMut<Block = Block>> {
+    type Block = Block;
+
+    fn bit_len(&self) -> u64 {
+        (**self).bit_len()
+    }
+
+    fn get_bit(&self, position: u64) -> bool {
+        (**self).get_bit(position)
+    }
+
+    fn get_block(&self, position: usize) -> Self::Block {
+        (**self).get_block(position)
+    }
+
+    fn get_bits(&self, start: u64, count: usize) -> Self::Block {
+        (**self).get_bits(start, count)
+    }
+}
+
+impl<Block: BlockType> BitsMut for Box<BitsMut<Block = Block>> {
+    fn set_bit(&mut self, position: u64, value: bool) {
+        (**self).set_bit(position, value);
+    }
+
+    fn set_block(&mut self, position: usize, value: Block) {
+        (**self).set_block(position, value);
+    }
+
+    fn set_bits(&mut self, start: u64, len: usize, value: Block) {
+        (**self).set_bits(start, len, value);
+    }
+}
+
 impl<Block: BlockType> Bits for [Block] {
     type Block = Block;
 
