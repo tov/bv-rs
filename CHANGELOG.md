@@ -11,11 +11,11 @@ The format is based on [Keep a Changelog] and this project adheres to
 ## [Unreleased]
 
 ### Added
-- `logic::BitsLogic` trait, for bit-wise logic operations over types
-  that implement `Bits`
-- `bit_vec!` macro allows trailing comma.
+- `adapter::BitsExt` trait, for adapter operations (including bit-wise logic
+  operations) over types that implement `Bits`
 - `BitVec::from_bits`, which takes any types that implements `Bits` and
   copies it into a `BitVec` with the same block size.
+- `bit_vec!` macro allows trailing comma.
   
 ### Removed
 - `Bits::bit_offset` method. Blocks returned from a `Bits` instance are now
