@@ -31,6 +31,7 @@
 //! ```
 
 use Bits;
+use BitSliceable;
 use BlockType;
 
 use std::cmp;
@@ -263,6 +264,61 @@ impl<T, U> Bits for BitsXor<T, U>
 
     fn get_block(&self, position: usize) -> Self::Block {
         self.0.block1(position) ^ self.0.block2(position)
+    }
+}
+
+impl<R, T> BitSliceable<R> for BitsNot<T>
+    where T: BitSliceable<R> {
+
+    type Slice = BitsNot<T::Slice>;
+
+    fn bit_slice(self, range: R) -> Self::Slice {
+        BitsNot(self.0.bit_slice(range))
+    }
+}
+
+impl<R, T, U> BitSliceable<R> for BitsAnd<T, U>
+    where R: Clone,
+          T: BitSliceable<R> + Bits,
+          U: BitSliceable<R> + Bits<Block = T::Block>,
+          T::Slice: Bits<Block = T::Block>,
+          U::Slice: Bits<Block = T::Block> {
+
+    type Slice = BitsAnd<T::Slice, U::Slice>;
+
+    fn bit_slice(self, range: R) -> Self::Slice {
+        BitsAnd(BitsBinOp::new(self.0.op1.bit_slice(range.clone()),
+                               self.0.op2.bit_slice(range)))
+    }
+}
+
+impl<R, T, U> BitSliceable<R> for BitsOr<T, U>
+    where R: Clone,
+          T: BitSliceable<R> + Bits,
+          U: BitSliceable<R> + Bits<Block = T::Block>,
+          T::Slice: Bits<Block = T::Block>,
+          U::Slice: Bits<Block = T::Block> {
+
+    type Slice = BitsOr<T::Slice, U::Slice>;
+
+    fn bit_slice(self, range: R) -> Self::Slice {
+        BitsOr(BitsBinOp::new(self.0.op1.bit_slice(range.clone()),
+                              self.0.op2.bit_slice(range)))
+    }
+}
+
+impl<R, T, U> BitSliceable<R> for BitsXor<T, U>
+    where R: Clone,
+          T: BitSliceable<R> + Bits,
+          U: BitSliceable<R> + Bits<Block = T::Block>,
+          T::Slice: Bits<Block = T::Block>,
+          U::Slice: Bits<Block = T::Block> {
+
+    type Slice = BitsXor<T::Slice, U::Slice>;
+
+    fn bit_slice(self, range: R) -> Self::Slice {
+        BitsXor(BitsBinOp::new(self.0.op1.bit_slice(range.clone()),
+                               self.0.op2.bit_slice(range)))
     }
 }
 
