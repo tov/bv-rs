@@ -262,6 +262,10 @@ impl<'a, T: Bits + ?Sized> Bits for &'a T {
         T::bit_len(*self)
     }
 
+    fn block_len(&self) -> usize {
+        T::block_len(*self)
+    }
+
     fn get_bit(&self, position: u64) -> bool {
         T::get_bit(*self, position)
     }
@@ -280,6 +284,10 @@ impl<'a, T: BitsMut + ?Sized> Bits for &'a mut T {
 
     fn bit_len(&self) -> u64 {
         T::bit_len(*self)
+    }
+
+    fn block_len(&self) -> usize {
+        T::block_len(*self)
     }
 
     fn get_bit(&self, position: u64) -> bool {
