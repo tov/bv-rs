@@ -4,7 +4,7 @@ use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
 #[cfg(inclusive_range)]
 use std::ops::{RangeInclusive, RangeToInclusive};
 
-use util::get_inclusive_bounds;
+use util;
 use traits::{Bits, BitsMut, BitSliceable};
 use storage::{Address, BlockType};
 
@@ -418,7 +418,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for BitSlice<'a, Bl
     type Slice = Self;
 
     fn bit_slice(self, range: RangeInclusive<u64>) -> Self {
-        let (start, end) = get_inclusive_bounds(&range)
+        let (start, end) = util::get_inclusive_bounds(&range)
             .expect("BitSlice::slice: bad range");
         assert!(end < self.len, "BitSlice::slice: out of bounds");
 
@@ -440,7 +440,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for BitSliceMut<'a,
     type Slice = Self;
 
     fn bit_slice(self, range: RangeInclusive<u64>) -> Self {
-        let (start, end) = get_inclusive_bounds(&range)
+        let (start, end) = util::get_inclusive_bounds(&range)
             .expect("BitSliceMut::slice: bad range");
         assert!(end < self.len, "BitSliceMut::slice: out of bounds");
 

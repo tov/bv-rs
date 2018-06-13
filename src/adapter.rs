@@ -7,11 +7,11 @@
 //! [`Bits`]: ../trait.Bits.html
 //! [`BitsExt`]: trait.BitsExt.html
 
-use util::get_inclusive_bounds;
 use Bits;
 use BitsMut;
 use BitSliceable;
 use BlockType;
+use util;
 
 use std::cmp;
 
@@ -112,7 +112,7 @@ macro_rules! impl_bit_sliceable_adapter {
                 type Slice = BitSliceAdapter<Self>;
 
                 fn bit_slice(self, range: RangeInclusive<u64>) -> Self::Slice {
-                    let (start, end) = get_inclusive_bounds(&range)
+                    let (start, end) = util::get_inclusive_bounds(&range)
                         .expect("BitSliceable::bit_slice: bad inclusive range");
                     BitSliceAdapter::new(self, start, end - start + 1)
                 }
