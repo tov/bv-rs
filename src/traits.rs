@@ -1,3 +1,5 @@
+#![macro_use]
+
 use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
 #[cfg(inclusive_range)]
 use std::ops::{RangeInclusive, RangeToInclusive};

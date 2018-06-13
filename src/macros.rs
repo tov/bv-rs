@@ -57,3 +57,28 @@ fn type_1_hygiene() {
     let bv: super::BitVec = bit_vec![result];
     assert!( bv[0] );
 }
+
+// Implements Index for any type that implements Bits.
+macro_rules! impl_index_from_bits {
+    (
+    $(
+        impl[ $($param:tt)* ] Index<$ix:ty> for $bv:ty ;
+    )+
+    )=> {
+        $(
+            impl<$($param)*> ::std::ops::Index<$ix> for $bv {
+                type Output = bool;
+
+                fn index(&self, index: $ix) -> &bool {
+                    use $crate::Bits;
+
+                    static TRUE: bool = true;
+                    static FALSE: bool = false;
+
+                    if self.get_bit(index) {&TRUE} else {&FALSE}
+                }
+            }
+        )+
+    };
+}
+

@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 use std::{cmp, fmt, hash, ptr};
-use std::ops::{self, Range, RangeFrom, RangeTo, RangeFull};
+use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
 #[cfg(inclusive_range)]
 use std::ops::{RangeInclusive, RangeToInclusive};
 
@@ -367,26 +367,9 @@ impl<'a, Block: BlockType> BitsMut for BitSliceMut<'a, Block> {
     }
 }
 
-impl<'a, Block: BlockType> ops::Index<u64> for BitSlice<'a, Block> {
-    type Output = bool;
-
-    fn index(&self, index: u64) -> &bool {
-        static TRUE: bool = true;
-        static FALSE: bool = false;
-
-        if self.get_bit(index) {&TRUE} else {&FALSE}
-    }
-}
-
-impl<'a, Block: BlockType> ops::Index<u64> for BitSliceMut<'a, Block> {
-    type Output = bool;
-
-    fn index(&self, index: u64) -> &bool {
-        static TRUE: bool = true;
-        static FALSE: bool = false;
-
-        if self.get_bit(index) {&TRUE} else {&FALSE}
-    }
+impl_index_from_bits! {
+    impl['a, Block: BlockType] Index<u64> for BitSlice<'a, Block>;
+    impl['a, Block: BlockType] Index<u64> for BitSliceMut<'a, Block>;
 }
 
 impl<'a, Block: BlockType> BitSliceable<Range<u64>> for BitSlice<'a, Block> {

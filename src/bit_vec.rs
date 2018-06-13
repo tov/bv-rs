@@ -1,7 +1,7 @@
 use std::cmp::{max, Ordering};
 use std::fmt;
 use std::hash::{Hash, Hasher};
-use std::ops::{self, Range, RangeFrom, RangeTo, RangeFull};
+use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
 #[cfg(inclusive_range)]
 use std::ops::{RangeInclusive, RangeToInclusive};
 
@@ -722,15 +722,8 @@ impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a mut BitVec<Block> {
     }
 }
 
-impl<Block: BlockType> ops::Index<u64> for BitVec<Block> {
-    type Output = bool;
-
-    fn index(&self, index: u64) -> &bool {
-        static TRUE: bool = true;
-        static FALSE: bool = false;
-
-        if self.get_bit(index) {&TRUE} else {&FALSE}
-    }
+impl_index_from_bits! {
+    impl[Block: BlockType] Index<u64> for BitVec<Block>;
 }
 
 impl<Block: BlockType> PartialEq for BitVec<Block> {
