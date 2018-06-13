@@ -47,7 +47,7 @@ impl<T: Bits> BitSliceAdapter<T> {
 
     /// Reslices an existing slice adapter.
     ///
-    /// Takes the index o fthe start bit, relative to the indexing
+    /// Takes the index of the start bit, relative to the indexing
     /// of the adapter.
     ///
     /// # Panics
