@@ -318,7 +318,7 @@ impl<Block: BlockType> Bits for BitFill<Block> {
     }
 
     fn get_bits(&self, position: u64, len: usize) -> Self::Block {
-        assert!(position + (len as u64) < self.bit_len(),
+        assert!(position + (len as u64) <= self.bit_len(),
                 "BitFill::get_bits: out of bounds");
         self.block
     }
