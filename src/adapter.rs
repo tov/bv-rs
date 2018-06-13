@@ -61,6 +61,26 @@ pub trait BitsExt: Bits {
         BitsAppend(self, other)
     }
 
+    /// Pads `self` with 0s on the right to reach at least `len` bits in length.
+    ///
+    /// If `self` is already long enough, the length is unchanged.
+    fn bits_pad(&self, len: u64) -> BitsAppend<&Self, BitFill<Self::Block>> {
+        self.into_bits_pad(len)
+    }
+
+    /// Pads `self` with 0s on the right to reach at least `len` bits in length.
+    ///
+    /// If `self` is already long enough, the length is unchanged.
+    ///
+    /// Consumes `self`.
+    fn into_bits_pad(self, len: u64) -> BitsAppend<Self, BitFill<Self::Block>>
+        where Self: Sized {
+
+        let have = self.bit_len();
+        let need = if len > have {len - have} else {0};
+        self.into_bits_append(BitFill::zeroes(need))
+    }
+
     /// Returns an object that inverts the values of all the bits in `self`.
     fn bits_not(&self) -> BitsNot<&Self> {
         BitsNot(self)
