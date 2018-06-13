@@ -231,20 +231,20 @@ pub trait BitsPush: BitsMut {
     }
 }
 
-/// Types that support (re-)slicing by ranges.
+/// Types that support slicing by ranges.
 pub trait BitSliceable<Range> {
-    /// The type of the slice.
+    /// The type of the slice produced.
     type Slice;
 
-    /// (Re-)slices the given object.
+    /// Slices or re-slices the given object.
     ///
     /// # Examples
     ///
     /// ```
-    /// use bv::*;
+    /// use bv::{BitSlice, BitSliceable};
     ///
     /// let array = [0b01010011u16];
-    /// let slice = BitSlice::from_slice(&array);
+    /// let slice = BitSlice::from(&array);
     ///
     /// assert_eq!( slice.bit_slice(1..3), slice.bit_slice(4..6) );
     /// assert_eq!( slice.bit_slice(1..3), slice.bit_slice(6..8) );
