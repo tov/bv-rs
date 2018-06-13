@@ -182,9 +182,8 @@ pub struct BitsXor<T, U>(BitsBinOp<T, U>);
 
 /// Used to store the two operands to a bitwise logical operation on
 /// `Bits`es, along with the length of the result (min the length of
-/// the operands) and the offset of the result (see invariant below).
-/// (Note that both `len` and `off` are derivable from `op1` and `op2`,
-/// but it probably makes sense to cache them.)
+/// the operands). (Note that `len` is derivable from `op1` and `op2`,
+/// but it probably makes sense to cache it.)
 #[derive(Clone, Debug)]
 struct BitsBinOp<T, U> {
     op1: T,
@@ -231,61 +230,8 @@ impl<T: Bits> Bits for BitsNot<T> {
     }
 }
 
-impl<T, U> Bits for BitsAnd<T, U>
-    where T: Bits,
-          U: Bits<Block = T::Block>
-{
-    type Block = T::Block;
-
-    fn bit_len(&self) -> u64 {
-        self.0.len
-    }
-
-    fn get_bit(&self, position: u64) -> bool {
-        self.0.bit1(position) & self.0.bit2(position)
-    }
-
-    fn get_block(&self, position: usize) -> Self::Block {
-        self.0.block1(position) & self.0.block2(position)
-    }
-}
-
-impl<T, U> Bits for BitsOr<T, U>
-    where T: Bits,
-          U: Bits<Block = T::Block>
-{
-    type Block = T::Block;
-
-    fn bit_len(&self) -> u64 {
-        self.0.len
-    }
-
-    fn get_bit(&self, position: u64) -> bool {
-        self.0.bit1(position) | self.0.bit2(position)
-    }
-
-    fn get_block(&self, position: usize) -> Self::Block {
-        self.0.block1(position) | self.0.block2(position)
-    }
-}
-
-impl<T, U> Bits for BitsXor<T, U>
-    where T: Bits,
-          U: Bits<Block = T::Block>
-{
-    type Block = T::Block;
-
-    fn bit_len(&self) -> u64 {
-        self.0.len
-    }
-
-    fn get_bit(&self, position: u64) -> bool {
-        self.0.bit1(position) ^ self.0.bit2(position)
-    }
-
-    fn get_block(&self, position: usize) -> Self::Block {
-        self.0.block1(position) ^ self.0.block2(position)
-    }
+impl_index_from_bits! {
+    impl[T: Bits] Index<u64> for BitsNot<T>;
 }
 
 impl<R, T> BitSliceable<R> for BitsNot<T>
@@ -298,50 +244,51 @@ impl<R, T> BitSliceable<R> for BitsNot<T>
     }
 }
 
-impl<R, T, U> BitSliceable<R> for BitsAnd<T, U>
-    where R: Clone,
-          T: BitSliceable<R> + Bits,
-          U: BitSliceable<R> + Bits<Block = T::Block>,
-          T::Slice: Bits<Block = T::Block>,
-          U::Slice: Bits<Block = T::Block> {
+macro_rules! impl_bits_bin_op {
+    ( $target:ident as $op:tt ) => {
+        impl<T, U> Bits for $target<T, U>
+            where T: Bits,
+                  U: Bits<Block = T::Block>
+        {
+            type Block = T::Block;
 
-    type Slice = BitsAnd<T::Slice, U::Slice>;
+            fn bit_len(&self) -> u64 {
+                self.0.len
+            }
 
-    fn bit_slice(self, range: R) -> Self::Slice {
-        BitsAnd(BitsBinOp::new(self.0.op1.bit_slice(range.clone()),
-                               self.0.op2.bit_slice(range)))
-    }
+            fn get_bit(&self, position: u64) -> bool {
+                self.0.bit1(position) $op self.0.bit2(position)
+            }
+
+            fn get_block(&self, position: usize) -> Self::Block {
+                self.0.block1(position) $op self.0.block2(position)
+            }
+        }
+
+        impl_index_from_bits! {
+            impl[T: Bits, U: Bits<Block = T::Block>] Index<u64> for $target<T, U>;
+        }
+
+        impl<R, T, U> BitSliceable<R> for $target<T, U>
+            where R: Clone,
+                  T: BitSliceable<R> + Bits,
+                  U: BitSliceable<R> + Bits<Block = T::Block>,
+                  T::Slice: Bits<Block = T::Block>,
+                  U::Slice: Bits<Block = T::Block> {
+
+            type Slice = $target<T::Slice, U::Slice>;
+
+            fn bit_slice(self, range: R) -> Self::Slice {
+                $target(BitsBinOp::new(self.0.op1.bit_slice(range.clone()),
+                                       self.0.op2.bit_slice(range)))
+            }
+        }
+    };
 }
 
-impl<R, T, U> BitSliceable<R> for BitsOr<T, U>
-    where R: Clone,
-          T: BitSliceable<R> + Bits,
-          U: BitSliceable<R> + Bits<Block = T::Block>,
-          T::Slice: Bits<Block = T::Block>,
-          U::Slice: Bits<Block = T::Block> {
-
-    type Slice = BitsOr<T::Slice, U::Slice>;
-
-    fn bit_slice(self, range: R) -> Self::Slice {
-        BitsOr(BitsBinOp::new(self.0.op1.bit_slice(range.clone()),
-                              self.0.op2.bit_slice(range)))
-    }
-}
-
-impl<R, T, U> BitSliceable<R> for BitsXor<T, U>
-    where R: Clone,
-          T: BitSliceable<R> + Bits,
-          U: BitSliceable<R> + Bits<Block = T::Block>,
-          T::Slice: Bits<Block = T::Block>,
-          U::Slice: Bits<Block = T::Block> {
-
-    type Slice = BitsXor<T::Slice, U::Slice>;
-
-    fn bit_slice(self, range: R) -> Self::Slice {
-        BitsXor(BitsBinOp::new(self.0.op1.bit_slice(range.clone()),
-                               self.0.op2.bit_slice(range)))
-    }
-}
+impl_bits_bin_op!(BitsAnd as &);
+impl_bits_bin_op!(BitsOr  as |);
+impl_bits_bin_op!(BitsXor as ^);
 
 /// An adapter that emulates a constant-valued bit-vector of a given
 /// size.
@@ -358,11 +305,21 @@ impl<Block: BlockType> Bits for BitFill<Block> {
         self.len
     }
 
-    fn get_block(&self, _position: usize) -> Self::Block {
+    fn get_bit(&self, position: u64) -> bool {
+        assert!(position < self.len,
+                "BitFill::get_bit: out of bounds");
+        self.block != Block::zero()
+    }
+
+    fn get_block(&self, position: usize) -> Self::Block {
+        assert!(position < self.block_len(),
+                "BitFill::get_block: out of bounds");
         self.block
     }
 
-    fn get_bits(&self, _position: u64, _len: usize) -> Self::Block {
+    fn get_bits(&self, position: u64, len: usize) -> Self::Block {
+        assert!(position + (len as u64) < self.bit_len(),
+                "BitFill::get_bits: out of bounds");
         self.block
     }
 }
@@ -372,7 +329,7 @@ impl<Block: BlockType> BitFill<Block> {
     pub fn zeroes(len: u64) -> Self {
         BitFill {
             len,
-            block: Block::zero()
+            block: Block::zero(),
         }
     }
 
@@ -380,7 +337,7 @@ impl<Block: BlockType> BitFill<Block> {
     pub fn ones(len: u64) -> Self {
         BitFill {
             len,
-            block: !Block::zero()
+            block: !Block::zero(),
         }
     }
 }
@@ -431,6 +388,11 @@ impl<T, U> Bits for BitsAppend<T, U>
             self.1.get_bits(start_bit - len0, (end_bit - start_bit) as usize)
         }
     }
+}
+
+impl_index_from_bits! {
+    impl[Block: BlockType] Index<u64> for BitFill<Block>;
+    impl[T: Bits, U: Bits<Block = T::Block>] Index<u64> for BitsAppend<T, U>;
 }
 
 #[cfg(test)]
