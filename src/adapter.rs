@@ -725,12 +725,12 @@ impl<T, U> Bits for BitConcat<T, U>
         if limit_bit <= len0 {
             self.0.get_block(position)
         } else if start_bit < len0 {
-            let chunk1 = self.0.get_block(position);
-            let chunk2 = self.1.get_block(0);
-            let from1  = cmp::min(Self::Block::nbits(), (len0 - start_bit) as usize);
-            let from2  = Self::Block::nbits() - from1;
-            chunk1.get_bits(0, from1) |
-                (chunk2.get_bits(0, from2) << from1)
+            let block1 = self.0.get_block(position);
+            let block2 = self.1.get_block(0);
+            let size1  = cmp::min(Self::Block::nbits(), (len0 - start_bit) as usize);
+            let size2  = Self::Block::nbits() - size1;
+            block1.get_bits(0, size1) |
+                (block2.get_bits(0, size2) << size1)
         } else {
             self.1.get_bits(start_bit - len0, (limit_bit - start_bit) as usize)
         }
