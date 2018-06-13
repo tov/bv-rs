@@ -4,8 +4,8 @@ use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
 #[cfg(inclusive_range)]
 use std::ops::{RangeInclusive, RangeToInclusive};
 
-use super::traits::{Bits, BitsMut, BitSliceable};
-use super::storage::{Address, BlockType};
+use traits::{Bits, BitsMut, BitSliceable};
+use storage::{Address, BlockType};
 
 /*
  * We represent bit-slices as raw pointers to `Block`s. The slice stores an
