@@ -30,7 +30,7 @@ quickcheck! {
     }
 }
 
-// The result of evaluting a random program, on both the reference
+// The result of evaluating a random program, on both the reference
 // implementation and the actual implementation under test.
 struct ProgramResult<Block: BlockType> {
     expected: RefImpl,
