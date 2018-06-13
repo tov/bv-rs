@@ -271,10 +271,10 @@ macro_rules! impl_bits_bin_op {
 
         impl<R, T, U> BitSliceable<R> for $target<T, U>
             where R: Clone,
-                  T: BitSliceable<R> + Bits,
-                  U: BitSliceable<R> + Bits<Block = T::Block>,
-                  T::Slice: Bits<Block = T::Block>,
-                  U::Slice: Bits<Block = T::Block> {
+                  T: BitSliceable<R>,
+                  U: BitSliceable<R>,
+                  T::Slice: Bits,
+                  U::Slice: Bits<Block = <T::Slice as Bits>::Block> {
 
             type Slice = $target<T::Slice, U::Slice>;
 
