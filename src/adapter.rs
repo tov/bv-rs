@@ -303,6 +303,22 @@ macro_rules! impl_bits_bin_op {
                                        self.0.op2.bit_slice(range)))
             }
         }
+
+        impl<'a, R, T, U> BitSliceable<R> for &'a $target<T, U>
+            where R: Clone,
+                  &'a T: BitSliceable<R>,
+                  &'a U: BitSliceable<R>,
+                  <&'a T as BitSliceable<R>>::Slice: Bits,
+                  <&'a U as BitSliceable<R>>::Slice: Bits<Block = <<&'a T as BitSliceable<R>>::Slice as Bits>::Block> {
+
+            type Slice = $target<<&'a T as BitSliceable<R>>::Slice,
+                                 <&'a U as BitSliceable<R>>::Slice>;
+
+            fn bit_slice(self, range: R) -> Self::Slice {
+                $target(BitsBinOp::new((&self.0.op1).bit_slice(range.clone()),
+                                       (&self.0.op2).bit_slice(range)))
+            }
+        }
     };
 }
 
