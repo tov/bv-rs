@@ -1,4 +1,14 @@
-//! Lazy logical operators on bit slices.
+//! Bit-wise logical operators on bit slices.
+//!
+//! This module defines an extension trait [`BitsLogic`] that is implemented
+//! for every type that implements [`Bits`]. The methods return lazy adapter
+//! objects that query the underlying bit vectors and perform logic operations
+//! as needed. To eagerly evaluate a result, copy it into a vector using
+//! [`BitVec::from_bits`], as in the example below.
+//!
+//! [`Bits`]: ../trait.Bits.html
+//! [`BitsLogic`]: trait.BitsLogic.html
+//! [`BitVec::from_bits`]: ../struct.BitVec.html#method.from_bits
 //!
 //! # Examples
 //!
@@ -27,8 +37,7 @@ use std::cmp;
 
 /// Extension trait for bitwise logic operations on bit vectors.
 ///
-/// The operations return lazy bit vectors, which can be forced and copied
-/// into strict bit vectors with `BitVec::from_bits`.
+/// See the [module-level documentation](index.html).
 pub trait BitsLogic: Bits {
 
     /// Returns an object that inverts the values of all the bits in `self`.
@@ -105,23 +114,31 @@ pub trait BitsLogic: Bits {
 
 impl<T: Bits> BitsLogic for T {}
 
-/// The result of [`BitsLogic::bits_not`](trait.BitsLogic.html#method.bits_not),
-/// which inverts the bits of a bit vector.
+/// The result of [`BitsLogic::bits_not`](trait.BitsLogic.html#method.bits_not).
+///
+/// The resulting bit vector adapter *not*s the bits of the underlying
+/// bit-vector-like.
 #[derive(Clone, Debug)]
 pub struct BitsNot<T>(T);
 
-/// The result of [`BitsLogic::bits_and`](trait.BitsLogic.html#method.bits_and)
-/// on types that implement `Bits`.
+/// The result of [`BitsLogic::bits_and`](trait.BitsLogic.html#method.bits_and).
+///
+/// The resulting bit vector adapter *and*s the bits of the two underlying
+/// bit-vector-likes.
 #[derive(Clone, Debug)]
 pub struct BitsAnd<T, U>(BitsBinOp<T, U>);
 
-/// The result of [`BitsLogic::bits_or`](trait.BitsLogic.html#method.bits_or)
-/// on types that implement `Bits`.
+/// The result of [`BitsLogic::bits_or`](trait.BitsLogic.html#method.bits_or).
+///
+/// The resulting bit vector adapter *or*s the bits of the two underlying
+/// bit-vector-likes.
 #[derive(Clone, Debug)]
 pub struct BitsOr<T, U>(BitsBinOp<T, U>);
 
-/// The result of [`BitsLogic::bits_xor`](trait.BitsLogic.html#method.bits_xor)
-/// on types that implement `Bits`.
+/// The result of [`BitsLogic::bits_xor`](trait.BitsLogic.html#method.bits_xor).
+///
+/// The resulting bit vector adapter *xor*s the bits of the two underlying
+/// bit-vector-likes.
 #[derive(Clone, Debug)]
 pub struct BitsXor<T, U>(BitsBinOp<T, U>);
 
