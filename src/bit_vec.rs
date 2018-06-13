@@ -5,6 +5,7 @@ use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
 #[cfg(inclusive_range)]
 use std::ops::{RangeInclusive, RangeToInclusive};
 
+use iter::BlockIter;
 use super::storage::*;
 use super::slice::*;
 use super::traits::*;
@@ -606,7 +607,11 @@ impl<Block: BlockType> Bits for BitVec<Block> {
     }
 
     fn get_block(&self, position: usize) -> Block {
-        self.bits[position]
+        if position + 1 == self.block_len() {
+            self.bits[position].get_bits(0, Block::last_block_bits(self.bit_len()))
+        } else {
+            self.bits[position]
+        }
     }
 }
 
@@ -754,13 +759,15 @@ impl_index_from_bits! {
 
 impl<Block: BlockType> PartialEq for BitVec<Block> {
     fn eq(&self, other: &BitVec<Block>) -> bool {
-        self.as_slice().eq(&other.as_slice())
+        BlockIter::new(self) == BlockIter::new(other)
     }
 }
 
 impl<Block: BlockType> PartialOrd for BitVec<Block> {
     fn partial_cmp(&self, other: &BitVec<Block>) -> Option<Ordering> {
-        self.as_slice().partial_cmp(&other.as_slice())
+        let iter1 = BlockIter::new(self);
+        let iter2 = BlockIter::new(other);
+        iter1.partial_cmp(iter2)
     }
 }
 
@@ -768,7 +775,9 @@ impl<Block: BlockType> Eq for BitVec<Block> {}
 
 impl<Block: BlockType> Ord for BitVec<Block> {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.as_slice().cmp(&other.as_slice())
+        let iter1 = BlockIter::new(self);
+        let iter2 = BlockIter::new(other);
+        iter1.cmp(iter2)
     }
 }
 
@@ -961,5 +970,12 @@ mod test {
         assert!( !bv[2] );
         assert!(  bv[3] );
         assert!(  bv[18] );
+    }
+
+    #[test]
+    fn disequality() {
+        let bv1: BitVec = bit_vec![true, true, false];
+        let bv2: BitVec = bit_vec![true, true];
+        assert_ne!( bv1, bv2 );
     }
 }

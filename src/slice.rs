@@ -5,6 +5,7 @@ use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
 use std::ops::{RangeInclusive, RangeToInclusive};
 
 use util;
+use iter::BlockIter;
 use traits::{Bits, BitsMut, BitSliceable};
 use storage::{Address, BlockType};
 
@@ -158,11 +159,6 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
     /// ```
     pub fn is_empty(&self) -> bool {
         self.len() == 0
-    }
-
-    /// Gets an iterator over the blocks of the slice.
-    fn block_iter(self) -> BitSliceBlockIter<'a, Block> {
-        BitSliceBlockIter(self)
     }
 }
 
@@ -633,29 +629,6 @@ impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a mut [Block] {
     }
 }
 
-/// An iterator over the blocks of a bit slice.
-struct BitSliceBlockIter<'a, Block: BlockType>(BitSlice<'a, Block>);
-
-impl<'a, Block: BlockType> Iterator for BitSliceBlockIter<'a, Block> {
-    type Item = Block;
-
-    fn next(&mut self) -> Option<Block> {
-        if self.0.len == 0 { return None; }
-
-        let nbits  = cmp::min(Block::nbits() as u64, self.0.len);
-        let result = Some(self.0.get_block(0));
-
-        self.0 = self.0.bit_slice(nbits ..);
-
-        result
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let len = Block::ceil_div_nbits(self.0.bit_len());
-        (len, Some(len))
-    }
-}
-
 impl<'a, Block: BlockType> PartialEq for BitSlice<'a, Block> {
     fn eq(&self, other: &BitSlice<Block>) -> bool {
         self.cmp(other) == cmp::Ordering::Equal
@@ -672,18 +645,9 @@ impl<'a, Block: BlockType> PartialOrd for BitSlice<'a, Block> {
 
 impl<'a, Block: BlockType> Ord for BitSlice<'a, Block> {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
-        let len_ord = self.len.cmp(&other.len);
-        if len_ord != cmp::Ordering::Equal { return len_ord; }
-
-        let mut ai = self.block_iter();
-        let mut bi = other.block_iter();
-
-        while let (Some(a), Some(b)) = (ai.next(), bi.next()) {
-            let elt_ord = a.cmp(&b);
-            if elt_ord != cmp::Ordering::Equal { return elt_ord; }
-        }
-
-        cmp::Ordering::Equal
+        let iter1 = BlockIter::new(*self);
+        let iter2 = BlockIter::new(*other);
+        (iter1).cmp(iter2)
     }
 }
 
@@ -710,7 +674,7 @@ impl<'a, Block: BlockType> Ord for BitSliceMut<'a, Block> {
 impl<'a, Block: BlockType + hash::Hash> hash::Hash for BitSlice<'a, Block> {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
         state.write_u64(self.bit_len());
-        for block in self.block_iter() {
+        for block in BlockIter::new(self) {
             block.hash(state);
         }
     }
@@ -795,7 +759,7 @@ mod test {
         assert!(  bv[6] );
         assert!( !bv[7] );
         assert!(  bv[8] );
-//        assert!( !bv[9] );
+        assert!( !bv[9] );
     }
 
     #[test]
