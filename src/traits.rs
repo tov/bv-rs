@@ -278,6 +278,40 @@ impl<'a, T: Bits + ?Sized> Bits for &'a T {
     }
 }
 
+impl<'a, T: BitsMut + ?Sized> Bits for &'a mut T {
+    type Block = T::Block;
+
+    fn bit_len(&self) -> u64 {
+        T::bit_len(*self)
+    }
+
+    fn get_bit(&self, position: u64) -> bool {
+        T::get_bit(*self, position)
+    }
+
+    fn get_block(&self, position: usize) -> Self::Block {
+        T::get_block(*self, position)
+    }
+
+    fn get_bits(&self, start: u64, count: usize) -> Self::Block {
+        T::get_bits(*self, start, count)
+    }
+}
+
+impl<'a, T: BitsMut + ?Sized> BitsMut for &'a mut T {
+    fn set_bit(&mut self, position: u64, value: bool) {
+        T::set_bit(*self, position, value);
+    }
+
+    fn set_block(&mut self, position: usize, value: Self::Block) {
+        T::set_block(*self, position, value);
+    }
+
+    fn set_bits(&mut self, start: u64, count: usize, value: Self::Block) {
+        T::set_bits(*self, start, count, value);
+    }
+}
+
 impl<Block: BlockType> Bits for [Block] {
     type Block = Block;
 

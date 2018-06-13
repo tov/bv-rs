@@ -9,6 +9,7 @@
 
 use util::get_inclusive_bounds;
 use Bits;
+use BitsMut;
 use BitSliceable;
 use BlockType;
 
@@ -129,6 +130,23 @@ macro_rules! impl_bit_sliceable_adapter {
     };
 }
 
+// For a slice starting at `start`, of length `len`, finds the parameters
+// for extracting the `position`th block. The parameters are the bit position
+// of the start of the block, and the number of bits in the block.
+fn get_block_addr<Block: BlockType>(start: u64, len: u64, position: usize)
+    -> (u64, usize) {
+
+    let real_start = start + Block::mul_nbits(position);
+    let block_size = Block::nbits() as u64;
+    let real_len   = if real_start + block_size < start + len {
+        block_size
+    } else {
+        (start + len - real_start)
+    };
+
+    (real_start, real_len as usize)
+}
+
 impl<T: Bits> Bits for BitSliceAdapter<T> {
     type Block = T::Block;
 
@@ -139,17 +157,43 @@ impl<T: Bits> Bits for BitSliceAdapter<T> {
     fn get_bit(&self, position: u64) -> bool {
         assert!( position < self.bit_len(),
                  "BitSliceAdapter::get_bit: out of bounds" );
-        self.bits.get_bit(position + self.start)
+        self.bits.get_bit(self.start + position)
     }
 
     fn get_block(&self, position: usize) -> Self::Block {
-        let real_start = self.start + T::Block::mul_nbits(position);
-        let real_limit = cmp::min(real_start + T::Block::nbits() as u64,
-                                  self.start + self.len);
-        assert!( real_start <= real_limit,
+        assert!( position < self.block_len(),
                  "BitSliceAdapter::get_block: out of bounds" );
-        let real_len   = (real_limit - real_start) as usize;
+        let (real_start, real_len) =
+            get_block_addr::<T::Block>(self.start, self.len, position);
         self.bits.get_bits(real_start, real_len)
+    }
+
+    fn get_bits(&self, start: u64, count: usize) -> Self::Block {
+        assert!( start + count as u64 <= self.bit_len(),
+                 "BitSliceAdapter::get_bits: out of bounds" );
+        self.bits.get_bits(self.start + start, count)
+    }
+}
+
+impl<T: BitsMut> BitsMut for BitSliceAdapter<T> {
+    fn set_bit(&mut self, position: u64, value: bool) {
+        assert!( position < self.bit_len(),
+                 "BitSliceAdapter::set_bit: out of bounds" );
+        self.bits.set_bit(self.start + position, value);
+    }
+
+    fn set_block(&mut self, position: usize, value: Self::Block) {
+        assert!( position < self.block_len(),
+                 "BitSliceAdapter::get_block: out of bounds" );
+        let (real_start, real_len) =
+            get_block_addr::<T::Block>(self.start, self.len, position);
+        self.bits.set_bits(real_start, real_len, value);
+    }
+
+    fn set_bits(&mut self, start: u64, count: usize, value: Self::Block) {
+        assert!( start + count as u64 <= self.bit_len(),
+                 "BitSliceAdapter::set_bits: out of bounds" );
+        self.bits.set_bits(self.start + start, count, value);
     }
 }
 
@@ -580,8 +624,8 @@ impl_bit_sliceable_adapter! {
 
 #[cfg(test)]
 mod test {
-    use {Bits, BitVec, BitSliceable};
-    use super::BitsExt;
+    use {Bits, BitsMut, BitVec, BitSliceable};
+    use super::{BitsExt, BitSliceAdapter};
 
     fn assert_0001<T: Bits>(bits: &T) {
         assert_eq!( bits.bit_len(), 4 );
@@ -665,5 +709,24 @@ mod test {
         let bv3 = bv1.bit_xor(&bv2).bit_slice(1..7).to_bit_vec();
 
         assert_eq!( bv3, bit_vec![true, true, false, false, true, true] );
+    }
+
+    #[test]
+    fn slice_adapter_mutation() {
+        let mut bv: BitVec = bit_vec![true, false, true, false];
+
+        {
+            let mut slice = BitSliceAdapter::new(&mut bv, 1, 2);
+            slice.set_bit(1, false);
+        }
+
+        assert_eq!( bv, bit_vec![true, false, false, false] );
+
+        {
+            let mut slice = BitSliceAdapter::new(&mut bv, 1, 2);
+            slice.set_block(0, 0b111);
+        }
+
+        assert_eq!( bv, bit_vec![true, true, true, false] );
     }
 }
