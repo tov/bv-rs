@@ -13,14 +13,14 @@
 //! # Example
 //!
 //! ```
-//! use bv::{BitVec, BitsMut};
+//! use bv::BitVec;
 //!
 //! let mut bv1: BitVec = BitVec::new_fill(false, 50);
 //! let mut bv2: BitVec = BitVec::new_fill(false, 50);
 //!
 //! assert_eq!(bv1, bv2);
 //!
-//! bv1.set_bit(49, true);
+//! bv1.set(49, true);
 //! assert_ne!(bv1, bv2);
 //!
 //! assert_eq!(bv1.pop(), Some(true));
