@@ -69,6 +69,32 @@ pub struct BitSliceMut<'a, Block> {
 }
 
 impl<'a, Block: BlockType> BitSlice<'a, Block> {
+    /// Creates a `BitSlice` from an array slice of blocks.
+    ///
+    /// The size is always a multiple of
+    /// `Block::nbits()`. If you want a different size, slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::{BitSlice, BitSliceable};
+    ///
+    /// let v = vec![0b01010011u16, 0u16];
+    /// let slice = BitSlice::from_slice(&v).bit_slice(..7);
+    /// assert_eq!( slice.len(), 7 );
+    /// assert_eq!( slice[0], true );
+    /// assert_eq!( slice[1], true );
+    /// assert_eq!( slice[2], false );
+    /// ```
+    pub fn from_slice(blocks: &'a [Block]) -> Self {
+        BitSlice {
+            bits:   blocks.as_ptr(),
+            offset: 0,
+            len:    Block::mul_nbits(blocks.len()),
+            marker: PhantomData,
+        }
+    }
+
     /// Creates a `BitSlice` from a pointer to its data, an offset where the bits start, and the
     /// number of available bits.
     ///
@@ -95,32 +121,6 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
             bits,
             offset,
             len,
-            marker: PhantomData,
-        }
-    }
-
-    /// Creates a `BitSlice` from an array slice of blocks.
-    ///
-    /// The size is always a multiple of
-    /// `Block::nbits()`. If you want a different size, slice.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use bv::{BitSlice, BitSliceable};
-    ///
-    /// let v = vec![0b01010011u16, 0u16];
-    /// let slice = BitSlice::from_slice(&v).bit_slice(..7);
-    /// assert_eq!( slice.len(), 7 );
-    /// assert_eq!( slice[0], true );
-    /// assert_eq!( slice[1], true );
-    /// assert_eq!( slice[2], false );
-    /// ```
-    pub fn from_slice(blocks: &'a [Block]) -> Self {
-        BitSlice {
-            bits:   blocks.as_ptr(),
-            offset: 0,
-            len:    Block::mul_nbits(blocks.len()),
             marker: PhantomData,
         }
     }
@@ -167,6 +167,19 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
 }
 
 impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
+    /// Creates a `BitSliceMut` from a mutable array slice of blocks.
+    ///
+    /// The size is always a multiple of `Block::nbits()`. If you want a different size,
+    /// slice.
+    pub fn from_slice(blocks: &mut [Block]) -> Self {
+        BitSliceMut {
+            bits:   blocks.as_mut_ptr(),
+            offset: 0,
+            len:    Block::mul_nbits(blocks.len()),
+            marker: PhantomData,
+        }
+    }
+
     /// Creates a `BitSliceMut` from a pointer to its data, an offset where the bits start, and
     /// the number of available bits.
     ///
@@ -179,19 +192,6 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
             offset,
             len,
             marker: PhantomData
-        }
-    }
-
-    /// Creates a `BitSliceMut` from a mutable array slice of blocks.
-    ///
-    /// The size is always a multiple of `Block::nbits()`. If you want a different size,
-    /// slice.
-    pub fn from_slice(blocks: &mut [Block]) -> Self {
-        BitSliceMut {
-            bits:   blocks.as_mut_ptr(),
-            offset: 0,
-            len:    Block::mul_nbits(blocks.len()),
-            marker: PhantomData,
         }
     }
 
