@@ -1,14 +1,15 @@
 //! Lazy bit vector adapters, including bit-wise logic.
 //!
-//! This module defines an extension trait [`BitsLogic`] that is implemented
+//! This module defines an extension trait [`BitsExt`] that is implemented
 //! for every type that implements [`Bits`]. The trait provides bit-wise
 //! logical operations on bit-vector-likes.
 //!
 //! [`Bits`]: ../trait.Bits.html
-//! [`BitsLogic`]: trait.BitsLogic.html
+//! [`BitsExt`]: trait.BitsExt.html
 
 use Bits;
 use BitSliceable;
+use BlockType;
 
 use std::cmp;
 
@@ -24,7 +25,7 @@ use std::cmp;
 ///
 /// ```
 /// use bv::*;
-/// use bv::adapter::BitsLogic;
+/// use bv::adapter::BitsExt;
 ///
 /// let bv1: BitVec = bit_vec![false, false, true, true];
 /// let bv2: BitVec = bit_vec![false, true, false, true];
@@ -39,7 +40,26 @@ use std::cmp;
 /// let bv3 = BitVec::from_bits(and_bv);
 /// assert_eq!( bv3, bit_vec![false, false, false, true] );
 /// ```
-pub trait BitsLogic: Bits {
+pub trait BitsExt: Bits {
+
+    /// Appends two bit vectors, with the bits of `self` followed by the bits
+    /// of `other`.
+    fn bits_append<Other>(&self, other: Other) -> BitsAppend<&Self, Other>
+        where Other: Bits<Block = Self::Block> {
+
+        BitsAppend(self, other)
+    }
+
+    /// Appends two bit vectors, with the bits of `self` followed by the bits
+    /// of `other`.
+    ///
+    /// Consumes `self`.
+    fn into_bits_append<Other>(self, other: Other) -> BitsAppend<Self, Other>
+        where Self: Sized,
+              Other: Bits<Block = Self::Block> {
+
+        BitsAppend(self, other)
+    }
 
     /// Returns an object that inverts the values of all the bits in `self`.
     fn bits_not(&self) -> BitsNot<&Self> {
@@ -57,6 +77,9 @@ pub trait BitsLogic: Bits {
 
     /// Returns an object that lazily computes the bit-wise conjunction
     /// of two bit-vector-likes.
+    ///
+    /// If the lengths of the operands differ, the result will have be
+    /// the minimum of the two.
     fn bits_and<Other>(&self, other: Other) -> BitsAnd<&Self, Other>
         where Other: Bits<Block = Self::Block> {
 
@@ -66,16 +89,21 @@ pub trait BitsLogic: Bits {
     /// Returns an object that lazily computes the bit-wise conjunction
     /// of two bit-vector-likes.
     ///
+    /// If the lengths of the operands differ, the result will have be
+    /// the minimum of the two.
+    ///
     /// Consumes `self`.
     fn into_bits_and<Other>(self, other: Other) -> BitsAnd<Self, Other>
         where Self: Sized,
               Other: Bits<Block = Self::Block> {
-
         BitsAnd(BitsBinOp::new(self, other))
     }
 
     /// Returns an object that lazily computes the bit-wise disjunction
     /// of two bit-vector-likes.
+    ///
+    /// If the lengths of the operands differ, the result will have be
+    /// the minimum of the two.
     fn bits_or<Other>(&self, other: Other) -> BitsOr<&Self, Other>
         where Other: Bits<Block = Self::Block> {
 
@@ -84,6 +112,9 @@ pub trait BitsLogic: Bits {
 
     /// Returns an object that lazily computes the bit-wise disjunction
     /// of two bit-vector-likes.
+    ///
+    /// If the lengths of the operands differ, the result will have be
+    /// the minimum of the two.
     ///
     /// Consumes `self`.
     fn into_bits_or<Other>(self, other: Other) -> BitsOr<Self, Other>
@@ -95,6 +126,9 @@ pub trait BitsLogic: Bits {
 
     /// Returns an object that lazily computes the bit-wise xor of two
     /// bit-vector-likes.
+    ///
+    /// If the lengths of the operands differ, the result will have be
+    /// the minimum of the two.
     fn bits_xor<Other>(&self, other: Other) -> BitsXor<&Self, Other>
         where Other: Bits<Block = Self::Block> {
 
@@ -103,6 +137,9 @@ pub trait BitsLogic: Bits {
 
     /// Returns an object that lazily computes the bit-wise xor of two
     /// bit-vector-likes.
+    ///
+    /// If the lengths of the operands differ, the result will have be
+    /// the minimum of the two.
     ///
     /// Consumes `self`.
     fn into_bits_xor<Other>(self, other: Other) -> BitsXor<Self, Other>
@@ -113,30 +150,30 @@ pub trait BitsLogic: Bits {
     }
 }
 
-impl<T: Bits> BitsLogic for T {}
+impl<T: Bits> BitsExt for T {}
 
-/// The result of [`BitsLogic::bits_not`](trait.BitsLogic.html#method.bits_not).
+/// The result of [`BitsExt::bits_not`](trait.BitsExt.html#method.bits_not).
 ///
 /// The resulting bit vector adapter *not*s the bits of the underlying
 /// bit-vector-like.
 #[derive(Clone, Debug)]
 pub struct BitsNot<T>(T);
 
-/// The result of [`BitsLogic::bits_and`](trait.BitsLogic.html#method.bits_and).
+/// The result of [`BitsExt::bits_and`](trait.BitsExt.html#method.bits_and).
 ///
 /// The resulting bit vector adapter *and*s the bits of the two underlying
 /// bit-vector-likes.
 #[derive(Clone, Debug)]
 pub struct BitsAnd<T, U>(BitsBinOp<T, U>);
 
-/// The result of [`BitsLogic::bits_or`](trait.BitsLogic.html#method.bits_or).
+/// The result of [`BitsExt::bits_or`](trait.BitsExt.html#method.bits_or).
 ///
 /// The resulting bit vector adapter *or*s the bits of the two underlying
 /// bit-vector-likes.
 #[derive(Clone, Debug)]
 pub struct BitsOr<T, U>(BitsBinOp<T, U>);
 
-/// The result of [`BitsLogic::bits_xor`](trait.BitsLogic.html#method.bits_xor).
+/// The result of [`BitsExt::bits_xor`](trait.BitsExt.html#method.bits_xor).
 ///
 /// The resulting bit vector adapter *xor*s the bits of the two underlying
 /// bit-vector-likes.
@@ -306,10 +343,100 @@ impl<R, T, U> BitSliceable<R> for BitsXor<T, U>
     }
 }
 
+/// An adapter that emulates a constant-valued bit-vector of a given
+/// size.
+#[derive(Debug, Clone)]
+pub struct BitFill<Block> {
+    len: u64,
+    block: Block,
+}
+
+impl<Block: BlockType> Bits for BitFill<Block> {
+    type Block = Block;
+
+    fn bit_len(&self) -> u64 {
+        self.len
+    }
+
+    fn get_block(&self, _position: usize) -> Self::Block {
+        self.block
+    }
+
+    fn get_bits(&self, _position: u64, _len: usize) -> Self::Block {
+        self.block
+    }
+}
+
+impl<Block: BlockType> BitFill<Block> {
+    /// Constructs a compact bit-vector-like of `len` 0s.
+    pub fn zeroes(len: u64) -> Self {
+        BitFill {
+            len,
+            block: Block::zero()
+        }
+    }
+
+    /// Constructs a compact bit-vector-like of `len` 1s.
+    pub fn ones(len: u64) -> Self {
+        BitFill {
+            len,
+            block: !Block::zero()
+        }
+    }
+}
+
+/// The result of
+/// [`BitsExt::bits_append`](trait.BitsExt.html#method.bits_append).
+///
+/// The resulting bit vector adapter appends the bits of the two underlying
+/// bit-vector-likes.
+#[derive(Debug, Clone)]
+pub struct BitsAppend<T, U>(T, U);
+
+impl<T, U> Bits for BitsAppend<T, U>
+    where T: Bits,
+          U: Bits<Block = T::Block> {
+
+    type Block = T::Block;
+
+    fn bit_len(&self) -> u64 {
+        self.0.bit_len() + self.1.bit_len()
+    }
+
+    fn get_bit(&self, position: u64) -> bool {
+        let len0 = self.0.bit_len();
+        if position < len0 {
+            self.0.get_bit(position)
+        } else {
+            self.1.get_bit(position - len0)
+        }
+    }
+
+    fn get_block(&self, position: usize) -> Self::Block {
+        let start_bit = Self::Block::mul_nbits(position);
+        let end_bit   = cmp::min(start_bit + Self::Block::nbits() as u64,
+                                 self.bit_len());
+
+        let len0 = self.0.bit_len();
+        if end_bit < len0 {
+            self.0.get_block(position)
+        } else if start_bit < len0 {
+            let chunk1 = self.0.get_block(position);
+            let chunk2 = self.1.get_block(0);
+            let from1  = (len0 - start_bit) as usize;
+            let from2  = Self::Block::nbits() - from1;
+            chunk1.get_bits(0, from1) |
+                (chunk2.get_bits(0, from2) << from1)
+        } else {
+            self.1.get_bits(start_bit - len0, (end_bit - start_bit) as usize)
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use {Bits, BitVec, BitSliceable};
-    use super::BitsLogic;
+    use super::BitsExt;
 
     fn assert_0001<T: Bits>(bits: &T) {
         assert_eq!( bits.bit_len(), 4 );
@@ -356,5 +483,19 @@ mod test {
         let bv_slice2 = bv2.bit_slice(1..);
         let and_bits = bv_slice1.bits_and(&bv_slice2);
         assert_0001(&and_bits);
+    }
+
+    #[test]
+    fn append() {
+        let bv1: BitVec<u8> = bit_vec![false];
+        let bv2: BitVec<u8> = bit_vec![true, true];
+        let bv3: BitVec<u8> = bit_vec![false, false, false];
+
+        let bv123 = bv1.bits_append(&bv2).into_bits_append(&bv3);
+        let app = bv123.bits_append(&bv123);
+        let bv = BitVec::from_bits(&app);
+
+        assert_eq!(bv, bit_vec![false, true, true, false, false, false,
+                                false, true, true, false, false, false]);
     }
 }
