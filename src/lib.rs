@@ -55,10 +55,10 @@
 //! ```
 //!
 //! This function performs a three-way *or*, returning a `BitVec` without
-//! allocating an intermediate
+//! allocating an intermediate result:
 //!
 //! ```
-//! use bv::Bits;
+//! use bv::{Bits, BitVec};
 //! use bv::adapter::BitsExt;
 //!
 //! fn three_way_or<T, U, V>(bv1: T, bv2: U, bv3: V) -> BitVec<T::Block>
