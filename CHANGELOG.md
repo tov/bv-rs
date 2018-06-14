@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog] and this project adheres to
 
 ### Added
 - `BitsExt::bit_zip` method generalizes `bit_and`, `bit_or`, etc.
+- `BlockType::block_bits` static method, for finding out the number
+  of bits in the block at the given position.
 
 ## [0.8.0] - 2018-06-13
 

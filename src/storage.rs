@@ -83,6 +83,27 @@ pub trait BlockType: Copy +
         (index as u64) << Self::lg_nbits()
     }
 
+    /// The number of bits in the block at `position`, given a total bit length
+    /// of `len`.
+    ///
+    /// This will be `Self::nbits()` for all but the last block, for which it will
+    /// be `Self::last_block_bits(len)`.
+    ///
+    /// # Precondition
+    ///
+    /// `position * Self::nbits() <= len`, or the block doesn't exist and the result
+    /// is undefined.
+    #[inline]
+    fn block_bits(len: u64, position: usize) -> usize {
+        let block_start = Self::mul_nbits(position);
+        let block_limit = block_start + Self::nbits() as u64;
+        if block_limit <= len {
+            Self::nbits()
+        } else {
+            (len - block_start) as usize
+        }
+    }
+
     /// Computes how many bits are in the last block of an array of
     /// `len` bits.
     ///
@@ -478,5 +499,22 @@ mod test {
                     && 2u64.pow(n.ceil_lg() as u32 - 1) < n)
         }
         quickcheck(prop as fn(u64) -> TestResult);
+    }
+
+    #[test]
+    fn block_bits() {
+        assert_eq!( u16::block_bits(1, 0), 1 );
+        assert_eq!( u16::block_bits(2, 0), 2 );
+        assert_eq!( u16::block_bits(16, 0), 16 );
+        assert_eq!( u16::block_bits(16, 1), 0 ); // boundary condition
+        assert_eq!( u16::block_bits(23, 0), 16 );
+        assert_eq!( u16::block_bits(23, 1), 7 );
+        assert_eq!( u16::block_bits(35, 0), 16 );
+        assert_eq!( u16::block_bits(35, 1), 16 );
+        assert_eq!( u16::block_bits(35, 2), 3 );
+        assert_eq!( u16::block_bits(48, 0), 16 );
+        assert_eq!( u16::block_bits(48, 1), 16 );
+        assert_eq!( u16::block_bits(48, 2), 16 );
+        assert_eq!( u16::block_bits(48, 3), 0 ); // boundary condition
     }
 }
