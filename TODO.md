@@ -1,10 +1,13 @@
 # TODO
 
-  - `BitsExt::zip_with` method
+  - Move `BitsExt` from `adapter` module to root.
+  
+  - Add to `BitsExt`:
+      - `bit_fold`, `bit_all`, `bit_any` etc.
 
   - `BitsMutExt` trait:
-      - methods `bit_or_assign`, `bit_and_assign`, etc.
-      - blitting
+      - methods `bit_assign`, `bit_zip_assign`, `bit_xor_assign`, 
+      etc.
     
   - Conversions between `Block` types:
       - bit-wise adapter
