@@ -36,16 +36,38 @@
 //! assert_eq!(bv1, bv2);
 //! ```
 //!
-//! Adapters, from [`adapter::BitsExt`]
+//! Adapters, from [`adapter::BitsExt`]:
 //!
 //! ```
 //! use bv::*;
-//! use bv::adapter::BitsExt;
+//! use bv::adapter::{BitsExt, BoolAdapter};
 //!
-//! let array = &[0b1100u8];
-//! let vec   = vec![false, true, false, true];
+//! // Here, we use an `&[u16]` as a bit vector, and we adapt a
+//! // `Vec<bool>` as well.
+//! let array = &[0b1100u16];
+//! let vec   = BoolAdapter::new(vec![false, true, false, true]);
+//!
+//! // `xor` is not a `BitVec`, but a lazy adapter, thus, we can index
+//! // it or efficiently compare it to another bit vector, without
+//! // allocating.
 //! let xor   = array.bit_xor(&vec);
 //! assert_eq!( xor, bit_vec![false, true, true, false] );
+//! ```
+//!
+//! This function performs a three-way *or*, returning a `BitVec` without
+//! allocating an intermediate
+//!
+//! ```
+//! use bv::Bits;
+//! use bv::adapter::BitsExt;
+//!
+//! fn three_way_or<T, U, V>(bv1: T, bv2: U, bv3: V) -> BitVec<T::Block>
+//!     where T: Bits,
+//!           U: Bits<Block = T::Block>,
+//!           V: Bits<Block = T::Block> {
+//!
+//!     bv1.into_bit_or(bv2).into_bit_or(bv3).to_bit_vec()
+//! }
 //! ```
 //!
 //! # Usage
