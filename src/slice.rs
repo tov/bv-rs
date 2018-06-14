@@ -257,23 +257,29 @@ unsafe fn get_block_with_offset<Block: BlockType>(
     let value_mask = Block::low_mask(value_len);
 
     let block1 = ptr::read(bits.offset(position as isize));
+
+    // If the offset is 0 then we only need block1.
     if offset == 0 {
         return block1 & value_mask;
     }
 
-    let block2 = if position + 1 < Block::ceil_div_nbits(len + u64::from(offset)) {
-        ptr::read(bits.offset(position as isize + 1))
-    } else {
-        Block::zero()
-    };
-
+    // Otherwise, we're going to get the suffix of `block1` starting at
+    // the offset: `block1[offset..].
     let shift1 = offset as usize;
     let shift2 = Block::nbits() - shift1;
-
     let chunk1 = block1.get_bits(shift1, shift2);
-    let chunk2 = block2.get_bits(0, shift1) << shift2;
 
-    (chunk1 | chunk2) & value_mask
+    // Here, we check if reading the next block would go out of bounds.
+    // If it would, then `chunk1` is all we need.
+    if position + 1 >= Block::ceil_div_nbits(len + u64::from(offset)) {
+        return chunk1 & value_mask;
+    }
+
+    // Otherwise, read another block, get its first `offset` bits, and
+    // combine.
+    let block2 = ptr::read(bits.offset(position as isize + 1));
+    let chunk2 = block2.get_bits(0, shift1);
+    (chunk1 | (chunk2 << shift2)) & value_mask
 }
 
 unsafe fn set_block_with_offset<Block: BlockType>(
