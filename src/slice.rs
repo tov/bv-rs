@@ -231,87 +231,107 @@ impl<'a, Block: BlockType> From<&'a mut [Block]> for BitSliceMut<'a, Block> {
     }
 }
 
-unsafe fn get_bit_with_offset<Block: BlockType>(
-    bits: *const Block, offset: u8, position: u64) -> bool {
+// Gets `bits[offset + position]`.
+//
+// Precondition: Bits are in bounds.
+unsafe fn get_raw_bit<Block: BlockType>(bits: *const Block, position: u64) -> bool {
 
-    let address   = Address::new::<Block>(position + u64::from(offset));
+    let address   = Address::new::<Block>(position);
     let ptr       = bits.offset(address.block_index as isize);
     let block     = ptr::read(ptr);
     block.get_bit(address.bit_offset)
 }
 
-unsafe fn set_bit_with_offset<Block: BlockType>(
-    bits: *mut Block, offset: u8, position: u64, value: bool) {
-
-    let address   = Address::new::<Block>(position + u64::from(offset));
+// Sets `bits[offset + position]`
+//
+// Precondition: Bit is in bounds.
+unsafe fn set_raw_bit<Block: BlockType>(bits: *mut Block, position: u64, value: bool) {
+    let address   = Address::new::<Block>(position);
     let ptr       = bits.offset(address.block_index as isize);
     let old_block = ptr::read(ptr);
     let new_block = old_block.with_bit(address.bit_offset, value);
     ptr::write(ptr, new_block);
 }
 
-unsafe fn get_block_with_offset<Block: BlockType>(
-    bits: *const Block, offset: u8, len: u64, position: usize) -> Block {
+// Gets `bits[start .. start + count]`.
+//
+// Precondition: the specified bits are in bounds.
+unsafe fn get_raw_bits<Block: BlockType>(
+    bits: *const Block, start: u64, count: usize) -> Block {
 
-    let value_len  = Block::block_bits(len, position);
-    let value_mask = Block::low_mask(value_len);
+    // Find the address of the start bit in `bits`, and read the first block.
+    let address     = Address::new::<Block>(start);
+    let offset      = address.bit_offset;
+    let ptr1        = bits.offset(address.block_index as isize);
+    let block1      = ptr::read(ptr1);
 
-    let block1 = ptr::read(bits.offset(position as isize));
-
-    // If the offset is 0 then we only need block1.
+    // Fast path for getting whole or partial aligned block;
     if offset == 0 {
-        return block1 & value_mask;
+        return block1.get_bits(0, count);
     }
 
-    // Otherwise, we're going to get the suffix of `block1` starting at
-    // the offset: `block1[offset..].
-    let shift1 = offset as usize;
-    let shift2 = Block::nbits() - shift1;
-    let chunk1 = block1.get_bits(shift1, shift2);
-
-    // Here, we check if reading the next block would go out of bounds.
-    // If it would, then `chunk1` is all we need.
-    if position + 1 >= Block::ceil_div_nbits(len + u64::from(offset)) {
-        return chunk1 & value_mask;
-    }
-
-    // Otherwise, read another block, get its first `offset` bits, and
-    // combine.
-    let block2 = ptr::read(bits.offset(position as isize + 1));
-    let chunk2 = block2.get_bits(0, shift1);
-    (chunk1 | (chunk2 << shift2)) & value_mask
-}
-
-unsafe fn set_block_with_offset<Block: BlockType>(
-    bits: *mut Block, offset: u8, len: u64, position: usize, value: Block) {
-
-    let start_bit     = Block::mul_nbits(position);
-    let mut limit_bit = start_bit + Block::nbits() as u64;
-
-    let ptr1          = bits.offset(position as isize);
-
-    if offset == 0 && limit_bit <= len {
-        ptr::write(ptr1, value);
-        return;
-    } else {
-        limit_bit = cmp::min(limit_bit, len);
-    }
-
+    // Otherwise, our access is unaligned and may span two blocks. So we need
+    // to get our bits starting at `offset` in `block1`, and the rest from `block2`
+    // if necessary.
     let shift1      = offset as usize;
     let shift2      = Block::nbits() - shift1;
 
-    let bits_size1  = cmp::min((limit_bit - start_bit) as usize, shift2);
+    // Getting the right number of bits from `block1`.
+    let bits_size1  = cmp::min(shift2, count);
+    let chunk1      = block1.get_bits(shift1, bits_size1);
+
+    // The remaining bits will be in `block2`; if there are none, we return early.
+    let bits_size2  = count - bits_size1;
+    if bits_size2 == 0 {
+        return chunk1;
+    }
+
+    // Otherwise, we need to get `block2` and combine bits from each block to get
+    // the result.
+    let block2      = ptr::read(ptr1.offset(1));
+    let chunk2      = block2.get_bits(0, bits_size2);
+    (chunk1 | (chunk2 << shift2))
+}
+
+// Sets `bits[start .. start + count]` to `value[.. count]`
+//
+// Precondition: The specified bits are in bounds.
+unsafe fn set_raw_bits<Block: BlockType>(
+    bits: *mut Block, start: u64, count: usize, value: Block) {
+
+    // Find the address of the start bit in `bits`:
+    let address = Address::new::<Block>(start);
+    let offset  = address.bit_offset;
+    let ptr1    = bits.offset(address.block_index as isize);
+
+    // Fast path for setting a whole aligned block.
+    if offset == 0 && count == Block::nbits() {
+        ptr::write(ptr1, value);
+        return;
+    }
+
+    // Otherwise, our access is unaligned. In particular, we need to align
+    // the first bits of `value` with the last `Block::nbits() - offset` bits
+    // of `block1`, and the last `offset` bits of value with the first bits
+    // of `block2`.
+    let shift1      = offset;
+    let shift2      = Block::nbits() - shift1;
+
+    // We aren't necessarily going to keep all `shift2` bits of `value`, though,
+    // because it might exceed the `count`. In any case, we can now read the block,
+    // overwrite the correct bits, and write the block back.
+    let bits_size1  = cmp::min(count, shift2);
     let old_block1  = ptr::read(ptr1);
     let new_block1  = old_block1.with_bits(shift1, bits_size1, value);
     ptr::write(ptr1, new_block1);
 
-    if position + 1 < Block::ceil_div_nbits(len + u64::from(offset)) {
-        let ptr2        = ptr1.offset(1);
-        let bits_size2  = cmp::min((limit_bit - Block::mul_nbits(position + 1)) as usize, shift1);
-        let old_block2  = ptr::read(ptr2);
-        let new_block2  = old_block2.with_bits(0, bits_size2, value >> shift2);
-        ptr::write(ptr2, new_block2);
-    }
+    // The remaining bits to change in `block2`. If it's zero, we finish early.
+    let bits_size2  = count - bits_size1;
+    if bits_size2 == 0 { return; }
+    let ptr2        = ptr1.offset(1);
+    let old_block2  = ptr::read(ptr2);
+    let new_block2  = old_block2.with_bits(0, bits_size2, value >> shift2);
+    ptr::write(ptr2, new_block2);
 }
 
 impl<'a, Block: BlockType> Bits for BitSlice<'a, Block> {
@@ -325,15 +345,22 @@ impl<'a, Block: BlockType> Bits for BitSlice<'a, Block> {
         assert!(position < self.bit_len(), "BitSlice::get_bit: out of bounds");
 
         unsafe {
-            get_bit_with_offset(self.bits, self.offset, position)
+            get_raw_bit(self.bits, position + u64::from(self.offset))
         }
     }
 
     fn get_block(&self, position: usize) -> Block {
-        assert!(position < self.block_len(), "BitSlice::get_block: out of bounds");
+        let start = Block::mul_nbits(position);
+        let count = Block::block_bits(self.len, position);
+        self.get_bits(start, count)
+    }
+
+    fn get_bits(&self, start: u64, count: usize) -> Self::Block {
+        assert!( start + (count as u64) <= self.bit_len(),
+                 "BitSlice::get_bits: out of bounds" );
 
         unsafe {
-            get_block_with_offset(self.bits, self.offset, self.len, position)
+            get_raw_bits(self.bits, start + u64::from(self.offset), count)
         }
     }
 }
@@ -349,15 +376,22 @@ impl<'a, Block: BlockType> Bits for BitSliceMut<'a, Block> {
         assert!(position < self.bit_len(), "BitSliceMut::get_bit: out of bounds");
 
         unsafe {
-            get_bit_with_offset(self.bits, self.offset, position)
+            get_raw_bit(self.bits, position + u64::from(self.offset))
         }
     }
 
     fn get_block(&self, position: usize) -> Block {
-        assert!(position < self.block_len(), "BitSliceMut::get_block: out of bounds");
+        let start = Block::mul_nbits(position);
+        let count = Block::block_bits(self.len, position);
+        self.get_bits(start, count)
+    }
+
+    fn get_bits(&self, start: u64, count: usize) -> Self::Block {
+        assert!( start + (count as u64) <= self.bit_len(),
+                 "BitSliceMut::get_bits: out of bounds" );
 
         unsafe {
-            get_block_with_offset(self.bits, self.offset, self.len, position)
+            get_raw_bits(self.bits, start + u64::from(self.offset), count)
         }
     }
 }
@@ -367,15 +401,22 @@ impl<'a, Block: BlockType> BitsMut for BitSliceMut<'a, Block> {
         assert!(position < self.bit_len(), "BitSliceMut::set_bit: out of bounds");
 
         unsafe {
-            set_bit_with_offset(self.bits, self.offset, position, value);
+            set_raw_bit(self.bits, position + u64::from(self.offset), value);
         }
     }
 
     fn set_block(&mut self, position: usize, value: Block) {
-        assert!(position < self.block_len(), "BitSliceMut::set_block: out of bounds");
+        let start = Block::mul_nbits(position);
+        let count = Block::block_bits(self.len, position);
+        self.set_bits(start, count, value);
+    }
+
+    fn set_bits(&mut self, start: u64, count: usize, value: Self::Block) {
+        assert!(start + (count as u64) <= self.bit_len(),
+                "BitSliceMut::set_bits: out of bounds");
 
         unsafe {
-            set_block_with_offset(self.bits, self.offset, self.len, position, value);
+            set_raw_bits(self.bits, start + u64::from(self.offset), count, value);
         }
     }
 }
