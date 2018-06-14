@@ -428,42 +428,42 @@ pub trait BitsExt: Bits {
     /// Returns an object that lazily computes the bit-wise conjunction
     /// of two bit-vector-likes.
     ///
-    /// If the lengths of the operands differ, the result will have be
+    /// If the lengths of the operands differ, the result will have
     /// the minimum of the two.
     fn bit_and<Other>(&self, other: Other) -> BitAnd<&Self, Other>
         where Other: Bits<Block = Self::Block> {
 
-        BitAnd(BitsBinOp::new(self, other))
+        BitAnd(BitBinOp::new(self, other))
     }
 
     /// Returns an object that lazily computes the bit-wise conjunction
     /// of two bit-vector-likes.
     ///
-    /// If the lengths of the operands differ, the result will have be
+    /// If the lengths of the operands differ, the result will have
     /// the minimum of the two.
     ///
     /// Consumes `self`.
     fn into_bit_and<Other>(self, other: Other) -> BitAnd<Self, Other>
         where Self: Sized,
               Other: Bits<Block = Self::Block> {
-        BitAnd(BitsBinOp::new(self, other))
+        BitAnd(BitBinOp::new(self, other))
     }
 
     /// Returns an object that lazily computes the bit-wise disjunction
     /// of two bit-vector-likes.
     ///
-    /// If the lengths of the operands differ, the result will have be
+    /// If the lengths of the operands differ, the result will have
     /// the minimum of the two.
     fn bit_or<Other>(&self, other: Other) -> BitOr<&Self, Other>
         where Other: Bits<Block = Self::Block> {
 
-        BitOr(BitsBinOp::new(self, other))
+        BitOr(BitBinOp::new(self, other))
     }
 
     /// Returns an object that lazily computes the bit-wise disjunction
     /// of two bit-vector-likes.
     ///
-    /// If the lengths of the operands differ, the result will have be
+    /// If the lengths of the operands differ, the result will have
     /// the minimum of the two.
     ///
     /// Consumes `self`.
@@ -471,24 +471,24 @@ pub trait BitsExt: Bits {
         where Self: Sized,
               Other: Bits<Block = Self::Block> {
 
-        BitOr(BitsBinOp::new(self, other))
+        BitOr(BitBinOp::new(self, other))
     }
 
     /// Returns an object that lazily computes the bit-wise xor of two
     /// bit-vector-likes.
     ///
-    /// If the lengths of the operands differ, the result will have be
+    /// If the lengths of the operands differ, the result will have
     /// the minimum of the two.
     fn bit_xor<Other>(&self, other: Other) -> BitXor<&Self, Other>
         where Other: Bits<Block = Self::Block> {
 
-        BitXor(BitsBinOp::new(self, other))
+        BitXor(BitBinOp::new(self, other))
     }
 
     /// Returns an object that lazily computes the bit-wise xor of two
     /// bit-vector-likes.
     ///
-    /// If the lengths of the operands differ, the result will have be
+    /// If the lengths of the operands differ, the result will have
     /// the minimum of the two.
     ///
     /// Consumes `self`.
@@ -496,7 +496,40 @@ pub trait BitsExt: Bits {
         where Self: Sized,
               Other: Bits<Block = Self::Block> {
 
-        BitXor(BitsBinOp::new(self, other))
+        BitXor(BitBinOp::new(self, other))
+    }
+
+    /// Returns an object that lazily zips a function over the blocks of
+    /// two bit-vector-like.
+    ///
+    /// If the lengths of the operands differ, the result will have
+    /// the minimum of the two.
+    fn bit_zip<Other, F>(&self, other: Other, fun: F) -> BitZip<&Self, Other, F>
+        where Other: Bits<Block = Self::Block>,
+              F: Fn(Self::Block, Self::Block) -> Self::Block {
+
+        BitZip {
+            ops: BitBinOp::new(self, other),
+            fun,
+        }
+    }
+
+    /// Returns an object that lazily zips a function over the blocks of
+    /// two bit-vector-like.
+    ///
+    /// If the lengths of the operands differ, the result will have
+    /// the minimum of the two.
+    ///
+    /// Consumes `self`.
+    fn into_bit_zip<Other, F>(self, other: Other, fun: F) -> BitZip<Self, Other, F>
+        where Self: Sized,
+              Other: Bits<Block = Self::Block>,
+              F: Fn(Self::Block, Self::Block) -> Self::Block {
+
+        BitZip {
+            ops: BitBinOp::new(self, other),
+            fun,
+        }
     }
 }
 
@@ -514,37 +547,44 @@ pub struct BitNot<T>(T);
 /// The resulting bit vector adapter *and*s the bits of the two underlying
 /// bit-vector-likes.
 #[derive(Clone, Debug)]
-pub struct BitAnd<T, U>(BitsBinOp<T, U>);
+pub struct BitAnd<T, U>(BitBinOp<T, U>);
 
 /// The result of [`BitsExt::bit_or`](trait.BitsExt.html#method.bit_or).
 ///
 /// The resulting bit vector adapter *or*s the bits of the two underlying
 /// bit-vector-likes.
 #[derive(Clone, Debug)]
-pub struct BitOr<T, U>(BitsBinOp<T, U>);
+pub struct BitOr<T, U>(BitBinOp<T, U>);
 
 /// The result of [`BitsExt::bit_xor`](trait.BitsExt.html#method.bit_xor).
 ///
 /// The resulting bit vector adapter *xor*s the bits of the two underlying
 /// bit-vector-likes.
 #[derive(Clone, Debug)]
-pub struct BitXor<T, U>(BitsBinOp<T, U>);
+pub struct BitXor<T, U>(BitBinOp<T, U>);
+
+/// The result of [`BitsExt::bit_zip`](trait.BitsExt.html#method.bit_zip).
+#[derive(Clone, Debug)]
+pub struct BitZip<T, U, F> {
+    ops: BitBinOp<T, U>,
+    fun: F,
+}
 
 /// Used to store the two operands to a bitwise logical operation on
 /// `Bits`es, along with the length of the result (min the length of
 /// the operands). (Note that `len` is derivable from `op1` and `op2`,
 /// but it probably makes sense to cache it.)
 #[derive(Clone, Debug)]
-struct BitsBinOp<T, U> {
+struct BitBinOp<T, U> {
     op1: T,
     op2: U,
     len: u64,
 }
 
-impl<T: Bits, U: Bits<Block = T::Block>> BitsBinOp<T, U> {
+impl<T: Bits, U: Bits<Block = T::Block>> BitBinOp<T, U> {
     fn new(op1: T, op2: U) -> Self {
         let len = cmp::min(op1.bit_len(), op2.bit_len());
-        BitsBinOp { op1, op2, len, }
+        BitBinOp { op1, op2, len, }
     }
 
     fn bit1(&self, position: u64) -> bool {
@@ -642,8 +682,8 @@ macro_rules! impl_bits_bin_op {
             type Slice = $target<T::Slice, U::Slice>;
 
             fn bit_slice(self, range: R) -> Self::Slice {
-                $target(BitsBinOp::new(self.0.op1.bit_slice(range.clone()),
-                                       self.0.op2.bit_slice(range)))
+                $target(BitBinOp::new(self.0.op1.bit_slice(range.clone()),
+                                      self.0.op2.bit_slice(range)))
             }
         }
 
@@ -666,6 +706,62 @@ macro_rules! impl_bits_bin_op {
 impl_bits_bin_op!(BitAnd as & &&);
 impl_bits_bin_op!(BitOr  as | ||);
 impl_bits_bin_op!(BitXor as ^ ^);
+
+impl<T, U, F> Bits for BitZip<T, U, F>
+    where T: Bits,
+          U: Bits<Block = T::Block>,
+          F: Fn(T::Block, T::Block) -> T::Block {
+    type Block = T::Block;
+
+    fn bit_len(&self) -> u64 {
+        self.ops.len
+    }
+
+    fn get_block(&self, position: usize) -> Self::Block {
+        (self.fun)(self.ops.block1(position), self.ops.block2(position))
+    }
+}
+
+impl_index_from_bits! {
+    impl[T: Bits, U: Bits<Block = T::Block>,
+         F: Fn(T::Block, T::Block) -> T::Block]
+        Index<u64> for BitZip<T, U, F>;
+}
+
+impl<R, T, U, F> BitSliceable<R> for BitZip<T, U, F>
+    where R: Clone,
+          T: BitSliceable<R>,
+          U: BitSliceable<R>,
+          T::Slice: Bits,
+          U::Slice: Bits<Block = <T::Slice as Bits>::Block> {
+
+    type Slice = BitZip<T::Slice, U::Slice, F>;
+
+    fn bit_slice(self, range: R) -> Self::Slice {
+        BitZip {
+            ops: BitBinOp::new(self.ops.op1.bit_slice(range.clone()),
+                               self.ops.op2.bit_slice(range)),
+            fun: self.fun,
+        }
+    }
+}
+
+impl_bit_sliceable_adapter! {
+    impl['a, T: Bits, U: Bits<Block = T::Block>,
+         F: Fn(T::Block, T::Block) -> T::Block]
+        BitSliceable for &'a BitZip<T, U, F>;
+}
+
+impl<T, U, F, V> PartialEq<V> for BitZip<T, U, F>
+    where T: Bits,
+          U: Bits<Block = T::Block>,
+          V: Bits<Block = T::Block>,
+          F: Fn(T::Block, T::Block) -> T::Block {
+
+    fn eq(&self, other: &V) -> bool {
+        BlockIter::new(self) == BlockIter::new(other)
+    }
+}
 
 /// Emulates a constant-valued bit-vector of a given size.
 #[derive(Debug, Clone)]

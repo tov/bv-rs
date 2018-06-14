@@ -1,5 +1,7 @@
 # TODO
 
+  - `BitsExt::zip_with` method
+
   - `BitsMutExt` trait:
       - methods `bit_or_assign`, `bit_and_assign`, etc.
       - blitting
