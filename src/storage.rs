@@ -208,8 +208,6 @@ pub trait BlockType: Copy +
         assert!(start + len <= Self::nbits(),
                 "Block::with_bits: out of bounds");
 
-        if len == 0 { return self; }
-
         let mask = Self::low_mask(len) << start;
         let shifted_value = value << start;
 
