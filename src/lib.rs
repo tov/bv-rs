@@ -73,7 +73,7 @@
 //! [`BitsPush`]: trait.BitsPush.html
 //! [`BitSlice`]: struct.BitSlice.html
 //! [`BitSliceMut`]: struct.BitSliceMut.html
-//! [`adapter`]: adapter/
+//! [`adapter`]: adapter/index.html
 //! [`adapter::BitsExt`]: adapter/trait.BitsExt.html
 
 #![warn(missing_docs)]

@@ -15,8 +15,9 @@ The format is based on [Keep a Changelog] and this project adheres to
   Adapters include:
    - bit-wise logic adapters `BitNot`, `BitAnd`, `BitOr`, and `BitXor`;
    - constant adapter `BitFill`;
-   - concatenation adapter `BitConcat`; and
-   - and slicing adapter `BitSliceAdapter`. (Note that `BitSliceAdapter` does 
+   - concatenation adapter `BitConcat`;
+   - `BoolAdapter` for adapting unpacked `Vec<bool>` or `&[bool]`; and
+   - slicing adapter `BitSliceAdapter`. (Note that `BitSliceAdapter` does 
      not replace the more specialized `BitSlice`.)
 - `Bits::to_bit_vec` method, which copies the bits into a new `BitVec`.
 - `bit_vec!` macro allows trailing comma.
