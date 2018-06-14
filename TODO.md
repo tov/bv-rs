@@ -11,3 +11,5 @@
   - Shifts and rotations:
       - functional
       - in-place
+
+  - `SparseBitVec`
