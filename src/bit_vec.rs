@@ -607,16 +607,15 @@ impl<Block: BlockType> Bits for BitVec<Block> {
     }
 
     fn get_block(&self, position: usize) -> Block {
-        if position + 1 == self.block_len() {
-            self.bits[position].get_bits(0, Block::last_block_bits(self.bit_len()))
-        } else {
-            self.bits[position]
-        }
+        let block_len = Block::block_bits(self.bit_len(), position);
+        self.bits[position].get_bits(0, block_len)
     }
 }
 
 impl<Block: BlockType> BitsMut for BitVec<Block> {
     fn set_block(&mut self, position: usize, value: Block) {
+        // This may set out-of-bounds bits, but that's okay because
+        // oob bits are never observed.
         self.bits[position] = value;
     }
 }
