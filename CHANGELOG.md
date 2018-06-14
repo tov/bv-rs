@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog] and this project adheres to
 [Keep a Changelog]: http://keepachangelog.com/en/1.0.0/
 [Semantic Versioning]: http://semver.org/spec/v2.0.0.html
 
+## [Unreleased]
+
+### Added
+- `BitsExt::bit_zip` method generalizes `bit_and`, `bit_or`, etc.
+
 ## [0.8.0] - 2018-06-13
 
 ### Added
