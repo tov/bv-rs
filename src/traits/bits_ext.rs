@@ -16,7 +16,7 @@ use adapter::*;
 /// # Examples
 ///
 /// ```
-/// use bv::{Bits, BitsExt, BitVec};
+/// use bv::*;
 ///
 /// let bv1: BitVec = bit_vec![false, false, true, true];
 /// let bv2: BitVec = bit_vec![false, true, false, true];
