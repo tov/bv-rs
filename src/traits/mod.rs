@@ -1,6 +1,9 @@
 mod bits;
 pub use self::bits::Bits;
 
+mod bits_ext;
+pub use self::bits_ext::BitsExt;
+
 mod bits_mut;
 pub use self::bits_mut::BitsMut;
 

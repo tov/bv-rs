@@ -15,6 +15,11 @@ The format is based on [Keep a Changelog] and this project adheres to
 - `BlockType::block_bits` static method, for finding out the number
   of bits in the block at the given position.
 
+### Changed
+- Trait `BitsExt` is moved from the `adapter` module to the root. (There's
+  still a `pub use` for it in `adapter`, but that alias is deprecated and will
+  be removed in 0.9.0.)
+
 ## [0.8.0] - 2018-06-13
 
 ### Added

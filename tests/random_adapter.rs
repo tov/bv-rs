@@ -5,8 +5,8 @@ extern crate bv;
 #[macro_use]
 extern crate quickcheck;
 
-use bv::{Bits, BitVec, BlockType};
-use bv::adapter::{BitsExt, BitSliceAdapter};
+use bv::{Bits, BitsExt, BitVec, BlockType};
+use bv::adapter::BitSliceAdapter;
 
 use quickcheck::{Arbitrary, Gen};
 

@@ -12,9 +12,9 @@
 //!  - vectors and slices thereof (*e.g.*, `Vec<usize>`, `&[u8]`, `[u16; 4]`), and
 //!  - unpacked vectors and arrays of `bool` (*e.g.*, `[bool; 15]`).
 //!
-//! Additionally, the [`adapter`] module exports the [`adapter::BitsExt`] trait,
-//! which provides adapter methods including bit-wise logic and concatenation. These
-//! adapters work for all types that implement [`Bits`].
+//! Additionally, the [`BitsExt`] trait provides adapter methods including
+//! bit-wise logic and concatenation. These adapters work for all types that implement
+//! [`Bits`].
 //!
 //! # Examples
 //!
@@ -36,11 +36,11 @@
 //! assert_eq!(bv1, bv2);
 //! ```
 //!
-//! Adapters, from [`adapter::BitsExt`]:
+//! Adapters, from [`BitsExt`] and [`adapter`]:
 //!
 //! ```
 //! use bv::*;
-//! use bv::adapter::{BitsExt, BoolAdapter};
+//! use bv::adapter::BoolAdapter;
 //!
 //! // Here, we use an `&[u16]` as a bit vector, and we adapt a
 //! // `Vec<bool>` as well.
@@ -58,8 +58,7 @@
 //! allocating an intermediate result:
 //!
 //! ```
-//! use bv::{Bits, BitVec};
-//! use bv::adapter::BitsExt;
+//! use bv::{Bits, BitsExt, BitVec};
 //!
 //! fn three_way_or<T, U, V>(bv1: T, bv2: U, bv3: V) -> BitVec<T::Block>
 //!     where T: Bits,
@@ -95,8 +94,8 @@
 //! [`BitsPush`]: trait.BitsPush.html
 //! [`BitSlice`]: struct.BitSlice.html
 //! [`BitSliceMut`]: struct.BitSliceMut.html
+//! [`BitsExt`]: trait.BitsExt.html
 //! [`adapter`]: adapter/index.html
-//! [`adapter::BitsExt`]: adapter/trait.BitsExt.html
 
 #![warn(missing_docs)]
 
@@ -117,7 +116,7 @@ mod storage;
 pub use self::storage::BlockType;
 
 mod traits;
-pub use self::traits::{Bits, BitsMut, BitsPush, BitSliceable};
+pub use self::traits::{Bits, BitsExt, BitsMut, BitsPush, BitSliceable};
 
 mod slice;
 pub use self::slice::{BitSlice, BitSliceMut};
