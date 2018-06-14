@@ -11,21 +11,24 @@ The format is based on [Keep a Changelog] and this project adheres to
 ## [0.8.0] - 2018-06-13
 
 ### Added
-- `adapter::BitsExt` trait, for adapter operations over types that implement `Bits`.
-  Adapters include:
-   - bit-wise logic adapters `BitNot`, `BitAnd`, `BitOr`, and `BitXor`;
-   - constant adapter `BitFill`;
-   - concatenation adapter `BitConcat`;
-   - `BoolAdapter` for adapting unpacked `Vec<bool>` or `&[bool]`; and
-   - slicing adapter `BitSliceAdapter`. (Note that `BitSliceAdapter` does 
-     not replace the more specialized `BitSlice`.)
-- `Bits::to_bit_vec` method, which copies the bits into a new `BitVec`.
+- `adapter` module, including:
+  - `BitsExt` trait, for adapter operations over types that 
+    implement `Bits`. Methods include:
+      - bit-wise logic: `bit_not`, `bit_and`, `bit_or`, and `bit_xor`;
+      - `bit_concat` and `bit_pad`.
+  - constant adapter `BitFill`;
+  - `BoolAdapter` for adapting unpacked `Vec<bool>` or `&[bool]`; and
+  - slicing adapter `BitSliceAdapter`. (Note that `BitSliceAdapter` does 
+    not replace the more specialized `BitSlice`.)
+- `Bits::to_bit_vec` method, which copies the bits of a `Bits` into a new 
+  `BitVec`.
 - `bit_vec!` macro allows trailing comma.
 - `BitVec::get` and `BitVec::set` methods, aliasing `Bits::get_bit` and
   `BitsMut::set_bit`, respectively.
 - `From` impls for converting array slices to `BitSlice`, mutable array 
   slices to `BitSliceMut`, and `BitSliceMut` to `BitSlice`.
-- `Bits`, `BitsMut`, and `BitSlice` impls for sized arrays from sizes 0 to 31.
+- `Bits`, `BitsMut`, and `BitSliceable` impls for sized arrays from sizes 0
+  to 31.
   
 ### Changed
 - `BitSliceMut::as_immut` renamed to `BitSliceMut::as_bit_slice`.
