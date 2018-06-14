@@ -827,8 +827,9 @@ impl<Block: BlockType, T> BoolAdapter<Block, T> {
     /// use bv::BitSliceable;
     /// use bv::adapter::BoolAdapter;
     ///
+    /// let array = [0b101];
     /// let bv1 = BoolAdapter::<usize, _>::new(vec![true, false, true]);
-    /// let bv2 = [0b101].bit_slice(0..3);
+    /// let bv2 = array.bit_slice(0..3);
     /// assert_eq!( bv1, bv2 );
     /// ```
     pub fn new(bits: T) -> Self {
