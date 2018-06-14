@@ -32,7 +32,8 @@ The format is based on [Keep a Changelog] and this project adheres to
   
 ### Removed
 - `Bits::bit_offset` method. Blocks returned from a `Bits` instance are now
-  assumed to be aligned.
+  assumed to be aligned. This makes `BitSlice` more complicated but 
+  significantly simplifies everything else and removes some infelicities.
 - `BitSliceBlockIter` struct and methods for creating it. I'm rethinking how
   iteration over bit vectors and bit-vector-likes should work.
 
