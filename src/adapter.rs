@@ -923,8 +923,6 @@ impl_for_bool_adapter! {
     impl['a, Block: BlockType] Bits     for BoolAdapter<Block, &'a mut [bool]>;
     impl['a, Block: BlockType] BitsMut  for BoolAdapter<Block, &'a mut [bool]>;
 
-    impl['a, Block: BlockType] Bits     for BoolAdapter<Block, &'a Vec<bool>>;
-
     impl['a, Block: BlockType] Bits     for BoolAdapter<Block, &'a [bool]>;
 }
 
