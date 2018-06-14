@@ -253,8 +253,8 @@ unsafe fn set_bit_with_offset<Block: BlockType>(
 unsafe fn get_block_with_offset<Block: BlockType>(
     bits: *const Block, offset: u8, len: u64, position: usize) -> Block {
 
-    let value_mask = Block::low_mask(cmp::min(len - Block::mul_nbits(position),
-                                              Block::nbits() as u64) as usize);
+    let value_len  = Block::block_bits(len, position);
+    let value_mask = Block::low_mask(value_len);
 
     let block1 = ptr::read(bits.offset(position as isize));
     if offset == 0 {
