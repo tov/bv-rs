@@ -195,8 +195,6 @@ pub trait BlockType: Copy +
         assert!(start + len <= Self::nbits(),
                 "Block::get_bits: out of bounds");;
 
-        if len == 0 { return Self::zero(); }
-
         (self >> start) & Self::low_mask(len)
     }
 
