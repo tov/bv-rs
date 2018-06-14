@@ -21,6 +21,10 @@ quickcheck! {
         program.evaluate::<u16>().check()
     }
 
+    fn prop_u32(program: Program) -> bool {
+        program.evaluate::<u32>().check()
+    }
+
     fn prop_u64(program: Program) -> bool {
         program.evaluate::<u64>().check()
     }
@@ -61,16 +65,16 @@ impl Arbitrary for Program {
         use Program::*;
 
         let recur  = |g: &mut G| Box::new(Program::arbitrary(g));
-        let choice = g.gen_range(21, 91);
+        let choice = g.gen_range(1, 71);
 
         match choice {
-            21...50 => Constant(RefImpl::arbitrary(g)),
-            51...55 => Not(recur(g)),
-            56...60 => And(recur(g), recur(g)),
-            61...65 => Or(recur(g), recur(g)),
-            66...70 => Xor(recur(g), recur(g)),
-            71...75 => Concat(recur(g), recur(g)),
-            76...80 => {
+            01...30 => Constant(RefImpl::arbitrary(g)),
+            31...35 => Not(recur(g)),
+            36...40 => And(recur(g), recur(g)),
+            41...45 => Or(recur(g), recur(g)),
+            46...50 => Xor(recur(g), recur(g)),
+            51...55 => Concat(recur(g), recur(g)),
+            56...60 => {
                 let program = recur(g);
                 let len     = program.len();
                 if len >= 2 {
