@@ -264,7 +264,10 @@ impl<Block: BlockType> BitVec<Block> {
     /// ```
     pub fn reserve(&mut self, additional: u64) {
         let old_cap = self.capacity();
-        self.reserve_exact(max(1, max(additional, old_cap)));
+        let req_cap = self.len() + additional;
+        if req_cap > old_cap {
+            self.reserve_exact(max(additional, old_cap));
+        }
     }
 
     /// Adjust the capacity to hold at least `additional` additional blocks.
@@ -283,7 +286,10 @@ impl<Block: BlockType> BitVec<Block> {
     /// ```
     pub fn block_reserve(&mut self, additional: usize) {
         let old_cap = self.block_capacity();
-        self.block_reserve_exact(max(1, max(additional, old_cap)));
+        let req_cap = self.block_len() + additional;
+        if req_cap > old_cap {
+            self.block_reserve_exact(max(additional, old_cap));
+        }
     }
 
     /// Adjust the capacity to hold at least `additional` additional bits.
@@ -529,10 +535,7 @@ impl<Block: BlockType> BitVec<Block> {
     /// assert_eq!( bv0, bv3 );
     /// ```
     pub fn push(&mut self, value: bool) {
-        if self.len() == self.capacity() - 1 {
-            self.reserve(1);
-        }
-
+        self.reserve(1);
         let old_len = self.len;
         self.len = old_len + 1;
         self.set_bit(old_len, value);

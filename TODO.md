@@ -1,7 +1,5 @@
 # TODO
 
-  - Move `BitsExt` from `adapter` module to root.
-  
   - Performance comparisons.
   
   - Add `Bits::get_unmasked_block`.
