@@ -4,6 +4,7 @@ use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
 #[cfg(inclusive_range)]
 use std::ops::{RangeInclusive, RangeToInclusive};
 
+#[cfg(inclusive_range)]
 use util;
 use iter::BlockIter;
 use traits::{Bits, BitsMut, BitSliceable};
