@@ -32,6 +32,7 @@ macro_rules! bit_vec {
     ( $( $e:expr ),* ) => {
         {
             let mut result = $crate::BitVec::new();
+            let _ = &mut result;
             $(
                 result.push($e);
             )*
