@@ -14,6 +14,9 @@ The format is based on [Keep a Changelog] and this project adheres to
 - Impls of `Bits` and `BitsMut` for `Vec<Block>`. The impls for `[Block]`
   already caught most causes because of autoderef, but this is helpful
   when you want to pass a `Vec` to a generic method.
+  
+### Improved
+- Single-bit `BitVec` operations are significantly faster now.
 
 ## [0.8.2] - 2018-06-15
 
