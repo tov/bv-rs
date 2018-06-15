@@ -26,9 +26,30 @@ fn vec_bool_loop(b: &mut Bencher) {
 
     let (v1, v2, v3) = three_vec_bools();
 
-    b.iter(|| {
-        or_vec_bool(&or_vec_bool(&v1, &v2), &v3)
-    })
+    b.iter(|| or_vec_bool(&or_vec_bool(&v1, &v2), &v3));
+}
+
+#[bench]
+fn vec_bool_loop_sliced(b: &mut Bencher) {
+    fn or_vec_bool(v1: &[bool], v2: &[bool]) -> Vec<bool> {
+        let len = cmp::min(v1.len(), v2.len());
+        let s1  = &v1[..len];
+        let s2  = &v2[..len];
+        let mut result = s1.to_vec();
+
+        {
+            let sr = &mut result[..len];
+            for i in 0 .. len {
+                sr[i] |= s2[i];
+            }
+        }
+
+        result
+    }
+
+    let (v1, v2, v3) = three_vec_bools();
+
+    b.iter(|| or_vec_bool(&or_vec_bool(&v1, &v2), &v3));
 }
 
 #[bench]
@@ -41,9 +62,7 @@ fn vec_bool_iter(b: &mut Bencher) {
 
     let (v1, v2, v3) = three_vec_bools();
 
-    b.iter(|| {
-        or_vec_bool(&or_vec_bool(&v1, &v2), &v3)
-    })
+    b.iter(|| or_vec_bool(&or_vec_bool(&v1, &v2), &v3));
 }
 
 #[bench]
@@ -61,9 +80,55 @@ fn vec_bool_loop_fused(b: &mut Bencher) {
 
     let (v1, v2, v3) = three_vec_bools();
 
-    b.iter(|| {
-        or_vec_bool_3(&v1, &v2, &v3)
-    })
+    b.iter(|| or_vec_bool_3(&v1, &v2, &v3));
+}
+
+#[bench]
+fn vec_bool_loop_fused_sliced(b: &mut Bencher) {
+    fn or_vec_bool_3(v1: &[bool], v2: &[bool], v3: &[bool]) -> Vec<bool> {
+        let len = cmp::min(v1.len(), cmp::min(v2.len(), v3.len()));
+        let s1 = &v1[.. len];
+        let s2 = &v2[.. len];
+        let s3 = &v3[.. len];
+        let mut result = vec![false; len];
+
+        {
+            let sr = &mut result[.. len];
+            for i in 0 .. len {
+                sr[i] = s1[i] | s2[i] | s3[i];
+            }
+        }
+
+        result
+    }
+
+    let (v1, v2, v3) = three_vec_bools();
+
+    b.iter(|| or_vec_bool_3(&v1, &v2, &v3));
+}
+
+#[bench]
+fn vec_bool_loop_fused_sliced_or_assign(b: &mut Bencher) {
+    fn or_vec_bool_3(v1: &[bool], v2: &[bool], v3: &[bool]) -> Vec<bool> {
+        let len = cmp::min(v1.len(), cmp::min(v2.len(), v3.len()));
+        let s1 = &v1[.. len];
+        let s2 = &v2[.. len];
+        let s3 = &v3[.. len];
+        let mut result = s1.to_vec();
+
+        {
+            let sr = &mut result[.. len];
+            for i in 0 .. len {
+                sr[i] |= s2[i] | s3[i];
+            }
+        }
+
+        result
+    }
+
+    let (v1, v2, v3) = three_vec_bools();
+
+    b.iter(|| or_vec_bool_3(&v1, &v2, &v3));
 }
 
 #[bench]
@@ -89,6 +154,7 @@ fn vec_bool_iter_fused_cloned(b: &mut Bencher) {
     let (v1, v2, v3) = three_vec_bools();
     b.iter(|| or_vec_bool_3(&v1, &v2, &v3));
 }
+
 #[bench]
 fn vec_bool_iter_fused_bool_to_int(b: &mut Bencher) {
     fn bool_to_int(b: &bool) -> u32 {
@@ -166,6 +232,31 @@ fn vec_u32_loop(b: &mut Bencher) {
 }
 
 #[bench]
+fn vec_u32_loop_sliced(b: &mut Bencher) {
+    fn or_vec_u32(v1: &[u32], v2: &[u32]) -> Vec<u32> {
+        let len = cmp::min(v1.len(), v2.len());
+        let s1 = &v1[.. len];
+        let s2 = &v2[.. len];
+        let mut result = s1.to_vec();
+
+        {
+            let sr = &mut result[.. len];
+            for i in 0 .. len {
+                sr[i] |= s2[i];
+            }
+        }
+
+        result
+    }
+
+    let (v1, v2, v3) = three_vec_u32s();
+
+    b.iter(|| {
+        or_vec_u32(&or_vec_u32(&v1, &v2), &v3)
+    })
+}
+
+#[bench]
 fn vec_u32_loop_fused(b: &mut Bencher) {
     fn or_vec_u32_3(v1: &[u32], v2: &[u32], v3: &[u32]) -> Vec<u32> {
         let len = cmp::min(v1.len(), cmp::min(v2.len(), v3.len()));
@@ -173,6 +264,79 @@ fn vec_u32_loop_fused(b: &mut Bencher) {
 
         for i in 0 .. len {
             result.push(v1[i] | v2[i] | v3[i]);
+        }
+
+        result
+    }
+
+    let (v1, v2, v3) = three_vec_u32s();
+
+    b.iter(|| {
+        or_vec_u32_3(&v1, &v2, &v3)
+    })
+}
+
+#[bench]
+fn vec_u32_loop_fused_assert(b: &mut Bencher) {
+    fn or_vec_u32_3(v1: &[u32], v2: &[u32], v3: &[u32]) -> Vec<u32> {
+        let len = v1.len();
+        let mut result = v1.to_vec();
+        assert_eq!( len, v2.len() );
+        assert_eq!( len, v3.len() );
+        assert_eq!( len, result.len() );
+
+        for i in 0 .. len {
+            result[i] |= v2[i] | v3[i];
+        }
+
+        result
+    }
+
+    let (v1, v2, v3) = three_vec_u32s();
+
+    b.iter(|| {
+        or_vec_u32_3(&v1, &v2, &v3)
+    })
+}
+
+#[bench]
+fn vec_u32_loop_fused_assert_push(b: &mut Bencher) {
+    fn or_vec_u32_3(v1: &[u32], v2: &[u32], v3: &[u32]) -> Vec<u32> {
+        let len = v1.len();
+        let mut result = Vec::with_capacity(len);
+        assert_eq!( len, v1.len() );
+        assert_eq!( len, v2.len() );
+        assert_eq!( len, v3.len() );
+        assert_eq!( len, result.capacity() );
+
+        for i in 0 .. len {
+            result.push(v1[i] | v2[i] | v3[i]);
+        }
+
+        result
+    }
+
+    let (v1, v2, v3) = three_vec_u32s();
+
+    b.iter(|| {
+        or_vec_u32_3(&v1, &v2, &v3)
+    })
+}
+
+#[bench]
+fn vec_u32_loop_fused_sliced(b: &mut Bencher) {
+    fn or_vec_u32_3(v1: &[u32], v2: &[u32], v3: &[u32]) -> Vec<u32> {
+        let len = cmp::min(v1.len(), cmp::min(v2.len(), v3.len()));
+        let s1 = &v1[.. len];
+        let s2 = &v2[.. len];
+        let s3 = &v3[.. len];
+        let mut result = s1.to_vec();
+
+        {
+            let sr = &mut result[.. len];
+            for i in 0 .. len {
+                sr[i] |= s2[i] | s3[i];
+            }
         }
 
         result
@@ -248,6 +412,19 @@ fn vec_u32_iter_fused_cloned(b: &mut Bencher) {
 fn vec_u32_adapter(b: &mut Bencher) {
     fn or_vec_u32_3(v1: &[u32], v2: &[u32], v3: &[u32]) -> BitVec<u32> {
         v1.into_bit_or(v2).into_bit_or(v3).to_bit_vec()
+    }
+
+    let (v1, v2, v3) = three_vec_u32s();
+
+    b.iter(|| {
+        or_vec_u32_3(&v1, &v2, &v3)
+    })
+}
+
+#[bench]
+fn vec_u32_adapter_unfused(b: &mut Bencher) {
+    fn or_vec_u32_3(v1: &[u32], v2: &[u32], v3: &[u32]) -> BitVec<u32> {
+        v1.into_bit_or(v2).to_bit_vec().into_bit_or(v3).to_bit_vec()
     }
 
     let (v1, v2, v3) = three_vec_u32s();

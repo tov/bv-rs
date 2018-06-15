@@ -159,10 +159,11 @@ impl<Block: BlockType> BitVec<Block> {
     /// Creates a new `BitVec` from any value implementing the `Bits` trait with
     /// the same block type.
     pub fn from_bits<B: Bits<Block = Block>>(bits: B) -> Self {
-        let mut result: Self = Self::with_capacity(bits.bit_len());
+        let block_len = bits.block_len();
+        let mut result: Self = Self::from_block(Block::zero(), block_len);
 
-        for i in 0..bits.block_len() {
-            result.push_block(bits.get_block(i));
+        for i in 0 .. block_len {
+            result.set_block(i, bits.get_block(i));
         }
 
         result.resize(bits.bit_len(), false);
