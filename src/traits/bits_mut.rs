@@ -117,3 +117,30 @@ impl<Block: BlockType> BitsMut for Box<BitsMut<Block = Block>> {
     }
 }
 
+impl<Block: BlockType> BitsMut for [Block] {
+    fn set_block(&mut self, position: usize, value: Block) {
+        self[position] = value;
+    }
+}
+
+impl<Block: BlockType> BitsMut for Vec<Block> {
+    fn set_block(&mut self, position: usize, value: Block) {
+        <[Block]>::set_block(&mut *self, position, value);
+    }
+}
+
+impl BitsMut for [bool] {
+    fn set_bit(&mut self, position: u64, value: bool) {
+        let position = position.to_usize()
+            .expect("Vec<bool>::set_bit: overflow");
+        self[position] = value;
+    }
+}
+
+impl BitsMut for Vec<bool> {
+    #[inline]
+    fn set_bit(&mut self, position: u64, value: bool) {
+        self.as_mut_slice().set_bit(position, value)
+    }
+}
+

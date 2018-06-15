@@ -205,3 +205,62 @@ impl<Block: BlockType> Bits for Box<BitsMut<Block = Block>> {
     }
 }
 
+impl<Block: BlockType> Bits for [Block] {
+    type Block = Block;
+
+    fn bit_len(&self) -> u64 {
+        Block::mul_nbits(self.len())
+    }
+
+    fn block_len(&self) -> usize {
+        self.len()
+    }
+
+    fn get_block(&self, position: usize) -> Block {
+        self[position]
+    }
+}
+
+impl<Block: BlockType> Bits for Vec<Block> {
+    type Block = Block;
+
+    fn bit_len(&self) -> u64 {
+        <[Block]>::bit_len(&self)
+    }
+
+    fn block_len(&self) -> usize {
+        <[Block]>::block_len(&self)
+    }
+
+    fn get_block(&self, position: usize) -> Block {
+        <[Block]>::get_block(&self, position)
+    }
+}
+
+impl Bits for [bool] {
+    type Block = u8; // This is bogus
+
+    #[inline]
+    fn bit_len(&self) -> u64 {
+        self.len() as u64
+    }
+
+    fn get_bit(&self, position: u64) -> bool {
+        self[position.to_usize().expect("Vec<bool>::get_bit: overflow")]
+    }
+}
+
+impl Bits for Vec<bool> {
+    type Block = u8;
+
+    #[inline]
+    fn bit_len(&self) -> u64 {
+        self.as_slice().bit_len()
+    }
+
+    #[inline]
+    fn get_bit(&self, position: u64) -> bool {
+        self.as_slice().get_bit(position)
+    }
+}
+

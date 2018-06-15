@@ -124,7 +124,7 @@ pub use self::slice::{BitSlice, BitSliceMut};
 mod bit_vec;
 pub use self::bit_vec::BitVec;
 
-mod array;
+mod array_n_impls;
 mod iter;
 mod prims;
 

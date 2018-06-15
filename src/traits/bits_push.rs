@@ -34,3 +34,13 @@ pub trait BitsPush: BitsMut {
     }
 }
 
+impl BitsPush for Vec<bool> {
+    fn push_bit(&mut self, value: bool) {
+        self.push(value);
+    }
+
+    fn pop_bit(&mut self) -> Option<bool> {
+        self.pop()
+    }
+}
+
