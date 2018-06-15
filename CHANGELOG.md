@@ -25,6 +25,11 @@ The format is based on [Keep a Changelog] and this project adheres to
 ### Improved
 - Single-bit `BitVec` operations are significantly faster now.
 
+### Fixed
+- Bit-slicing `&[bool]` and `&mut [bool]` using `BitSliceable` now requires
+  `u64` ranges rather than `usize` ranges. Now all `BitSliceable` instances
+  use `u64` ranges.
+
 ## [0.8.2] - 2018-06-15
 
 ### Fixed
