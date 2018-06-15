@@ -1,6 +1,7 @@
 use {BlockType, Bits, BitsMut, BitsPush, BitSliceable, BitSlice, BitSliceMut};
 use super::BitVec;
 use iter::BlockIter;
+use storage::Address;
 
 use std::cmp::Ordering;
 use std::fmt;
@@ -16,11 +17,19 @@ impl<Block: BlockType> Bits for BitVec<Block> {
         self.len()
     }
 
+    fn get_bit(&self, position: u64) -> bool {
+        assert!( position < self.len(),
+                 "BitVec::get_bit: out of bounds" );
+        let address = Address::new::<Block>(position);
+        // We know this is safe because we just did a bounds check.
+        let block = unsafe { self.bits.get_block(address.block_index) };
+        block.get_bit(address.bit_offset)
+    }
+
     fn get_block(&self, position: usize) -> Block {
         assert!( position < self.block_len(),
                  "BitVec::get_block: out of bounds" );
-        // We know this is safe because we just did a bounds check, and
-        // position is in bounds.
+        // We know this is safe because we just did a bounds check.
         let block = unsafe { self.bits.get_block(position) };
         let count = Block::block_bits(self.bit_len(), position);
         block.get_bits(0, count)
@@ -28,6 +37,16 @@ impl<Block: BlockType> Bits for BitVec<Block> {
 }
 
 impl<Block: BlockType> BitsMut for BitVec<Block> {
+    fn set_bit(&mut self, position: u64, value: bool) {
+        assert!( position < self.len(),
+                 "BitVec::set_bit: out of bounds" );
+        let address = Address::new::<Block>(position);
+        // We know this is safe because we just did a bounds check.
+        let old_block = unsafe { self.bits.get_block(address.block_index) };
+        let new_block = old_block.with_bit(address.bit_offset, value);
+        unsafe { self.bits.set_block(address.block_index, new_block); }
+    }
+
     fn set_block(&mut self, position: usize, value: Block) {
         assert!( position < self.block_len(),
                  "BitVec::set_block: out of bounds" );
