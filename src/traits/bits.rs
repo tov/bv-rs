@@ -216,6 +216,11 @@ impl<Block: BlockType> Bits for [Block] {
         self.len()
     }
 
+    fn get_bit(&self, position: u64) -> bool {
+        let address = Address::new::<Block>(position);
+        self[address.block_index].get_bit(address.bit_offset)
+    }
+
     fn get_block(&self, position: usize) -> Block {
         self[position]
     }
@@ -232,6 +237,10 @@ impl<Block: BlockType> Bits for Vec<Block> {
         <[Block]>::block_len(&self)
     }
 
+    fn get_bit(&self, position: u64) -> bool {
+        <[Block]>::get_bit(&self, position)
+    }
+
     fn get_block(&self, position: usize) -> Block {
         <[Block]>::get_block(&self, position)
     }
@@ -245,6 +254,7 @@ impl Bits for [bool] {
         self.len() as u64
     }
 
+    #[inline]
     fn get_bit(&self, position: u64) -> bool {
         self[position.to_usize().expect("Vec<bool>::get_bit: overflow")]
     }

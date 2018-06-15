@@ -118,12 +118,22 @@ impl<Block: BlockType> BitsMut for Box<BitsMut<Block = Block>> {
 }
 
 impl<Block: BlockType> BitsMut for [Block] {
+    fn set_bit(&mut self, position: u64, value: bool) {
+        let address = Address::new::<Block>(position);
+        let block = &mut self[address.block_index];
+        *block = block.with_bit(address.bit_offset, value);
+    }
+
     fn set_block(&mut self, position: usize, value: Block) {
         self[position] = value;
     }
 }
 
 impl<Block: BlockType> BitsMut for Vec<Block> {
+    fn set_bit(&mut self, position: u64, value: bool) {
+        <[Block]>::set_bit(&mut *self, position, value);
+    }
+
     fn set_block(&mut self, position: usize, value: Block) {
         <[Block]>::set_block(&mut *self, position, value);
     }

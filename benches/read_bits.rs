@@ -86,7 +86,7 @@ fn bit_slice_read_bits(b: &mut Bencher) {
 #[bench]
 fn bit_slice_read_bits_write(b: &mut Bencher) {
     let mut v = vec![0u64; NBITS as usize / 64];
-    let mut slice = v.as_mut_slice().bit_slice(..);
+    let mut slice = (&mut *v).bit_slice(..);
 
     b.iter(|| {
         for i in 0 .. slice.bit_len() {
