@@ -34,8 +34,8 @@ fn vec_bool_loop(b: &mut Bencher) {
 #[bench]
 fn vec_bool_iter(b: &mut Bencher) {
     fn or_vec_bool(v1: &[bool], v2: &[bool]) -> Vec<bool> {
-        v1.iter().zip(v2.iter())
-            .map(|(&b1, &b2)| b1 | b2)
+        v1.iter().cloned().zip(v2.iter().cloned())
+            .map(|(b1, b2)| b1 | b2)
             .collect()
     }
 
@@ -70,15 +70,39 @@ fn vec_bool_loop_fused(b: &mut Bencher) {
 fn vec_bool_iter_fused(b: &mut Bencher) {
     fn or_vec_bool_3(v1: &[bool], v2: &[bool], v3: &[bool]) -> Vec<bool> {
         v1.iter().zip(v2.iter()).zip(v3.iter())
-            .map(|((&b1, &b2), &b3)| b1 | b2 | b3)
+            .map(|((b1, b2), b3)| *b1 | *b2 | *b3)
             .collect()
     }
 
     let (v1, v2, v3) = three_vec_bools();
+    b.iter(|| or_vec_bool_3(&v1, &v2, &v3));
+}
 
-    b.iter(|| {
-        or_vec_bool_3(&v1, &v2, &v3)
-    })
+#[bench]
+fn vec_bool_iter_fused_cloned(b: &mut Bencher) {
+    fn or_vec_bool_3(v1: &[bool], v2: &[bool], v3: &[bool]) -> Vec<bool> {
+        v1.iter().cloned().zip(v2.iter().cloned()).zip(v3.iter().cloned())
+            .map(|((b1, b2), b3)| b1 | b2 | b3)
+            .collect()
+    }
+
+    let (v1, v2, v3) = three_vec_bools();
+    b.iter(|| or_vec_bool_3(&v1, &v2, &v3));
+}
+#[bench]
+fn vec_bool_iter_fused_bool_to_int(b: &mut Bencher) {
+    fn bool_to_int(b: &bool) -> u32 {
+        if *b {1} else {0}
+    }
+
+    fn or_vec_bool_3(v1: &[bool], v2: &[bool], v3: &[bool]) -> Vec<bool> {
+        v1.iter().map(bool_to_int).zip(v2.iter().map(bool_to_int)).zip(v3.iter().map(bool_to_int))
+            .map(|((b1, b2), b3)| b1 | b2 | b3 != 0)
+            .collect()
+    }
+
+    let (v1, v2, v3) = three_vec_bools();
+    b.iter(|| or_vec_bool_3(&v1, &v2, &v3));
 }
 
 #[bench]
@@ -165,7 +189,21 @@ fn vec_u32_loop_fused(b: &mut Bencher) {
 fn vec_u32_iter(b: &mut Bencher) {
     fn or_vec_u32(v1: &[u32], v2: &[u32]) -> Vec<u32> {
         v1.iter().zip(v2.iter())
-            .map(|(&z1, &z2)| z1 | z2)
+            .map(|(z1, z2)| *z1 | *z2)
+            .collect()
+    }
+
+    let (v1, v2, v3) = three_vec_u32s();
+
+    b.iter(|| {
+        or_vec_u32(&or_vec_u32(&v1, &v2), &v3)
+    })
+}
+#[bench]
+fn vec_u32_iter_cloned(b: &mut Bencher) {
+    fn or_vec_u32(v1: &[u32], v2: &[u32]) -> Vec<u32> {
+        v1.iter().cloned().zip(v2.iter().cloned())
+            .map(|(z1, z2)| z1 | z2)
             .collect()
     }
 
@@ -180,7 +218,22 @@ fn vec_u32_iter(b: &mut Bencher) {
 fn vec_u32_iter_fused(b: &mut Bencher) {
     fn or_vec_u32_3(v1: &[u32], v2: &[u32], v3: &[u32]) -> Vec<u32> {
         v1.iter().zip(v2.iter()).zip(v3.iter())
-            .map(|((&z1, &z2), &z3)| z1 | z2 | z3)
+            .map(|((z1, z2), z3)| *z1 | *z2 | *z3)
+            .collect()
+    }
+
+    let (v1, v2, v3) = three_vec_u32s();
+
+    b.iter(|| {
+        or_vec_u32_3(&v1, &v2, &v3)
+    })
+}
+
+#[bench]
+fn vec_u32_iter_fused_cloned(b: &mut Bencher) {
+    fn or_vec_u32_3(v1: &[u32], v2: &[u32], v3: &[u32]) -> Vec<u32> {
+        v1.iter().cloned().zip(v2.iter().cloned()).zip(v3.iter().cloned())
+            .map(|((z1, z2), z3)| z1 | z2 | z3)
             .collect()
     }
 
