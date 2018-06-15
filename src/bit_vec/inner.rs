@@ -1,5 +1,7 @@
 use BlockType;
 
+use unreachable::unreachable;
+
 use std::cmp::min;
 use std::ptr;
 
@@ -74,16 +76,16 @@ impl<Block: BlockType> Inner<Block> {
     // Precondition: `index` is in bounds.
     pub unsafe fn get_block(&self, index: usize) -> Block {
         match self.0 {
-            Some(ref b) => b[index],
-            None        => unreachable!(),
+            Some(ref b) => ptr::read(b.as_ptr().offset(index as isize)),
+            None        => unreachable(),
         }
     }
 
     // Precondition: `index` is in bounds.
     pub unsafe fn set_block(&mut self, index: usize, value: Block) {
         match self.0 {
-            Some(ref mut b) => b[index] = value,
-            None            => unreachable!(),
+            Some(ref mut b) => ptr::write(b.as_mut_ptr().offset(index as isize), value),
+            None            => unreachable(),
         }
     }
 }

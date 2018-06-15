@@ -99,6 +99,8 @@
 
 #![warn(missing_docs)]
 
+extern crate unreachable;
+
 #[cfg(feature = "serde")]
 #[macro_use]
 extern crate serde;
