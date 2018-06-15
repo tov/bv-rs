@@ -4,7 +4,7 @@ extern crate bv;
 extern crate test;
 
 use bv::BitVec;
-use bv::{Bits, BitsExt, BitsMut};
+use bv::{Bits, BitsExt, BitsMut, BitSliceable};
 
 use test::Bencher;
 use std::cmp;
@@ -357,6 +357,27 @@ or3_bench! {
 or3_bench! {
     fn vec_u32_adapter(v1: &Vec<u32>, v2: &Vec<u32>, v3: &Vec<u32>) -> BitVec<u32> {
         v1.into_bit_or(v2).into_bit_or(v3).to_bit_vec()
+    }
+}
+
+or3_bench! {
+    fn vec_u32_adapter_sliced(v1: &Vec<u32>, v2: &Vec<u32>, v3: &Vec<u32>) -> BitVec<u32> {
+        let len = cmp::min(v1.len(), cmp::min(v2.len(), v3.len())) as u64;
+        let s1 = v1.bit_slice(.. len);
+        let s2 = v2.bit_slice(.. len);
+        let s3 = v3.bit_slice(.. len);
+
+        s1.into_bit_or(s2).into_bit_or(s3).to_bit_vec()
+    }
+}
+
+or3_bench! {
+    fn vec_u32_adapter_sliced_ragged(v1: &Vec<u32>, v2: &Vec<u32>, v3: &Vec<u32>) -> BitVec<u32> {
+        let s1 = v1.bit_slice(..);
+        let s2 = v2.bit_slice(..);
+        let s3 = v3.bit_slice(..);
+
+        s1.into_bit_or(s2).into_bit_or(s3).to_bit_vec()
     }
 }
 
