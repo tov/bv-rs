@@ -1,7 +1,6 @@
 use BlockType;
 
 use std::cmp::min;
-use std::ops::{Index, IndexMut};
 use std::ptr;
 
 #[derive(Clone)]
@@ -26,7 +25,9 @@ impl<Block: BlockType> Inner<Block> {
         })
     }
 
-    pub fn clone_resize(&self, len: usize, new_cap: usize) -> Self {
+    // Precondition: The first `len` blocks of `self` are initialized an
+    // in-bounds.
+    pub unsafe fn clone_resize(&self, len: usize, new_cap: usize) -> Self {
         if new_cap == 0 {
             return Inner(None);
         }
@@ -34,7 +35,7 @@ impl<Block: BlockType> Inner<Block> {
         let mut result = vec![Block::zero(); new_cap].into_boxed_slice();
 
         for i in 0 .. min(len, new_cap) {
-            result[i] = self[i];
+            result[i] = self.get_block(i);
         }
 
         Inner(Some(result))
@@ -69,24 +70,21 @@ impl<Block: BlockType> Inner<Block> {
             None            => ptr::null_mut(),
         }
     }
-}
 
-impl<Block> Index<usize> for Inner<Block> {
-    type Output = Block;
-
-    fn index(&self, index: usize) -> &Self::Output {
+    // Precondition: `index` is in bounds.
+    pub unsafe fn get_block(&self, index: usize) -> Block {
         match self.0 {
-            Some(ref b) => &b[index],
-            None        => panic!("BitVec::index: empty access"),
+            Some(ref b) => b[index],
+            None        => unreachable!(),
+        }
+    }
+
+    // Precondition: `index` is in bounds.
+    pub unsafe fn set_block(&mut self, index: usize, value: Block) {
+        match self.0 {
+            Some(ref mut b) => b[index] = value,
+            None            => unreachable!(),
         }
     }
 }
 
-impl<Block> IndexMut<usize> for Inner<Block> {
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        match self.0 {
-            Some(ref mut b) => &mut b[index],
-            None            => panic!("BitVec::index_mut: empty mut access"),
-        }
-    }
-}

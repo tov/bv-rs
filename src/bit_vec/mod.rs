@@ -144,6 +144,15 @@ impl<Block: BlockType> BitVec<Block> {
         }
     }
 
+    // Reallocates to have the given capacity.
+    fn reallocate(&mut self, block_cap: usize) {
+        // We know this is safe because the precondition on `close_resize` is
+        // that the first argument gives a valid number of blocks to copy.
+        unsafe {
+            self.bits = self.bits.clone_resize(self.block_len(), block_cap);
+        }
+    }
+
     /// Creates a new `BitVec` from any value implementing the `Bits` trait with
     /// the same block type.
     pub fn from_bits<B: Bits<Block = Block>>(bits: B) -> Self {
@@ -296,7 +305,7 @@ impl<Block: BlockType> BitVec<Block> {
     pub fn reserve_exact(&mut self, additional: u64) {
         let new_cap = Block::ceil_div_nbits(self.len() + additional);
         if new_cap > self.block_capacity() {
-            self.bits = self.bits.clone_resize(self.block_len(), new_cap);
+            self.reallocate(new_cap);
         }
     }
 
@@ -315,7 +324,7 @@ impl<Block: BlockType> BitVec<Block> {
     pub fn block_reserve_exact(&mut self, additional: usize) {
         let new_cap = self.block_len() + additional;
         if new_cap > self.block_capacity() {
-            self.bits = self.bits.clone_resize(self.block_len(), new_cap);
+            self.reallocate(new_cap);
         }
     }
 
@@ -339,7 +348,7 @@ impl<Block: BlockType> BitVec<Block> {
     /// ```
     pub fn shrink_to_fit(&mut self) {
         if self.block_capacity() > self.block_len() {
-            self.bits = self.bits.clone_resize(self.block_len(), self.block_len());
+            self.reallocate(self.block_len());
         }
     }
 
@@ -445,6 +454,10 @@ impl<Block: BlockType> BitVec<Block> {
     /// assert_eq!( slice[2], true );
     /// ```
     pub fn as_slice(&self) -> BitSlice<Block> {
+        // We know this is safe because the precondition on `from_raw_parts` is
+        // that all the bits be in bounds. If `self.len == 0` then there are no
+        // bits to access, so it's okay that the pointer dangles. Otherwise, the
+        // bits from `0 .. self.len` are in bounds.
         unsafe {
             BitSlice::from_raw_parts(self.bits.as_ptr(), 0, self.len)
         }
@@ -467,6 +480,7 @@ impl<Block: BlockType> BitVec<Block> {
     /// assert_eq!( bv[1], true );
     /// ```
     pub fn as_mut_slice(&mut self) -> BitSliceMut<Block> {
+        // We know this is safe for the same reason that `as_slice` is safe.
         unsafe {
             BitSliceMut::from_raw_parts(self.bits.as_mut_ptr(), 0, self.len)
         }
