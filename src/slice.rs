@@ -555,103 +555,25 @@ impl<'a, Block: BlockType> BitSliceable<RangeFull> for BitSliceMut<'a, Block> {
     }
 }
 
-impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a [Block] {
+impl<'a, Block, R> BitSliceable<R> for &'a [Block]
+    where Block: BlockType,
+          BitSlice<'a, Block>: BitSliceable<R, Slice = BitSlice<'a, Block>> {
+
     type Slice = BitSlice<'a, Block>;
 
-    fn bit_slice(self, range: Range<u64>) -> Self::Slice {
+    fn bit_slice(self, range: R) -> Self::Slice {
         BitSlice::from_slice(self).bit_slice(range)
     }
 }
 
-impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a mut [Block] {
+impl<'a, Block, R> BitSliceable<R> for &'a mut [Block]
+    where Block: BlockType,
+          BitSliceMut<'a, Block>: BitSliceable<R, Slice = BitSliceMut<'a, Block>> {
+
     type Slice = BitSliceMut<'a, Block>;
 
-    fn bit_slice(self, range: Range<u64>) -> Self::Slice {
+    fn bit_slice(self, range: R) -> Self::Slice {
         BitSliceMut::from_slice(self).bit_slice(range)
-    }
-}
-
-#[cfg(inclusive_range)]
-impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for &'a [Block] {
-    type Slice = BitSlice<'a, Block>;
-
-    fn bit_slice(self, range: RangeInclusive<u64>) -> Self::Slice {
-        BitSlice::from_slice(self).bit_slice(range)
-    }
-}
-
-#[cfg(inclusive_range)]
-impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for &'a mut [Block] {
-    type Slice = BitSliceMut<'a, Block>;
-
-    fn bit_slice(self, range: RangeInclusive<u64>) -> Self::Slice {
-        BitSliceMut::from_slice(self).bit_slice(range)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a [Block] {
-    type Slice = BitSlice<'a, Block>;
-
-    fn bit_slice(self, range: RangeFrom<u64>) -> Self::Slice {
-        BitSlice::from_slice(self).bit_slice(range)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a mut [Block] {
-    type Slice = BitSliceMut<'a, Block>;
-
-    fn bit_slice(self, range: RangeFrom<u64>) -> Self::Slice {
-        BitSliceMut::from_slice(self).bit_slice(range)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a [Block] {
-    type Slice = BitSlice<'a, Block>;
-
-    fn bit_slice(self, range: RangeTo<u64>) -> Self::Slice {
-        BitSlice::from_slice(self).bit_slice(range)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a mut [Block] {
-    type Slice = BitSliceMut<'a, Block>;
-
-    fn bit_slice(self, range: RangeTo<u64>) -> Self::Slice {
-        BitSliceMut::from_slice(self).bit_slice(range)
-    }
-}
-
-#[cfg(inclusive_range)]
-impl<'a, Block: BlockType> BitSliceable<RangeToInclusive<u64>> for &'a [Block] {
-    type Slice = BitSlice<'a, Block>;
-
-    fn bit_slice(self, range: RangeToInclusive<u64>) -> Self::Slice {
-        BitSlice::from_slice(self).bit_slice(range)
-    }
-}
-
-#[cfg(inclusive_range)]
-impl<'a, Block: BlockType> BitSliceable<RangeToInclusive<u64>> for &'a mut [Block] {
-    type Slice = BitSliceMut<'a, Block>;
-
-    fn bit_slice(self, range: RangeToInclusive<u64>) -> Self::Slice {
-        BitSliceMut::from_slice(self).bit_slice(range)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a [Block] {
-    type Slice = BitSlice<'a, Block>;
-
-    fn bit_slice(self, _: RangeFull) -> Self::Slice {
-        BitSlice::from_slice(self)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a mut [Block] {
-    type Slice = BitSliceMut<'a, Block>;
-
-    fn bit_slice(self, _: RangeFull) -> Self::Slice {
-        BitSliceMut::from_slice(self)
     }
 }
 
