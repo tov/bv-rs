@@ -9,7 +9,7 @@ use bv::{Bits, BitsExt, BitsMut};
 use test::Bencher;
 use std::cmp;
 
-const NBITS: usize = 3200;
+const NBITS: usize = 9600;
 
 #[bench]
 fn vec_bool_loop(b: &mut Bencher) {
@@ -206,18 +206,12 @@ fn vec_u32_adapter(b: &mut Bencher) {
 
 #[inline(never)]
 fn three_vec_bools() -> (Vec<bool>, Vec<bool>, Vec<bool>) {
-    (make_vec_bool(), make_vec_bool(), make_vec_bool())
-}
-
-fn make_vec_bool() -> Vec<bool> {
-    vec![false; NBITS]
+    let len = NBITS;
+    (vec![false; len], vec![false; len], vec![false; len])
 }
 
 #[inline(never)]
 fn three_vec_u32s() -> (Vec<u32>, Vec<u32>, Vec<u32>) {
-    (make_vec_u32(), make_vec_u32(), make_vec_u32())
-}
-
-fn make_vec_u32() -> Vec<u32> {
-    vec![0; NBITS / 32]
+    let len = NBITS / 32;
+    (vec![0; len], vec![0; len], vec![0; len])
 }
