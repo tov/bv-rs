@@ -348,7 +348,8 @@ impl<Block: BlockType> BitVec<Block> {
     /// ```
     pub fn shrink_to_fit(&mut self) {
         if self.block_capacity() > self.block_len() {
-            self.reallocate(self.block_len());
+            let block_len = self.block_len();
+            self.reallocate(block_len);
         }
     }
 
