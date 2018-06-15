@@ -4,7 +4,6 @@ use std::hash::{Hash, Hasher};
 use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
 #[cfg(inclusive_range)]
 use std::ops::{RangeInclusive, RangeToInclusive};
-use std::ptr;
 
 use iter::BlockIter;
 use super::storage::*;
