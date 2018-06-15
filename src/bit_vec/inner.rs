@@ -1,7 +1,5 @@
 use BlockType;
 
-use unreachable::unreachable;
-
 use std::cmp::min;
 use std::ptr;
 
@@ -73,20 +71,18 @@ impl<Block: BlockType> Inner<Block> {
         }
     }
 
-    // Precondition: `index` is in bounds.
+    // Precondition: `index` is in bounds. This implies that `self.0.is_some()`.
     pub unsafe fn get_block(&self, index: usize) -> Block {
-        match self.0 {
-            Some(ref b) => ptr::read(b.as_ptr().offset(index as isize)),
-            None        => unreachable(),
-        }
+        // Weirdly, `.unwrap()` is consistently faster than
+        // `.unwrap_or_else(ptr::null)`, or calls to `unreachable()`.
+        let ptr = self.0.as_ref().map(|b| b.as_ptr()).unwrap();
+        ptr::read(ptr.offset(index as isize))
     }
 
-    // Precondition: `index` is in bounds.
+    // Precondition: `index` is in bounds. This implies that `self.0.is_some()`.
     pub unsafe fn set_block(&mut self, index: usize, value: Block) {
-        match self.0 {
-            Some(ref mut b) => ptr::write(b.as_mut_ptr().offset(index as isize), value),
-            None            => unreachable(),
-        }
+        let ptr = self.0.as_mut().map(|b| b.as_mut_ptr()).unwrap();
+        ptr::write(ptr.offset(index as isize), value);
     }
 }
 
