@@ -356,13 +356,13 @@ or3_bench! {
 
 or3_bench! {
     fn vec_u32_adapter(v1: &Vec<u32>, v2: &Vec<u32>, v3: &Vec<u32>) -> BitVec<u32> {
-        (&**v1).into_bit_or(&**v2).into_bit_or(&**v3).to_bit_vec()
+        v1.into_bit_or(v2).into_bit_or(v3).to_bit_vec()
     }
 }
 
 or3_bench! {
     fn vec_u32_adapter_unfused(v1: &Vec<u32>, v2: &Vec<u32>, v3: &Vec<u32>) -> BitVec<u32> {
-        (&**v1).into_bit_or(&**v2).to_bit_vec().into_bit_or(&**v3).to_bit_vec()
+        v1.into_bit_or(v2).to_bit_vec().into_bit_or(v3).to_bit_vec()
     }
 }
 

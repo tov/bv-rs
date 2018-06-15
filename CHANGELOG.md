@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog] and this project adheres to
 [Keep a Changelog]: http://keepachangelog.com/en/1.0.0/
 [Semantic Versioning]: http://semver.org/spec/v2.0.0.html
 
+## [Unreleased]
+
+### Added
+- Impls of `Bits` and `BitsMut` for `Vec<Block>`. The impls for `[Block]`
+  already caught most causes because of autoderef, but this is helpful
+  when you want to pass a `Vec` to a generic method.
+
 ## [0.8.2] - 2018-06-15
 
 ### Fixed

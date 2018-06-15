@@ -8,26 +8,44 @@ use std::ops::{RangeInclusive, RangeToInclusive};
 impl<Block: BlockType> Bits for [Block] {
     type Block = Block;
 
-    #[inline]
     fn bit_len(&self) -> u64 {
         Block::mul_nbits(self.len())
     }
 
-    #[inline]
     fn block_len(&self) -> usize {
         self.len()
     }
 
-    #[inline]
     fn get_block(&self, position: usize) -> Block {
         self[position]
     }
 }
 
+impl<Block: BlockType> Bits for Vec<Block> {
+    type Block = Block;
+
+    fn bit_len(&self) -> u64 {
+        <[Block]>::bit_len(&self)
+    }
+
+    fn block_len(&self) -> usize {
+        <[Block]>::block_len(&self)
+    }
+
+    fn get_block(&self, position: usize) -> Block {
+        <[Block]>::get_block(&self, position)
+    }
+}
+
 impl<Block: BlockType> BitsMut for [Block] {
-    #[inline]
     fn set_block(&mut self, position: usize, value: Block) {
         self[position] = value;
+    }
+}
+
+impl<Block: BlockType> BitsMut for Vec<Block> {
+    fn set_block(&mut self, position: usize, value: Block) {
+        <[Block]>::set_block(&mut *self, position, value);
     }
 }
 
