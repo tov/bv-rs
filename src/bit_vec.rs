@@ -4,6 +4,7 @@ use std::hash::{Hash, Hasher};
 use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
 #[cfg(inclusive_range)]
 use std::ops::{RangeInclusive, RangeToInclusive};
+use std::ptr;
 
 use iter::BlockIter;
 use super::storage::*;
@@ -611,13 +612,17 @@ impl<Block: BlockType> Bits for BitVec<Block> {
     }
 
     fn get_block(&self, position: usize) -> Block {
-        let block_len = Block::block_bits(self.bit_len(), position);
-        self.bits[position].get_bits(0, block_len)
+        assert!( position < self.block_len(),
+                 "BitVec::get_block: out of bounds" );
+        let count = Block::block_bits(self.bit_len(), position);
+        self.bits[position].get_bits(0, count)
     }
 }
 
 impl<Block: BlockType> BitsMut for BitVec<Block> {
     fn set_block(&mut self, position: usize, value: Block) {
+        assert!( position < self.block_len(),
+                 "BitVec::set_block: out of bounds" );
         // This may set out-of-bounds bits, but that's okay because
         // oob bits are never observed.
         self.bits[position] = value;
