@@ -97,31 +97,22 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
         }
     }
 
-    /// Creates a `BitSlice` from a pointer to its data, an offset where the bits start, and the
-    /// number of available bits.
+    /// Creates a `BitSlice` from a pointer to its data, an offset where the bits start, and
+    /// the number of available bits.
     ///
-    /// This is unsafe because the size of the passed-in buffer is not
-    /// checked. It must hold at least `offset + len` bits or the resulting behavior is undefined.
+    /// This is unsafe because the size of the passed-in buffer is
+    /// not checked. It must hold at least `offset + len` bits or the resulting behavior is
+    /// undefined.
     ///
-    /// Method [`from_slice`](struct.BitSlice.html#method.from_slice),
-    /// possibly followed by further slicing, is the preferred way to turn a slice or vector of
-    /// blocks into a `BitSlice`.
+    /// # Precondition
     ///
-    /// # Examples
-    ///
-    /// ```
-    /// use bv::BitSlice;
-    ///
-    /// let v = vec![0b01010011u16, 0u16];
-    /// let slice = unsafe { BitSlice::from_raw_parts(v.as_ptr(), 0, 8) };
-    /// assert_eq!( slice[0], true );
-    /// assert_eq!( slice[1], true );
-    /// assert_eq!( slice[2], false );
-    /// ```
-    pub unsafe fn from_raw_parts(bits: *const Block, offset: u8, len: u64) -> Self {
+    ///   - the first `Block::ceil_div_nbits(len + offset)` words of `bits` safe
+    ///     to read.
+    pub unsafe fn from_raw_parts(bits: *const Block, offset: u64, len: u64) -> Self {
+        let address = Address::new::<Block>(offset);
         BitSlice {
-            bits,
-            offset,
+            bits:   bits.offset(address.block_index as isize),
+            offset: address.bit_offset as u8,
             len,
             marker: PhantomData,
         }
@@ -183,12 +174,18 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
     /// This is unsafe because the size of the passed-in buffer is
     /// not checked. It must hold at least `offset + len` bits or the resulting behavior is
     /// undefined.
-    pub unsafe fn from_raw_parts(bits: *mut Block, offset: u8, len: u64) -> Self {
+    ///
+    /// # Precondition
+    ///
+    ///   - the first `Block::ceil_div_nbits(len + offset)` words of `bits` safe
+    ///     to read and write.
+    pub unsafe fn from_raw_parts(bits: *mut Block, offset: u64, len: u64) -> Self {
+        let address = Address::new::<Block>(offset);
         BitSliceMut {
-            bits,
-            offset,
+            bits:   bits.offset(address.block_index as isize),
+            offset: address.bit_offset as u8,
             len,
-            marker: PhantomData
+            marker: PhantomData,
         }
     }
 
@@ -433,15 +430,10 @@ impl<'a, Block: BlockType> BitSliceable<Range<u64>> for BitSlice<'a, Block> {
         assert!(range.start <= range.end, "BitSlice::slice: bad range");
         assert!(range.end <= self.len, "BitSlice::slice: out of bounds");
 
-        let start_bits   = u64::from(self.offset) + range.start;
-        let start_block  = Block::div_nbits(start_bits);
-        let start_offset = Block::mod_nbits(start_bits) as u8;
-
-        BitSlice {
-            bits:   unsafe { self.bits.offset(start_block as isize) },
-            offset: start_offset,
-            len:    range.end - range.start,
-            marker: PhantomData,
+        unsafe {
+            BitSlice::from_raw_parts(self.bits,
+                                     range.start + u64::from(self.offset),
+                                     range.end - range.start)
         }
     }
 }
@@ -453,15 +445,10 @@ impl<'a, Block: BlockType> BitSliceable<Range<u64>> for BitSliceMut<'a, Block> {
         assert!(range.start <= range.end, "BitSliceMut::slice: bad range");
         assert!(range.end <= self.len, "BitSliceMut::slice: out of bounds");
 
-        let start_bits   = u64::from(self.offset) + range.start;
-        let start_block  = Block::div_nbits(start_bits);
-        let start_offset = Block::mod_nbits(start_bits) as u8;
-
-        BitSliceMut {
-            bits:   unsafe { self.bits.offset(start_block as isize) },
-            offset: start_offset,
-            len:    range.end - range.start,
-            marker: PhantomData,
+        unsafe {
+            BitSliceMut::from_raw_parts(self.bits,
+                                        range.start + u64::from(self.offset),
+                                        range.end - range.start)
         }
     }
 }
@@ -475,15 +462,10 @@ impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for BitSlice<'a, Bl
             .expect("BitSlice::slice: bad range");
         assert!(end < self.len, "BitSlice::slice: out of bounds");
 
-        let start_bits   = u64::from(self.offset) + start;
-        let start_block  = Block::div_nbits(start_bits);
-        let start_offset = Block::mod_nbits(start_bits) as u8;
-
-        BitSlice {
-            bits:   unsafe { self.bits.offset(start_block as isize) },
-            offset: start_offset,
-            len:    end - start + 1,
-            marker: PhantomData,
+        unsafe {
+            BitSlice::from_raw_parts(self.bits,
+                                     start + u64::from(self.offset),
+                                     end - start + 1)
         }
     }
 }
@@ -497,14 +479,10 @@ impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for BitSliceMut<'a,
             .expect("BitSliceMut::slice: bad range");
         assert!(end < self.len, "BitSliceMut::slice: out of bounds");
 
-        let start_bits   = u64::from(self.offset) + start;
-        let start_addr   = Address::new::<Block>(start_bits);
-
-        BitSliceMut {
-            bits:   unsafe { self.bits.offset(start_addr.block_index as isize) },
-            offset: start_addr.bit_offset as u8,
-            len:    end - start + 1,
-            marker: PhantomData,
+        unsafe {
+            BitSliceMut::from_raw_parts(self.bits,
+                                        start + u64::from(self.offset),
+                                        end - start + 1)
         }
     }
 }

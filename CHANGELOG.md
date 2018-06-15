@@ -15,6 +15,11 @@ The format is based on [Keep a Changelog] and this project adheres to
   already caught most causes because of autoderef, but this is helpful
   when you want to pass a `Vec` to a generic method.
   
+### Changed
+- `BitSlice::from_raw_parts` and `BitSliceMut::from_raw_parts` now take
+  an offset of type `u64` rather than `u8`, and the offset doesn't have to
+  be less than the block size.
+  
 ### Improved
 - Single-bit `BitVec` operations are significantly faster now.
 
