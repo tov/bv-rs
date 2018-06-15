@@ -75,7 +75,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! bv = "0.8.1"
+//! bv = "0.8.2"
 //! ```
 //!
 //! to your `Cargo.toml` and
