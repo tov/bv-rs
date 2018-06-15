@@ -1,14 +1,16 @@
-use std::cmp::{max, Ordering};
-use std::fmt;
-use std::hash::{Hash, Hasher};
-use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
-#[cfg(inclusive_range)]
-use std::ops::{RangeInclusive, RangeToInclusive};
-
-use iter::BlockIter;
 use super::storage::*;
 use super::slice::*;
 use super::traits::*;
+
+use std::cmp::{max, Ordering};
+
+mod inner;
+use self::inner::Inner;
+
+mod impls;
+
+#[cfg(test)]
+mod test;
 
 /// A bit-vector, akin to `Vec<bool>` but packed.
 ///
@@ -44,22 +46,8 @@ use super::traits::*;
 #[derive(Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BitVec<Block = usize> {
-    bits:   Box<[Block]>,
+    bits:   Inner<Block>,
     len:    u64,
-}
-
-fn copy_resize<Block: BlockType>(slice: &[Block], len: usize) -> Box<[Block]> {
-    let mut result = Vec::with_capacity(len);
-
-    for i in 0 .. len {
-        if i < slice.len() {
-            result.push(slice[i]);
-        } else {
-            result.push(Block::zero());
-        }
-    }
-
-    result.into_boxed_slice()
 }
 
 impl<Block: BlockType> Default for BitVec<Block> {
@@ -89,7 +77,7 @@ impl<Block: BlockType> BitVec<Block> {
     /// assert_eq!(bv[2], true);
     /// ```
     pub fn new() -> Self {
-        Self::with_block_capacity(1)
+        Self::with_block_capacity(0)
     }
 
     /// Creates a new, empty bit-vector with the given bit capacity.
@@ -151,7 +139,7 @@ impl<Block: BlockType> BitVec<Block> {
     #[inline]
     fn from_block(init: Block, nblocks: usize) -> Self {
         BitVec {
-            bits: vec![ init; nblocks ].into_boxed_slice(),
+            bits: Inner::new(init, nblocks),
             len:  Block::mul_nbits(nblocks),
         }
     }
@@ -308,7 +296,7 @@ impl<Block: BlockType> BitVec<Block> {
     pub fn reserve_exact(&mut self, additional: u64) {
         let new_cap = Block::ceil_div_nbits(self.len() + additional);
         if new_cap > self.block_capacity() {
-            self.bits = copy_resize(&self.bits, new_cap);
+            self.bits = self.bits.clone_resize(self.block_len(), new_cap);
         }
     }
 
@@ -327,7 +315,7 @@ impl<Block: BlockType> BitVec<Block> {
     pub fn block_reserve_exact(&mut self, additional: usize) {
         let new_cap = self.block_len() + additional;
         if new_cap > self.block_capacity() {
-            self.bits = copy_resize(&self.bits, new_cap);
+            self.bits = self.bits.clone_resize(self.block_len(), new_cap);
         }
     }
 
@@ -351,7 +339,7 @@ impl<Block: BlockType> BitVec<Block> {
     /// ```
     pub fn shrink_to_fit(&mut self) {
         if self.block_capacity() > self.block_len() {
-            self.bits = copy_resize(&self.bits, self.block_len());
+            self.bits = self.bits.clone_resize(self.block_len(), self.block_len());
         }
     }
 
@@ -371,7 +359,7 @@ impl<Block: BlockType> BitVec<Block> {
     /// assert_eq!( bs[0], 0b01010011 );
     /// ```
     pub fn into_boxed_slice(self) -> Box<[Block]> {
-        self.bits
+        self.bits.into_boxed_slice()
     }
 
     /// Shortens the vector, keeping the first `len` elements and dropping the rest.
@@ -603,393 +591,3 @@ impl<Block: BlockType> BitVec<Block> {
     }
 }
 
-impl<Block: BlockType> Bits for BitVec<Block> {
-    type Block = Block;
-
-    fn bit_len(&self) -> u64 {
-        self.len()
-    }
-
-    fn get_block(&self, position: usize) -> Block {
-        assert!( position < self.block_len(),
-                 "BitVec::get_block: out of bounds" );
-        let count = Block::block_bits(self.bit_len(), position);
-        self.bits[position].get_bits(0, count)
-    }
-}
-
-impl<Block: BlockType> BitsMut for BitVec<Block> {
-    fn set_block(&mut self, position: usize, value: Block) {
-        assert!( position < self.block_len(),
-                 "BitVec::set_block: out of bounds" );
-        // This may set out-of-bounds bits, but that's okay because
-        // oob bits are never observed.
-        self.bits[position] = value;
-    }
-}
-
-impl<Block: BlockType> BitsPush for BitVec<Block> {
-    fn push_bit(&mut self, value: bool) {
-        self.push(value);
-    }
-
-    fn pop_bit(&mut self) -> Option<bool> {
-        self.pop()
-    }
-
-    fn align_block(&mut self, value: bool) {
-        let keep_bits = Block::mod_nbits(self.len);
-        if keep_bits > 0 {
-            let last_index = self.block_len() - 1;
-            let last = &mut self.bits[last_index];
-            if value {
-                *last = *last | !Block::low_mask(keep_bits);
-            } else {
-                *last = *last & Block::low_mask(keep_bits);
-            }
-            self.len += (Block::nbits() - keep_bits) as u64;
-        }
-    }
-
-    fn push_block(&mut self, value: Block) {
-        self.align_block(false);
-        self.block_reserve(1);
-        self.len += Block::nbits() as u64;
-        let last = self.block_len() - 1;
-        self.set_block(last, value);
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a BitVec<Block> {
-    type Slice = BitSlice<'a, Block>;
-
-    fn bit_slice(self, range: Range<u64>) -> BitSlice<'a, Block> {
-        self.as_slice().bit_slice(range)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a mut BitVec<Block> {
-    type Slice = BitSliceMut<'a, Block>;
-
-    fn bit_slice(self, range: Range<u64>) -> BitSliceMut<'a, Block> {
-        self.as_mut_slice().bit_slice(range)
-    }
-}
-
-#[cfg(inclusive_range)]
-impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for &'a BitVec<Block> {
-    type Slice = BitSlice<'a, Block>;
-
-    fn bit_slice(self, range: RangeInclusive<u64>) -> BitSlice<'a, Block> {
-        self.as_slice().bit_slice(range)
-    }
-}
-
-#[cfg(inclusive_range)]
-impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for &'a mut BitVec<Block> {
-    type Slice = BitSliceMut<'a, Block>;
-
-    fn bit_slice(self, range: RangeInclusive<u64>) -> BitSliceMut<'a, Block> {
-        self.as_mut_slice().bit_slice(range)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a BitVec<Block> {
-    type Slice = BitSlice<'a, Block>;
-
-    fn bit_slice(self, range: RangeFrom<u64>) -> BitSlice<'a, Block> {
-        self.as_slice().bit_slice(range)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a mut BitVec<Block> {
-    type Slice = BitSliceMut<'a, Block>;
-
-    fn bit_slice(self, range: RangeFrom<u64>) -> BitSliceMut<'a, Block> {
-        self.as_mut_slice().bit_slice(range)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a BitVec<Block> {
-    type Slice = BitSlice<'a, Block>;
-
-    fn bit_slice(self, range: RangeTo<u64>) -> BitSlice<'a, Block> {
-        self.as_slice().bit_slice(range)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a mut BitVec<Block> {
-    type Slice = BitSliceMut<'a, Block>;
-
-    fn bit_slice(self, range: RangeTo<u64>) -> BitSliceMut<'a, Block> {
-        self.as_mut_slice().bit_slice(range)
-    }
-}
-
-#[cfg(inclusive_range)]
-impl<'a, Block: BlockType> BitSliceable<RangeToInclusive<u64>> for &'a BitVec<Block> {
-    type Slice = BitSlice<'a, Block>;
-
-    fn bit_slice(self, range: RangeToInclusive<u64>) -> BitSlice<'a, Block> {
-        self.as_slice().bit_slice(range)
-    }
-}
-
-#[cfg(inclusive_range)]
-impl<'a, Block: BlockType> BitSliceable<RangeToInclusive<u64>> for &'a mut BitVec<Block> {
-    type Slice = BitSliceMut<'a, Block>;
-
-    fn bit_slice(self, range: RangeToInclusive<u64>) -> BitSliceMut<'a, Block> {
-        self.as_mut_slice().bit_slice(range)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a BitVec<Block> {
-    type Slice = BitSlice<'a, Block>;
-
-    fn bit_slice(self, _: RangeFull) -> BitSlice<'a, Block> {
-        self.as_slice()
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a mut BitVec<Block> {
-    type Slice = BitSliceMut<'a, Block>;
-
-    fn bit_slice(self, _: RangeFull) -> BitSliceMut<'a, Block> {
-        self.as_mut_slice()
-    }
-}
-
-impl_index_from_bits! {
-    impl[Block: BlockType] Index<u64> for BitVec<Block>;
-}
-
-impl<Other: Bits> PartialEq<Other> for BitVec<Other::Block> {
-    fn eq(&self, other: &Other) -> bool {
-        BlockIter::new(self) == BlockIter::new(other)
-    }
-}
-
-impl<Block: BlockType> PartialOrd for BitVec<Block> {
-    fn partial_cmp(&self, other: &BitVec<Block>) -> Option<Ordering> {
-        let iter1 = BlockIter::new(self);
-        let iter2 = BlockIter::new(other);
-        iter1.partial_cmp(iter2)
-    }
-}
-
-impl<Block: BlockType> Eq for BitVec<Block> {}
-
-impl<Block: BlockType> Ord for BitVec<Block> {
-    fn cmp(&self, other: &Self) -> Ordering {
-        let iter1 = BlockIter::new(self);
-        let iter2 = BlockIter::new(other);
-        iter1.cmp(iter2)
-    }
-}
-
-impl<Block: BlockType + Hash> Hash for BitVec<Block> {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.as_slice().hash(state);
-    }
-}
-
-impl<Block: BlockType> fmt::Debug for BitVec<Block> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.as_slice().fmt(f)
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn bit_slicing() {
-        let v: BitVec<u8> = bit_vec![ false, true, true, false, true, false, false, true,
-                                      true, false, false, true, false, true, true, false ];
-        assert!( !v.get_bit(0) );
-        assert!(  v.get_bit(1) );
-        assert!(  v.get_bit(2) );
-        assert!( !v.get_bit(3) );
-
-        let w = v.bit_slice(2..14);
-        assert_eq!( w.bit_len(), 12 );
-
-        assert!(  w.get_bit(0) );
-        assert!( !w.get_bit(1) );
-
-        assert_eq!( w.get_bits(2, 4), 0b00001001 );
-        assert_eq!( w.get_bits(2, 5), 0b00011001 );
-        assert_eq!( w.get_bits(2, 8), 0b10011001 );
-        assert_eq!( w.get_bits(3, 8), 0b01001100 );
-
-        assert_eq!( w.get_block(0), 0b01100101 );
-        assert_eq!( w.get_block(1), 0b00001010 );
-    }
-
-    #[test]
-    fn resize() {
-        let mut v: BitVec<u8> = bit_vec![ true; 13 ];
-        assert_eq!( v.len(), 13 );
-
-        v.resize(50, false);
-        assert_eq!( v.len(), 50 );
-        assert_eq!( v.get_bit(12), true );
-        assert_eq!( v.get_bit(13), false );
-        assert_eq!( v.get_bit(49), false );
-
-        v.resize(67, true);
-        assert_eq!( v.len(), 67 );
-        assert_eq!( v.get_bit(12), true );
-        assert_eq!( v.get_bit(13), false );
-        assert_eq!( v.get_bit(49), false );
-        assert_eq!( v.get_bit(50), true );
-        assert_eq!( v.get_bit(66), true );
-
-        v.set_bit(3, false);
-        assert_eq!( v.get_bit(3), false );
-
-        v.resize(17, false);
-        assert_eq!( v.len(), 17 );
-        assert_eq!( v.get_bit(1), true );
-        assert_eq!( v.get_bit(2), true );
-        assert_eq!( v.get_bit(3), false );
-        assert_eq!( v.get_bit(4), true );
-        assert_eq!( v.get_bit(16), false );
-    }
-
-    #[test]
-    fn shrink_to_fit() {
-        let mut v: BitVec<u8> = BitVec::with_capacity(100);
-        assert_eq!( v.capacity(), 104 );
-
-        v.push(true);
-        v.push(false);
-        assert_eq!( v.len(), 2 );
-        assert_eq!( v.capacity(), 104 );
-
-        v.shrink_to_fit();
-        assert_eq!( v.len(), 2 );
-        assert_eq!( v.capacity(), 8 );
-    }
-
-    #[test]
-    fn into_boxed_slice() {
-        let v: BitVec<u8> = bit_vec![ true, false, true ];
-        assert_eq!( v.capacity(), 8 );
-        let bs = v.into_boxed_slice();
-        assert_eq!( bs.len(), 1 );
-        assert_eq!( bs[0], 0b00000101 );
-    }
-
-    #[test]
-    fn truncate() {
-        let mut v: BitVec<u8> = BitVec::new_fill(true, 80);
-        assert_eq!( v.len(), 80 );
-        assert_eq!( v.get_bit(34), true );
-
-        v.truncate(45);
-        assert_eq!( v.len(), 45 );
-        assert_eq!( v.get_bit(34), true );
-    }
-
-    #[test]
-    fn as_mut_slice() {
-        let mut v: BitVec<u8> = BitVec::new_fill(true, 77);
-        let w = v.as_mut_slice();
-        assert_eq!( w.len(), 77 );
-        assert_eq!( w.get_block(0), 0b11111111 );
-    }
-
-    #[test]
-    fn pop() {
-        let mut v: BitVec<u8> = bit_vec![true, false, true];
-        assert_eq!( v.pop(), Some(true) );
-        assert_eq!( v.pop(), Some(false) );
-        assert_eq!( v.pop(), Some(true) );
-        assert_eq!( v.pop(), None );
-    }
-
-    #[test]
-    fn clear_and_is_empty() {
-        let mut v: BitVec<u8> = bit_vec![true, false, true];
-        assert_eq!( v.len(), 3 );
-        assert!( !v.is_empty() );
-        v.clear();
-        assert_eq!( v.len(), 0 );
-        assert!( v.is_empty() );
-    }
-
-    #[test]
-    fn push_bit_and_pop_bit() {
-        let mut v: BitVec<u8> = BitVec::new();
-        v.push_bit(true);
-        v.push_bit(false);
-        assert_eq!( v.pop_bit(), Some(false) );
-        assert_eq!( v.pop_bit(), Some(true) );
-        assert_eq!( v.pop_bit(), None );
-    }
-
-    #[test]
-    fn set_through_slice() {
-        let mut v: BitVec<u8> = bit_vec![true, false, true];
-
-        {
-            let mut w = v.as_mut_slice().bit_slice(1..2);
-            assert_eq!(w.get_block(0), 0);
-            w.set_bit(0, true);
-        }
-
-        assert_eq!(v, bit_vec![true, true, true] );
-    }
-
-    #[test]
-    fn set_bits_one_block_fastpath() {
-        let mut v: BitVec<u8> = bit_vec![false; 8];
-        v.set_bits(2, 4, 0b1111);
-        assert_eq!( v.get_block(0), 0b00111100 );
-    }
-
-    #[test]
-    fn from_bits() {
-        let mut bits = vec![true; 20];
-        bits[3] = false;
-        let bv = BitVec::from_bits(&bits);
-        assert_eq!( bv.len(), 20 );
-        assert!(  bv[0] );
-        assert!(  bv[1] );
-        assert!(  bv[2] );
-        assert!( !bv[3] );
-        assert!(  bv[4] );
-        assert!(  bv[19] );
-    }
-
-    #[test]
-    fn from_bits_slice() {
-        let mut bits: BitVec = bit_vec![true; 20];
-        bits.set_bit(3, false);
-        let slice = bits.bit_slice(1..);
-        let bv = BitVec::from_bits(&slice);
-        assert_eq!( bv.len(), 19 );
-        assert!(  bv[0] );
-        assert!(  bv[1] );
-        assert!( !bv[2] );
-        assert!(  bv[3] );
-        assert!(  bv[18] );
-    }
-
-    #[test]
-    fn disequality() {
-        let bv1: BitVec = bit_vec![true, true, false];
-        let bv2         = bit_vec![true, true];
-        assert_ne!( bv1, bv2 );
-    }
-
-    #[test]
-    fn mixed_equality() {
-        let bv: BitVec<u8> = bit_vec![true, false, true];
-        let array: &[bool] = &[true, false, true];
-        assert_eq!( bv, array );
-    }
-}
