@@ -19,8 +19,11 @@ impl<Block: BlockType> Bits for BitVec<Block> {
     fn get_block(&self, position: usize) -> Block {
         assert!( position < self.block_len(),
                  "BitVec::get_block: out of bounds" );
+        // We know this is safe because we just did a bounds check, and
+        // position is in bounds.
+        let block = unsafe { self.bits.get_block(position) };
         let count = Block::block_bits(self.bit_len(), position);
-        self.bits[position].get_bits(0, count)
+        block.get_bits(0, count)
     }
 }
 
@@ -28,9 +31,12 @@ impl<Block: BlockType> BitsMut for BitVec<Block> {
     fn set_block(&mut self, position: usize, value: Block) {
         assert!( position < self.block_len(),
                  "BitVec::set_block: out of bounds" );
-        // This may set out-of-bounds bits, but that's okay because
-        // oob bits are never observed.
-        self.bits[position] = value;
+        // We know this is safe because we just did a bounds check, and
+        // position is in bounds. This may set extra bits in the last
+        // block, but that's okay because such bits are never observed.
+        unsafe {
+            self.bits.set_block(position, value);
+        }
     }
 }
 
@@ -46,12 +52,20 @@ impl<Block: BlockType> BitsPush for BitVec<Block> {
     fn align_block(&mut self, value: bool) {
         let keep_bits = Block::mod_nbits(self.len);
         if keep_bits > 0 {
+            // We know the next line doesn't overflow because if
+            // there are bits to keep then there must be at least
+            // one blck.
             let last_index = self.block_len() - 1;
-            let last = &mut self.bits[last_index];
-            if value {
-                *last = *last | !Block::low_mask(keep_bits);
-            } else {
-                *last = *last & Block::low_mask(keep_bits);
+            // Then this is safe because `last_index` is the index
+            // of the last block, which certainly exists at this point.
+            unsafe {
+                let old_last = self.bits.get_block(last_index);
+                let new_last = if value {
+                    old_last | !Block::low_mask(keep_bits)
+                } else {
+                    old_last & Block::low_mask(keep_bits)
+                };
+                self.bits.set_block(last_index, new_last);
             }
             self.len += (Block::nbits() - keep_bits) as u64;
         }
