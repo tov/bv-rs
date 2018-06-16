@@ -1,3 +1,4 @@
+use Bits;
 #[cfg(inclusive_range)]
 use util;
 
@@ -8,7 +9,7 @@ use std::ops::{RangeInclusive, RangeToInclusive};
 /// Types that support slicing by ranges.
 pub trait BitSliceable<Range> {
     /// The type of the slice produced.
-    type Slice;
+    type Slice: Bits;
 
     /// Slices or re-slices the given object.
     ///

@@ -234,12 +234,14 @@ impl_index_from_bits! {
         Index<u64> for BitZip<T, U, F>;
 }
 
-impl<R, T, U, F> BitSliceable<R> for BitZip<T, U, F>
-    where R: Clone,
+impl<Block, R, T, U, F> BitSliceable<R> for BitZip<T, U, F>
+    where Block: BlockType,
+          R: Clone,
           T: BitSliceable<R>,
           U: BitSliceable<R>,
-          T::Slice: Bits,
-          U::Slice: Bits<Block = <T::Slice as Bits>::Block> {
+          T::Slice: Bits<Block = Block>,
+          U::Slice: Bits<Block = Block>,
+          F: Fn(Block, Block, usize) -> Block {
 
     type Slice = BitZip<T::Slice, U::Slice, F>;
 
