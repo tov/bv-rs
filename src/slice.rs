@@ -347,9 +347,14 @@ impl<'a, Block: BlockType> Bits for BitSlice<'a, Block> {
     }
 
     fn get_block(&self, position: usize) -> Block {
+        assert!( position < self.block_len(),
+                 "BitSlice::get_block: out of bounds" );
         let start = Block::mul_nbits(position);
         let count = Block::block_bits(self.len, position);
-        self.get_bits(start, count)
+
+        unsafe {
+            get_raw_bits(self.bits, start + u64::from(self.offset), count)
+        }
     }
 
     fn get_bits(&self, start: u64, count: usize) -> Self::Block {
@@ -378,9 +383,14 @@ impl<'a, Block: BlockType> Bits for BitSliceMut<'a, Block> {
     }
 
     fn get_block(&self, position: usize) -> Block {
+        assert!( position < self.block_len(),
+                 "BitSlice::get_block: out of bounds" );
         let start = Block::mul_nbits(position);
         let count = Block::block_bits(self.len, position);
-        self.get_bits(start, count)
+
+        unsafe {
+            get_raw_bits(self.bits, start + u64::from(self.offset), count)
+        }
     }
 
     fn get_bits(&self, start: u64, count: usize) -> Self::Block {
@@ -403,9 +413,14 @@ impl<'a, Block: BlockType> BitsMut for BitSliceMut<'a, Block> {
     }
 
     fn set_block(&mut self, position: usize, value: Block) {
+        assert!( position < self.block_len(),
+                 "BitSlice::set_block: out of bounds" );
         let start = Block::mul_nbits(position);
         let count = Block::block_bits(self.len, position);
-        self.set_bits(start, count, value);
+
+        unsafe {
+            set_raw_bits(self.bits, start + u64::from(self.offset), count, value);
+        }
     }
 
     fn set_bits(&mut self, start: u64, count: usize, value: Self::Block) {

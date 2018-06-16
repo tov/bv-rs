@@ -4,7 +4,7 @@ extern crate bv;
 extern crate test;
 
 use bv::BitVec;
-use bv::{Bits, BitsExt, BitsMut, BitSliceable};
+use bv::{Bits, BitsExt, BitsMut, BitsPush, BitSliceable};
 
 use test::Bencher;
 use std::cmp;
@@ -61,6 +61,7 @@ macro_rules! or3_bench {
     } =>
     {
         #[bench]
+        #[no_mangle]
         fn $name(b: &mut Bencher) {
             fn or3($v1: &$a1, $v2: &$a2, $v3: &$a3) -> $res {
                 $( $body )*
@@ -99,6 +100,7 @@ macro_rules! or3_bench {
         }
     };
 }
+
 or3_bench! {
     fn vec_bool_loop(v1: &Vec<bool>, v2: _) -> _ {
         let len = cmp::min(v1.len(), v2.len());
@@ -384,7 +386,7 @@ or3_bench! {
 
 or3_bench! {
     fn vec_u32_adapter_sliced(v1: &Vec<u32>, v2: &Vec<u32>, v3: &Vec<u32>) -> BitVec<u32> {
-        let len = cmp::min(v1.len(), cmp::min(v2.len(), v3.len())) as u64;
+        let len = cmp::min(v1.bit_len(), cmp::min(v2.bit_len(), v3.bit_len()));
         let s1 = v1.bit_slice(.. len);
         let s2 = v2.bit_slice(.. len);
         let s3 = v3.bit_slice(.. len);
@@ -411,11 +413,10 @@ or3_bench! {
 
 or3_bench! {
     fn bv_u32_adapter_sliced(v1: &BitVec<u32>, v2: &BitVec<u32>, v3: &BitVec<u32>) -> BitVec<u32> {
-        let len = cmp::min(v1.len(), cmp::min(v2.len(), v3.len()));
+        let len = cmp::min(v1.bit_len(), cmp::min(v2.bit_len(), v3.bit_len()));
         let s1 = v1.bit_slice(.. len);
         let s2 = v2.bit_slice(.. len);
         let s3 = v3.bit_slice(.. len);
-
         s1.into_bit_or(s2).into_bit_or(s3).to_bit_vec()
     }
 }
@@ -424,7 +425,7 @@ or3_bench! {
     fn bv_u32_adapter_sliced_offset(v1: &BitVec<u32>, v2: &BitVec<u32>, v3: &BitVec<u32>)
         -> BitVec<u32> {
 
-        let len = cmp::min(v1.len(), cmp::min(v2.len(), v3.len()));
+        let len = cmp::min(v1.bit_len(), cmp::min(v2.bit_len(), v3.bit_len()));
         let s1 = v1.bit_slice(1 .. len);
         let s2 = v2.bit_slice(1 .. len);
         let s3 = v3.bit_slice(1 .. len);
@@ -441,11 +442,36 @@ or3_bench! {
 
 or3_bench! {
     fn array_u32_adapter_sliced(v1: &Array<u32>, v2: &Array<u32>, v3: &Array<u32>) -> BitVec<u32> {
-        let len = cmp::min(v1.len(), cmp::min(v2.len(), v3.len())) as u64;
+        let len = cmp::min(v1.bit_len(), cmp::min(v2.bit_len(), v3.bit_len()));
         let s1 = v1.bit_slice(.. len);
         let s2 = v2.bit_slice(.. len);
         let s3 = v3.bit_slice(.. len);
+        s1.into_bit_or(s2).into_bit_or(s3).to_bit_vec()
+    }
+}
 
+or3_bench! {
+    fn array_u32_loop_sliced(v1: &Array<u32>, v2: &Array<u32>, v3: &Array<u32>) -> BitVec<u32> {
+        let len = cmp::min(v1.bit_len(), cmp::min(v2.bit_len(), v3.bit_len()));
+        let s1 = v1.bit_slice(.. len);
+        let s2 = v2.bit_slice(.. len);
+        let s3 = v3.bit_slice(.. len);
+        let mut result = BitVec::with_capacity(len);
+
+        for i in 0 .. (len / 32) as usize {
+            result.push_block(s1.get_block(i) | s2.get_block(i) | s3.get_block(i));
+        }
+
+        result
+    }
+}
+
+or3_bench! {
+    fn array_u32_adapter_sliced_bit_len(v1: &Array<u32>, v2: &Array<u32>, v3: &Array<u32>) -> BitVec<u32> {
+        let len = cmp::min(v1.bit_len(), cmp::min(v2.bit_len(), v3.bit_len()));
+        let s1 = v1.bit_slice(.. len);
+        let s2 = v2.bit_slice(.. len);
+        let s3 = v3.bit_slice(.. len);
         s1.into_bit_or(s2).into_bit_or(s3).to_bit_vec()
     }
 }
@@ -454,7 +480,7 @@ or3_bench! {
     fn array_u32_adapter_sliced_offset(v1: &Array<u32>, v2: &Array<u32>, v3: &Array<u32>)
         -> BitVec<u32> {
 
-        let len = cmp::min(v1.len(), cmp::min(v2.len(), v3.len())) as u64;
+        let len = cmp::min(v1.bit_len(), cmp::min(v2.bit_len(), v3.bit_len()));
         let s1 = v1.bit_slice(1 .. len);
         let s2 = v2.bit_slice(1 .. len);
         let s3 = v3.bit_slice(1 .. len);
