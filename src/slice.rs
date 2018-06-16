@@ -250,6 +250,16 @@ unsafe fn set_raw_bit<Block: BlockType>(bits: *mut Block, position: u64, value: 
     ptr::write(ptr, new_block);
 }
 
+// Precondition: Block is in bounds.
+unsafe fn get_raw_block<Block: BlockType>(bits: *const Block, position: usize) -> Block {
+    ptr::read(bits.offset(position as isize))
+}
+
+// Precondition: Block is in bounds.
+unsafe fn set_raw_block<Block: BlockType>(bits: *mut Block, position: usize, value: Block) {
+    ptr::write(bits.offset(position as isize), value);
+}
+
 // Gets `bits[start .. start + count]`.
 //
 // Precondition: the specified bits are in bounds.
@@ -349,6 +359,14 @@ impl<'a, Block: BlockType> Bits for BitSlice<'a, Block> {
     fn get_block(&self, position: usize) -> Block {
         assert!( position < self.block_len(),
                  "BitSlice::get_block: out of bounds" );
+
+        // Fast path for non-last block of aligned slice.
+        if self.offset == 0 && position < self.block_len() - 1 {
+            unsafe {
+                return get_raw_block(self.bits, position);
+            }
+        }
+
         let start = Block::mul_nbits(position);
         let count = Block::block_bits(self.len, position);
 
@@ -385,6 +403,14 @@ impl<'a, Block: BlockType> Bits for BitSliceMut<'a, Block> {
     fn get_block(&self, position: usize) -> Block {
         assert!( position < self.block_len(),
                  "BitSlice::get_block: out of bounds" );
+
+        // Fast path for non-last block of aligned slice.
+        if self.offset == 0 && position < self.block_len() - 1 {
+            unsafe {
+                return get_raw_block(self.bits, position);
+            }
+        }
+
         let start = Block::mul_nbits(position);
         let count = Block::block_bits(self.len, position);
 
@@ -415,6 +441,15 @@ impl<'a, Block: BlockType> BitsMut for BitSliceMut<'a, Block> {
     fn set_block(&mut self, position: usize, value: Block) {
         assert!( position < self.block_len(),
                  "BitSlice::set_block: out of bounds" );
+
+        // Fast path for non-last block of aligned slice.
+        if self.offset == 0 && position < self.block_len() - 1 {
+            unsafe {
+                set_raw_block(self.bits, position, value);
+            }
+            return;
+        }
+
         let start = Block::mul_nbits(position);
         let count = Block::block_bits(self.len, position);
 

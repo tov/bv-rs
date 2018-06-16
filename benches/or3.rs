@@ -467,16 +467,6 @@ or3_bench! {
 }
 
 or3_bench! {
-    fn array_u32_adapter_sliced_bit_len(v1: &Array<u32>, v2: &Array<u32>, v3: &Array<u32>) -> BitVec<u32> {
-        let len = cmp::min(v1.bit_len(), cmp::min(v2.bit_len(), v3.bit_len()));
-        let s1 = v1.bit_slice(.. len);
-        let s2 = v2.bit_slice(.. len);
-        let s3 = v3.bit_slice(.. len);
-        s1.into_bit_or(s2).into_bit_or(s3).to_bit_vec()
-    }
-}
-
-or3_bench! {
     fn array_u32_adapter_sliced_offset(v1: &Array<u32>, v2: &Array<u32>, v3: &Array<u32>)
         -> BitVec<u32> {
 
