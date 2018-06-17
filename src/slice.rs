@@ -10,15 +10,154 @@ use iter::BlockIter;
 use traits::{Bits, BitsMut, BitSliceable};
 use storage::{Address, BlockType};
 
-/*
- * We represent bit-slices as raw pointers to `Block`s. The slice stores an
- * offset, which is the number of bits to skip at the beginning of the slice,
- * and a length, which is the total number of bits in the slice.
- *
- * INVARIANTS:
- *  - `offset < Block::nbits()`.
- *  - The buffer is large enough to store `offset + len` bits.
- */
+// This struct describes the span of a `BitSlice` or `BitSliceMut`, starting
+// with of offset of `offset` bits into the array of blocks, and including
+// `len` bits.
+#[derive(Copy, Clone, Debug)]
+struct SliceSpan {
+    offset:      u8,
+    len:         u64,
+    full_blocks: usize,
+}
+// Invariant:
+//   full_blocks == if offset == 0 { Block::div_nbits(len) } else { 0 }
+
+// This struct describes the result of an indexing operation against a span.
+// We can give back a full, aligned block, or an arbitrary sequence of bits.
+#[derive(Copy, Clone, Debug)]
+enum BlockAddress {
+    FullBlockAt(usize),
+    SomeBitsAt(Address, usize),
+}
+
+impl SliceSpan {
+    fn new<Block: BlockType>(offset: u8, bit_len: u64) -> Self {
+        SliceSpan {
+            offset,
+            len:         bit_len,
+            full_blocks: if offset == 0 {Block::div_nbits(bit_len)} else {0},
+        }
+    }
+
+    fn from_block_len<Block: BlockType>(block_len: usize) -> Self {
+        Self::new::<Block>(0, Block::mul_nbits(block_len))
+    }
+
+    fn block_len<Block: BlockType>(&self) -> usize {
+        Block::ceil_div_nbits(self.len)
+    }
+
+    fn find_block<Block: BlockType>(&self, position: usize) -> Option<BlockAddress> {
+        if position < self.full_blocks {
+            return Some(BlockAddress::FullBlockAt(position));
+        } else if position < self.block_len::<Block>() {
+            let start   = Block::mul_nbits(position) + u64::from(self.offset);;
+            let address = Address::new::<Block>(start);
+            let count   = Block::block_bits(self.len, position);
+            Some(BlockAddress::SomeBitsAt(address, count))
+        } else {
+            None
+        }
+    }
+
+    fn find_bits<Block: BlockType>(&self, position: u64, count: usize) -> Option<BlockAddress> {
+        if position + (count as u64) <= self.len {
+            let address = Address::new::<Block>(position + u64::from(self.offset));
+            if count == Block::nbits() && address.bit_offset == 0 {
+                Some(BlockAddress::FullBlockAt(address.block_index))
+            } else {
+                Some(BlockAddress::SomeBitsAt(address, count))
+            }
+        } else {
+            None
+        }
+    }
+
+    fn find_bit<Block: BlockType>(&self, position: u64) -> Option<Address> {
+        if position < self.len {
+            Some(Address::new::<Block>(position + self.offset as u64))
+        } else {
+            None
+        }
+    }
+}
+
+impl BlockAddress {
+    unsafe fn read<Block: BlockType>(self, bits: *const Block) -> Block {
+        match self {
+            BlockAddress::FullBlockAt(position) =>
+                ptr::read(bits.offset(position as isize)),
+
+            BlockAddress::SomeBitsAt(address, count) => {
+                let offset      = address.bit_offset;
+                let ptr1        = bits.offset(address.block_index as isize);
+                let block1      = ptr::read(ptr1);
+
+                // Fast path for getting partial aligned block;
+                if offset == 0 {
+                    return block1.get_bits(0, count);
+                }
+
+                // Otherwise, our access is unaligned and may span two blocks. So we need
+                // to get our bits starting at `offset` in `block1`, and the rest from `block2`
+                // if necessary.
+                let shift1      = offset as usize;
+                let shift2      = Block::nbits() - shift1;
+
+                // Getting the right number of bits from `block1`.
+                let bits_size1  = cmp::min(shift2, count);
+                let chunk1      = block1.get_bits(shift1, bits_size1);
+
+                // The remaining bits will be in `block2`; if there are none, we return early.
+                let bits_size2  = count - bits_size1;
+                if bits_size2 == 0 {
+                    return chunk1;
+                }
+
+                // Otherwise, we need to get `block2` and combine bits from each block to get
+                // the result.
+                let block2      = ptr::read(ptr1.offset(1));
+                let chunk2      = block2.get_bits(0, bits_size2);
+                (chunk1 | (chunk2 << shift2))
+            }
+        }
+    }
+
+    unsafe fn write<Block: BlockType>(self, bits: *mut Block, value: Block) {
+        match self {
+            BlockAddress::FullBlockAt(position) =>
+                ptr::write(bits.offset(position as isize), value),
+
+            BlockAddress::SomeBitsAt(address, count) => {
+                let offset  = address.bit_offset;
+                let ptr1    = bits.offset(address.block_index as isize);
+
+                // Otherwise, our access is unaligned. In particular, we need to align
+                // the first bits of `value` with the last `Block::nbits() - offset` bits
+                // of `block1`, and the last `offset` bits of value with the first bits
+                // of `block2`.
+                let shift1      = offset;
+                let shift2      = Block::nbits() - shift1;
+
+                // We aren't necessarily going to keep all `shift2` bits of `value`, though,
+                // because it might exceed the `count`. In any case, we can now read the block,
+                // overwrite the correct bits, and write the block back.
+                let bits_size1  = cmp::min(count, shift2);
+                let old_block1  = ptr::read(ptr1);
+                let new_block1  = old_block1.with_bits(shift1, bits_size1, value);
+                ptr::write(ptr1, new_block1);
+
+                // The remaining bits to change in `block2`. If it's zero, we finish early.
+                let bits_size2  = count - bits_size1;
+                if bits_size2 == 0 { return; }
+                let ptr2        = ptr1.offset(1);
+                let old_block2  = ptr::read(ptr2);
+                let new_block2  = old_block2.with_bits(0, bits_size2, value >> shift2);
+                ptr::write(ptr2, new_block2);
+            }
+        }
+    }
+}
 
 /// A slice of a bit-vector; akin to `&'a [bool]` but packed.
 ///
@@ -39,8 +178,7 @@ use storage::{Address, BlockType};
 #[derive(Copy, Clone)]
 pub struct BitSlice<'a, Block> {
     bits:   *const Block,
-    offset: u8,
-    len:    u64,
+    span:   SliceSpan,
     marker: PhantomData<&'a ()>,
 }
 
@@ -65,8 +203,7 @@ pub struct BitSlice<'a, Block> {
 /// ```
 pub struct BitSliceMut<'a, Block> {
     bits:   *mut Block,
-    offset: u8,
-    len:    u64,
+    span:   SliceSpan,
     marker: PhantomData<&'a mut ()>,
 }
 
@@ -91,8 +228,7 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
     pub fn from_slice(blocks: &'a [Block]) -> Self {
         BitSlice {
             bits:   blocks.as_ptr(),
-            offset: 0,
-            len:    Block::mul_nbits(blocks.len()),
+            span:   SliceSpan::from_block_len::<Block>(blocks.len()),
             marker: PhantomData,
         }
     }
@@ -112,8 +248,7 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
         let address = Address::new::<Block>(offset);
         BitSlice {
             bits:   bits.offset(address.block_index as isize),
-            offset: address.bit_offset as u8,
-            len,
+            span:   SliceSpan::new::<Block>(address.bit_offset as u8, len),
             marker: PhantomData,
         }
     }
@@ -132,7 +267,7 @@ impl<'a, Block: BlockType> BitSlice<'a, Block> {
     /// assert_eq!( slice.len(), 3 );
     /// ```
     pub fn len(&self) -> u64 {
-        self.len
+        self.span.len
     }
 
     /// Returns whether there are no bits in the slice.
@@ -162,8 +297,7 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
     pub fn from_slice(blocks: &mut [Block]) -> Self {
         BitSliceMut {
             bits:   blocks.as_mut_ptr(),
-            offset: 0,
-            len:    Block::mul_nbits(blocks.len()),
+            span:   SliceSpan::from_block_len::<Block>(blocks.len()),
             marker: PhantomData,
         }
     }
@@ -183,15 +317,14 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
         let address = Address::new::<Block>(offset);
         BitSliceMut {
             bits:   bits.offset(address.block_index as isize),
-            offset: address.bit_offset as u8,
-            len,
+            span:   SliceSpan::new::<Block>(address.bit_offset as u8, len),
             marker: PhantomData,
         }
     }
 
     /// The number of bits in the slice.
     pub fn len(&self) -> u64 {
-        self.len
+        self.span.len
     }
 
     /// Returns whether there are no bits in the slice.
@@ -203,8 +336,7 @@ impl<'a, Block: BlockType> BitSliceMut<'a, Block> {
     pub fn as_bit_slice(&self) -> BitSlice<'a, Block> {
         BitSlice {
             bits:   self.bits,
-            offset: self.offset,
-            len:    self.len,
+            span:   self.span,
             marker: PhantomData,
         }
     }
@@ -231,9 +363,8 @@ impl<'a, Block: BlockType> From<&'a mut [Block]> for BitSliceMut<'a, Block> {
 // Gets `bits[offset + position]`.
 //
 // Precondition: Bits are in bounds.
-unsafe fn get_raw_bit<Block: BlockType>(bits: *const Block, position: u64) -> bool {
+unsafe fn get_raw_bit<Block: BlockType>(bits: *const Block, address: Address) -> bool {
 
-    let address   = Address::new::<Block>(position);
     let ptr       = bits.offset(address.block_index as isize);
     let block     = ptr::read(ptr);
     block.get_bit(address.bit_offset)
@@ -242,146 +373,36 @@ unsafe fn get_raw_bit<Block: BlockType>(bits: *const Block, position: u64) -> bo
 // Sets `bits[offset + position]`
 //
 // Precondition: Bit is in bounds.
-unsafe fn set_raw_bit<Block: BlockType>(bits: *mut Block, position: u64, value: bool) {
-    let address   = Address::new::<Block>(position);
+unsafe fn set_raw_bit<Block: BlockType>(bits: *mut Block, address: Address, value: bool) {
     let ptr       = bits.offset(address.block_index as isize);
     let old_block = ptr::read(ptr);
     let new_block = old_block.with_bit(address.bit_offset, value);
     ptr::write(ptr, new_block);
 }
 
-// Precondition: Block is in bounds.
-unsafe fn get_raw_block<Block: BlockType>(bits: *const Block, position: usize) -> Block {
-    ptr::read(bits.offset(position as isize))
-}
-
-// Precondition: Block is in bounds.
-unsafe fn set_raw_block<Block: BlockType>(bits: *mut Block, position: usize, value: Block) {
-    ptr::write(bits.offset(position as isize), value);
-}
-
-// Gets `bits[start .. start + count]`.
-//
-// Precondition: the specified bits are in bounds.
-unsafe fn get_raw_bits<Block: BlockType>(
-    bits: *const Block, start: u64, count: usize) -> Block {
-
-    // Find the address of the start bit in `bits`, and read the first block.
-    let address     = Address::new::<Block>(start);
-    let offset      = address.bit_offset;
-    let ptr1        = bits.offset(address.block_index as isize);
-    let block1      = ptr::read(ptr1);
-
-    // Fast path for getting whole or partial aligned block;
-    if offset == 0 {
-        return block1.get_bits(0, count);
-    }
-
-    // Otherwise, our access is unaligned and may span two blocks. So we need
-    // to get our bits starting at `offset` in `block1`, and the rest from `block2`
-    // if necessary.
-    let shift1      = offset as usize;
-    let shift2      = Block::nbits() - shift1;
-
-    // Getting the right number of bits from `block1`.
-    let bits_size1  = cmp::min(shift2, count);
-    let chunk1      = block1.get_bits(shift1, bits_size1);
-
-    // The remaining bits will be in `block2`; if there are none, we return early.
-    let bits_size2  = count - bits_size1;
-    if bits_size2 == 0 {
-        return chunk1;
-    }
-
-    // Otherwise, we need to get `block2` and combine bits from each block to get
-    // the result.
-    let block2      = ptr::read(ptr1.offset(1));
-    let chunk2      = block2.get_bits(0, bits_size2);
-    (chunk1 | (chunk2 << shift2))
-}
-
-// Sets `bits[start .. start + count]` to `value[.. count]`
-//
-// Precondition: The specified bits are in bounds.
-unsafe fn set_raw_bits<Block: BlockType>(
-    bits: *mut Block, start: u64, count: usize, value: Block) {
-
-    // Find the address of the start bit in `bits`:
-    let address = Address::new::<Block>(start);
-    let offset  = address.bit_offset;
-    let ptr1    = bits.offset(address.block_index as isize);
-
-    // Fast path for setting a whole aligned block.
-    if offset == 0 && count == Block::nbits() {
-        ptr::write(ptr1, value);
-        return;
-    }
-
-    // Otherwise, our access is unaligned. In particular, we need to align
-    // the first bits of `value` with the last `Block::nbits() - offset` bits
-    // of `block1`, and the last `offset` bits of value with the first bits
-    // of `block2`.
-    let shift1      = offset;
-    let shift2      = Block::nbits() - shift1;
-
-    // We aren't necessarily going to keep all `shift2` bits of `value`, though,
-    // because it might exceed the `count`. In any case, we can now read the block,
-    // overwrite the correct bits, and write the block back.
-    let bits_size1  = cmp::min(count, shift2);
-    let old_block1  = ptr::read(ptr1);
-    let new_block1  = old_block1.with_bits(shift1, bits_size1, value);
-    ptr::write(ptr1, new_block1);
-
-    // The remaining bits to change in `block2`. If it's zero, we finish early.
-    let bits_size2  = count - bits_size1;
-    if bits_size2 == 0 { return; }
-    let ptr2        = ptr1.offset(1);
-    let old_block2  = ptr::read(ptr2);
-    let new_block2  = old_block2.with_bits(0, bits_size2, value >> shift2);
-    ptr::write(ptr2, new_block2);
-}
-
 impl<'a, Block: BlockType> Bits for BitSlice<'a, Block> {
     type Block = Block;
 
     fn bit_len(&self) -> u64 {
-        self.len
+        self.len()
     }
 
     fn get_bit(&self, position: u64) -> bool {
-        assert!(position < self.bit_len(), "BitSlice::get_bit: out of bounds");
-
-        unsafe {
-            get_raw_bit(self.bits, position + u64::from(self.offset))
-        }
+        let address = self.span.find_bit::<Block>(position)
+            .expect("BitSlice::get_bit: out of bounds");
+        unsafe { get_raw_bit(self.bits, address) }
     }
 
     fn get_block(&self, position: usize) -> Block {
-        assert!( position < self.block_len(),
-                 "BitSlice::get_block: out of bounds" );
-
-        // Fast path for non-last block of aligned slice.
-        if self.offset == 0 && position < self.block_len() - 1 {
-            unsafe {
-                return get_raw_block(self.bits, position);
-            }
-        }
-
-        let start = Block::mul_nbits(position);
-        let count = Block::block_bits(self.len, position);
-
-        unsafe {
-            get_raw_bits(self.bits, start + u64::from(self.offset), count)
-        }
+        let block_addr = self.span.find_block::<Block>(position)
+            .expect("BitSlice::get_block: out of bounds");
+        unsafe { block_addr.read(self.bits) }
     }
 
     fn get_bits(&self, start: u64, count: usize) -> Self::Block {
-        assert!( start + (count as u64) <= self.bit_len(),
-                 "BitSlice::get_bits: out of bounds" );
-
-        unsafe {
-            get_raw_bits(self.bits, start + u64::from(self.offset), count)
-        }
+        let block_addr = self.span.find_bits::<Block>(start, count)
+            .expect("BitSlice::get_bits: out of bounds");
+        unsafe { block_addr.read(self.bits) }
     }
 }
 
@@ -389,82 +410,47 @@ impl<'a, Block: BlockType> Bits for BitSliceMut<'a, Block> {
     type Block = Block;
 
     fn bit_len(&self) -> u64 {
-        self.len
+        self.len()
     }
 
     fn get_bit(&self, position: u64) -> bool {
-        assert!(position < self.bit_len(), "BitSliceMut::get_bit: out of bounds");
-
-        unsafe {
-            get_raw_bit(self.bits, position + u64::from(self.offset))
-        }
+        let address = self.span.find_bit::<Block>(position)
+            .expect("BitSliceMut::get_bit: out of bounds");
+        unsafe { get_raw_bit(self.bits, address) }
     }
 
     fn get_block(&self, position: usize) -> Block {
-        assert!( position < self.block_len(),
-                 "BitSlice::get_block: out of bounds" );
-
-        // Fast path for non-last block of aligned slice.
-        if self.offset == 0 && position < self.block_len() - 1 {
-            unsafe {
-                return get_raw_block(self.bits, position);
-            }
-        }
-
-        let start = Block::mul_nbits(position);
-        let count = Block::block_bits(self.len, position);
-
-        unsafe {
-            get_raw_bits(self.bits, start + u64::from(self.offset), count)
-        }
+        let block_addr = self.span.find_block::<Block>(position)
+            .expect("BitSliceMut::get_block: out of bounds");
+        unsafe { block_addr.read(self.bits) }
     }
 
     fn get_bits(&self, start: u64, count: usize) -> Self::Block {
-        assert!( start + (count as u64) <= self.bit_len(),
-                 "BitSliceMut::get_bits: out of bounds" );
-
-        unsafe {
-            get_raw_bits(self.bits, start + u64::from(self.offset), count)
-        }
+        let block_addr = self.span.find_bits::<Block>(start, count)
+            .expect("BitSliceMut::get_bits: out of bounds");
+        unsafe { block_addr.read(self.bits) }
     }
 }
 
 impl<'a, Block: BlockType> BitsMut for BitSliceMut<'a, Block> {
     fn set_bit(&mut self, position: u64, value: bool) {
-        assert!(position < self.bit_len(), "BitSliceMut::set_bit: out of bounds");
-
+        let address = self.span.find_bit::<Block>(position)
+            .expect("BitSliceMut::set_bit: out of bounds");
         unsafe {
-            set_raw_bit(self.bits, position + u64::from(self.offset), value);
+            set_raw_bit(self.bits, address, value);
         }
     }
 
     fn set_block(&mut self, position: usize, value: Block) {
-        assert!( position < self.block_len(),
-                 "BitSlice::set_block: out of bounds" );
-
-        // Fast path for non-last block of aligned slice.
-        if self.offset == 0 && position < self.block_len() - 1 {
-            unsafe {
-                set_raw_block(self.bits, position, value);
-            }
-            return;
-        }
-
-        let start = Block::mul_nbits(position);
-        let count = Block::block_bits(self.len, position);
-
-        unsafe {
-            set_raw_bits(self.bits, start + u64::from(self.offset), count, value);
-        }
+        let block_addr = self.span.find_block::<Block>(position)
+            .expect("BitSliceMut::set_block: out of bounds");
+        unsafe { block_addr.write(self.bits, value); }
     }
 
     fn set_bits(&mut self, start: u64, count: usize, value: Self::Block) {
-        assert!(start + (count as u64) <= self.bit_len(),
-                "BitSliceMut::set_bits: out of bounds");
-
-        unsafe {
-            set_raw_bits(self.bits, start + u64::from(self.offset), count, value);
-        }
+        let block_addr = self.span.find_bits::<Block>(start, count)
+            .expect("BitSliceMut::set_bits: out of bounds");
+        unsafe { block_addr.write(self.bits, value); }
     }
 }
 
@@ -478,11 +464,11 @@ impl<'a, Block: BlockType> BitSliceable<Range<u64>> for BitSlice<'a, Block> {
 
     fn bit_slice(self, range: Range<u64>) -> Self {
         assert!(range.start <= range.end, "BitSlice::slice: bad range");
-        assert!(range.end <= self.len, "BitSlice::slice: out of bounds");
+        assert!(range.end <= self.span.len, "BitSlice::slice: out of bounds");
 
         unsafe {
             BitSlice::from_raw_parts(self.bits,
-                                     range.start + u64::from(self.offset),
+                                     range.start + u64::from(self.span.offset),
                                      range.end - range.start)
         }
     }
@@ -493,11 +479,11 @@ impl<'a, Block: BlockType> BitSliceable<Range<u64>> for BitSliceMut<'a, Block> {
 
     fn bit_slice(self, range: Range<u64>) -> Self {
         assert!(range.start <= range.end, "BitSliceMut::slice: bad range");
-        assert!(range.end <= self.len, "BitSliceMut::slice: out of bounds");
+        assert!(range.end <= self.span.len, "BitSliceMut::slice: out of bounds");
 
         unsafe {
             BitSliceMut::from_raw_parts(self.bits,
-                                        range.start + u64::from(self.offset),
+                                        range.start + u64::from(self.span.offset),
                                         range.end - range.start)
         }
     }
@@ -510,11 +496,11 @@ impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for BitSlice<'a, Bl
     fn bit_slice(self, range: RangeInclusive<u64>) -> Self {
         let (start, end) = util::get_inclusive_bounds(&range)
             .expect("BitSlice::slice: bad range");
-        assert!(end < self.len, "BitSlice::slice: out of bounds");
+        assert!(end < self.span.len, "BitSlice::slice: out of bounds");
 
         unsafe {
             BitSlice::from_raw_parts(self.bits,
-                                     start + u64::from(self.offset),
+                                     start + u64::from(self.span.offset),
                                      end - start + 1)
         }
     }
@@ -527,11 +513,11 @@ impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for BitSliceMut<'a,
     fn bit_slice(self, range: RangeInclusive<u64>) -> Self {
         let (start, end) = util::get_inclusive_bounds(&range)
             .expect("BitSliceMut::slice: bad range");
-        assert!(end < self.len, "BitSliceMut::slice: out of bounds");
+        assert!(end < self.span.len, "BitSliceMut::slice: out of bounds");
 
         unsafe {
             BitSliceMut::from_raw_parts(self.bits,
-                                        start + u64::from(self.offset),
+                                        start + u64::from(self.span.offset),
                                         end - start + 1)
         }
     }
@@ -541,7 +527,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for BitSlice<'a, Block> 
     type Slice = Self;
 
     fn bit_slice(self, range: RangeFrom<u64>) -> Self {
-        let len = self.len;
+        let len = self.span.len;
         self.bit_slice(range.start .. len)
     }
 }
@@ -550,7 +536,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for BitSliceMut<'a, Bloc
     type Slice = Self;
 
     fn bit_slice(self, range: RangeFrom<u64>) -> Self {
-        let len = self.len;
+        let len = self.span.len;
         self.bit_slice(range.start .. len)
     }
 }
@@ -690,7 +676,7 @@ impl<'a, Block: BlockType> fmt::Debug for BitSlice<'a, Block> {
         if !self.is_empty() {
             write!(f, "{}", self.get_bit(0))?;
         }
-        for i in 1 .. self.len() {
+        for i in 1 .. self.span.len {
             write!(f, ", {}", self.get_bit(i))?;
         }
         write!(f, "]")
