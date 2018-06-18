@@ -1,3 +1,6 @@
+mod bit_range;
+pub use self::bit_range::BitRange;
+
 mod bits;
 pub use self::bits::Bits;
 
