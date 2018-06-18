@@ -10,13 +10,13 @@ const NBLOCKS: usize = 300;
 
 #[bench]
 fn to_bit_vec_vec(b: &mut Bencher) {
-    let vec = vec![0, NBLOCKS];
+    let vec = vec![0usize; NBLOCKS];
     b.iter(|| vec.to_bit_vec());
 }
 
 #[bench]
 fn to_bit_vec_array(b: &mut Bencher) {
-    let vec = vec![0, NBLOCKS];
+    let vec = vec![0usize; NBLOCKS];
     let slice = vec.as_slice();
     b.iter(|| slice.to_bit_vec());
 }
