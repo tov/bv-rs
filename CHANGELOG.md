@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog] and this project adheres to
 [Keep a Changelog]: http://keepachangelog.com/en/1.0.0/
 [Semantic Versioning]: http://semver.org/spec/v2.0.0.html
 
-## [Unreleased]
+## [0.9.0] - 2018-06-18
 
 ### Added
 - Impls of `Bits` and `BitsMut` for `Vec<Block>`. The impls for `[Block]`
