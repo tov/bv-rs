@@ -45,7 +45,7 @@ The format is based on [Keep a Changelog] and this project adheres to
 ### Changed
 - Trait `BitsExt` is moved from the `adapter` module to the root. (There's
   still a `pub use` for it in `adapter`, but that alias is deprecated and will
-  be removed in 0.9.0.)
+  be removed in 0.10.0.)
   
 ### Fixed
 - Performance problem with `BitVec::block_reserve`, which was growing way
