@@ -2,8 +2,6 @@
 
   - Performance comparisons.
   
-  - Add `Bits::get_unmasked_block`.
-  
   - Add to `BitsExt`:
       - `bit_fold`, `bit_all`, `bit_any` etc.
 
