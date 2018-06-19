@@ -263,6 +263,22 @@ macro_rules! impl_block_type {
             }
 
             #[inline]
+            fn ceil_lg(self) -> usize {
+                let non_zero = (self > Self::one()) as usize;
+                let value_if_non_zero =
+                    Self::nbits().wrapping_sub((self.wrapping_sub(1)).leading_zeros() as usize);
+                non_zero * value_if_non_zero
+            }
+
+            #[inline]
+            fn floor_lg(self) -> usize {
+                let non_zero = (self > Self::one()) as usize;
+                let value_if_non_zero =
+                    Self::nbits().wrapping_sub(1).wrapping_sub(self.leading_zeros() as usize);
+                non_zero * value_if_non_zero
+            }
+
+            #[inline]
             fn leading_zeros(self) -> usize {
                 self.leading_zeros() as usize
             }
