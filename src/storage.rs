@@ -131,6 +131,9 @@ pub trait BlockType: Copy +
     /// The bit mask consisting of `Self::nbits() - element_bits` zeroes
     /// followed by `element_bits` ones.
     ///
+    /// The default implementation has a branch, but should be overrided with
+    /// a branchless algorithm if possible.
+    ///
     /// # Precondition
     ///
     /// `element_bits <= Self::nbits()`
@@ -147,7 +150,7 @@ pub trait BlockType: Copy +
 
     /// The bit mask with the `bit_index`th bit set.
     ///
-    /// Bits are index in little-endian style based at 0.
+    /// Bits are indexed in little-endian style based at 0.
     ///
     /// # Precondition
     ///
@@ -217,16 +220,26 @@ pub trait BlockType: Copy +
     /// Returns the smallest number `n` such that `2.pow(n) >= self`.
     #[inline]
     fn ceil_lg(self) -> usize {
-        if self <= Self::one() { return 0; }
-        Self::nbits() - (self - Self::one()).leading_zeros() as usize
+        let non_zero = (self > Self::one()) as usize;
+        let value_if_non_zero =
+            Self::nbits().wrapping_sub((self.wrapping_sub(Self::one())).leading_zeros() as usize);
+        non_zero * value_if_non_zero
     }
 
     /// Returns the largest number `n` such that `2.pow(n) <= self`.
     #[inline]
     fn floor_lg(self) -> usize {
-        if self <= Self::one() { return 0; }
-        Self::nbits() - 1 - self.leading_zeros() as usize
+        let non_zero = (self > Self::one()) as usize;
+        let value_if_non_zero =
+            Self::nbits().wrapping_sub(1).wrapping_sub(self.leading_zeros() as usize);
+        non_zero * value_if_non_zero
     }
+
+    /// A shift-left operation that does not overflow.
+    fn wrapping_shl(self, shift: u32) -> Self;
+
+    /// A subtraction operation that does not overflow.
+    fn wrapping_sub(self, other: Self) -> Self;
 
     /// Returns the number of leading zero bits in the given number.
     fn leading_zeros(self) -> usize;
@@ -263,19 +276,13 @@ macro_rules! impl_block_type {
             }
 
             #[inline]
-            fn ceil_lg(self) -> usize {
-                let non_zero = (self > Self::one()) as usize;
-                let value_if_non_zero =
-                    Self::nbits().wrapping_sub((self.wrapping_sub(1)).leading_zeros() as usize);
-                non_zero * value_if_non_zero
+            fn wrapping_shl(self, shift: u32) -> Self {
+                self.wrapping_shl(shift)
             }
 
             #[inline]
-            fn floor_lg(self) -> usize {
-                let non_zero = (self > Self::one()) as usize;
-                let value_if_non_zero =
-                    Self::nbits().wrapping_sub(1).wrapping_sub(self.leading_zeros() as usize);
-                non_zero * value_if_non_zero
+            fn wrapping_sub(self, other: Self) -> Self {
+                self.wrapping_sub(other)
             }
 
             #[inline]
