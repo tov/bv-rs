@@ -17,7 +17,7 @@ The format is based on [Keep a Changelog] and this project adheres to
 - `From<Box<[Block]>>` and `From<Vec<Block>>` impls for `BitVec<Block>`.
 
 ### Changed
-- `Bits` is a supertrait of `BitSliceable<R>` now, and the block type of
+- `Bits` is a super trait of `BitSliceable<R>` now, and the block type of
   the slice matches the block type of `Self`.
 - Function passed to `BitsExt::bit_zip` no longer takes a third, `usize` 
   argument.
