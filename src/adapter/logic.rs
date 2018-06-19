@@ -168,10 +168,14 @@ macro_rules! impl_bits_bin_op {
             }
 
             fn get_bit(&self, position: u64) -> bool {
+                assert!( position < self.bit_len(),
+                         format!("{}::get_bit: out of bounds", stringify!($target)) );
                 self.0.bit1(position) $bool_op self.0.bit2(position)
             }
 
             fn get_block(&self, position: usize) -> Self::Block {
+                assert!( position < self.block_len(),
+                         format!("{}::get_block: out of bounds", stringify!($target)) );
                 get_masked_block(self, position)
             }
 
