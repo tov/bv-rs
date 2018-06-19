@@ -3,6 +3,7 @@ use super::slice::*;
 use super::traits::*;
 
 use std::cmp::{max, Ordering};
+use std::ptr;
 
 mod inner;
 use self::inner::Inner;
@@ -157,12 +158,22 @@ impl<Block: BlockType> BitVec<Block> {
     /// the same block type.
     pub fn from_bits<B: Bits<Block = Block>>(bits: B) -> Self {
         let block_len = bits.block_len();
-        let mut result: Self = Self::from_block(Block::zero(), block_len);
 
-        for i in 0 .. block_len {
-            result.set_block(i, bits.get_raw_block(i));
+        let mut vec: Vec<Block> = Vec::with_capacity(block_len);
+
+        // This is safe because we just allocated the vector to the right size,
+        // and we fully initialize the vector before setting the size.
+        unsafe {
+            let ptr = vec.as_mut_ptr();
+
+            for i in 0 .. block_len {
+                ptr::write(ptr.offset(i as isize), bits.get_raw_block(i));
+            }
+
+            vec.set_len(block_len);
         }
 
+        let mut result: BitVec<Block> = vec.into();
         result.resize(bits.bit_len(), false);
         result
     }
