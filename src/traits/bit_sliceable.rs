@@ -34,15 +34,16 @@ pub trait BitSliceable<Range>: Bits {
 
 /// Types that produce mutable slices.
 ///
-/// This provides no additional functionality over [`BitSliceable`], as
-/// the `bit_slice_mut` method just delegates to `bit_slice`. However, it
-/// can be used to force auto
-///
-/// Do not implement this type; there is a blanket impl for all
+/// Do not implement this trait; there is a blanket impl for all
 /// [`BitSliceable`] types whose associated `Slice` types implement `BitsMut`.
 ///
 /// [`BitSliceable`]: trait.BitSliceable.html
 pub trait BitSliceableMut<Range>: BitSliceable<Range> {
+    /// An alias for [`BitSliceable::bit_slice`](trait.BitSliceable.html#bit_slice).
+    ///
+    /// This method provides no additional functionality over `bit_slice`.
+    /// However, it can be used to force auto-ref to choose a `Self` type
+    /// that implements `BitSliceableMut`.
     fn bit_slice_mut(self, range: Range) -> Self::Slice where Self: Sized {
         self.bit_slice(range)
     }

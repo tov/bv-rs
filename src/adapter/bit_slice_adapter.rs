@@ -254,7 +254,7 @@ impl<T: Bits> BitSliceable<RangeInclusive<u64>> for BitSliceAdapter<T> {
     type Slice = Self;
 
     fn bit_slice(self, range: RangeInclusive<u64>) -> Self::Slice {
-        let (start, limit) = ::range_compat::get_inclusive_bounds(range)
+        let (start, limit) = get_inclusive_bounds(range)
             .expect("BitSliceAdapter::bit_slice: bad range");
         self.reslice(start, limit - start + 1)
     }
@@ -311,7 +311,7 @@ impl<'a, T: Bits> BitSliceable<RangeInclusive<u64>> for &'a BitSliceAdapter<T> {
     type Slice = BitSliceAdapter<&'a T>;
 
     fn bit_slice(self, range: RangeInclusive<u64>) -> Self::Slice {
-        let (start, limit) = ::range_compat::get_inclusive_bounds(range)
+        let (start, limit) = get_inclusive_bounds(range)
             .expect("BitSliceAdapter::bit_slice: bad range");
         self.reslice_ref(start, limit - start + 1)
     }
