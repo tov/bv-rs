@@ -1,10 +1,5 @@
 # TODO
 
-  - Performance comparisons.
-  
-  - Add to `BitsExt`:
-      - `bit_fold`, `bit_all`, `bit_any` etc.
-
   - `BitsMutExt` trait:
       - methods `bit_assign`, `bit_zip_assign`, `bit_xor_assign`, 
       etc.
@@ -18,3 +13,6 @@
       - in-place
 
   - `SparseBitVec`
+  
+  - Always more performance comparisons.
+  

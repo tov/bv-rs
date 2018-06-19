@@ -1,3 +1,4 @@
+use BlockType;
 use super::Bits;
 use adapter::*;
 
