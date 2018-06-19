@@ -458,12 +458,12 @@ impl<'a, Block: BlockType> BitSliceable for BitSlice<'a, Block> {
     type Slice = Self;
 
     fn bit_slice<R: BitRange>(self, range: R) -> Self {
-        let (start, end) = range.interpret_range(self.span.len)
+        let (start, len) = range.interpret_range(self.span.len)
             .expect("BitSlice::bit_slice");
         unsafe {
             BitSlice::from_raw_parts(self.bits,
                                      start + u64::from(self.span.offset),
-                                     end - start)
+                                     len)
         }
     }
 }
@@ -472,12 +472,12 @@ impl<'a, Block: BlockType> BitSliceable for BitSliceMut<'a, Block> {
     type Slice = Self;
 
     fn bit_slice<R: BitRange>(self, range: R) -> Self {
-        let (start, end) = range.interpret_range(self.span.len)
+        let (start, len) = range.interpret_range(self.span.len)
             .expect("BitSliceMut::bit_slice");
         unsafe {
             BitSliceMut::from_raw_parts(self.bits,
                                         start + u64::from(self.span.offset),
-                                        end - start)
+                                        len)
         }
     }
 }
