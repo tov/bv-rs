@@ -1,14 +1,10 @@
-use std::marker::PhantomData;
-use std::{cmp, fmt, hash, ptr};
-use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
-#[cfg(inclusive_range)]
-use std::ops::{RangeInclusive, RangeToInclusive};
-
-#[cfg(inclusive_range)]
-use util;
 use iter::BlockIter;
 use traits::{Bits, BitsMut, BitSliceable, get_masked_block};
 use storage::{Address, BlockType};
+use range_compat::*;
+
+use std::marker::PhantomData;
+use std::{cmp, fmt, hash, ptr};
 
 // This struct describes the span of a `BitSlice` or `BitSliceMut`, starting
 // with of offset of `offset` bits into the array of blocks, and including
@@ -493,7 +489,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for BitSlice<'a, Bl
     type Slice = Self;
 
     fn bit_slice(self, range: RangeInclusive<u64>) -> Self {
-        let (start, end) = util::get_inclusive_bounds(&range)
+        let (start, end) = get_inclusive_bounds(range)
             .expect("BitSlice::slice: bad range");
         assert!(end < self.span.len, "BitSlice::slice: out of bounds");
 
@@ -510,7 +506,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for BitSliceMut<'a,
     type Slice = Self;
 
     fn bit_slice(self, range: RangeInclusive<u64>) -> Self {
-        let (start, end) = util::get_inclusive_bounds(&range)
+        let (start, end) = get_inclusive_bounds(range)
             .expect("BitSliceMut::slice: bad range");
         assert!(end < self.span.len, "BitSliceMut::slice: out of bounds");
 

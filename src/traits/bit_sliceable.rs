@@ -1,10 +1,5 @@
 use Bits;
-#[cfg(inclusive_range)]
-use util;
-
-use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
-#[cfg(inclusive_range)]
-use std::ops::{RangeInclusive, RangeToInclusive};
+use range_compat::*;
 
 /// Types that support slicing by ranges.
 pub trait BitSliceable<Range>: Bits {
@@ -67,7 +62,7 @@ impl<'a> BitSliceable<RangeInclusive<u64>> for &'a [bool] {
     type Slice = &'a [bool];
 
     fn bit_slice(self, range: RangeInclusive<u64>) -> &'a [bool] {
-        let (start, end) = util::get_inclusive_bounds(&range)
+        let (start, end) = get_inclusive_bounds(range)
             .expect("<&[bool]>::bit_slice: bad inclusive range");
         // Adding 1 means we could overflow a 32-bit `usize` here, but
         // we can't construct a RangeInclusive on stable without using
@@ -81,7 +76,7 @@ impl<'a> BitSliceable<RangeInclusive<u64>> for &'a mut [bool] {
     type Slice = &'a mut [bool];
 
     fn bit_slice(self, range: RangeInclusive<u64>) -> &'a mut [bool] {
-        let (start, end) = util::get_inclusive_bounds(&range)
+        let (start, end) = get_inclusive_bounds(range)
             .expect("<&mut [bool]>::bit_slice: bad inclusive range");
         &mut self[start as usize .. end as usize + 1]
     }

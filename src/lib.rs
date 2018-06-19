@@ -107,7 +107,7 @@ extern crate serde;
 #[macro_use]
 extern crate quickcheck;
 
-mod util;
+mod range_compat;
 
 #[macro_use]
 mod macros;

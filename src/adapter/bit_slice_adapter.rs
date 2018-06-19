@@ -1,9 +1,7 @@
 use {Bits, BitsMut, BitSliceable, BlockType};
 use iter::BlockIter;
 
-use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
-#[cfg(inclusive_range)]
-use std::ops::{RangeInclusive, RangeToInclusive};
+use range_compat::*;
 
 /// An adapter that turns any implementation of `Bits` into a slice.
 ///
@@ -125,7 +123,7 @@ macro_rules! impl_bit_sliceable_adapter {
                 type Slice = ::adapter::BitSliceAdapter<Self>;
 
                 fn bit_slice(self, range: ::std::ops::RangeInclusive<u64>) -> Self::Slice {
-                    let (start, end) = ::util::get_inclusive_bounds(&range)
+                    let (start, end) = ::range_compat::get_inclusive_bounds(range)
                         .expect("BitSliceable::bit_slice: bad inclusive range");
                     ::adapter::BitSliceAdapter::new(self, start, end - start + 1)
                 }
@@ -256,7 +254,7 @@ impl<T: Bits> BitSliceable<RangeInclusive<u64>> for BitSliceAdapter<T> {
     type Slice = Self;
 
     fn bit_slice(self, range: RangeInclusive<u64>) -> Self::Slice {
-        let (start, limit) = ::util::get_inclusive_bounds(&range)
+        let (start, limit) = ::range_compat::get_inclusive_bounds(range)
             .expect("BitSliceAdapter::bit_slice: bad range");
         self.reslice(start, limit - start + 1)
     }
@@ -313,7 +311,7 @@ impl<'a, T: Bits> BitSliceable<RangeInclusive<u64>> for &'a BitSliceAdapter<T> {
     type Slice = BitSliceAdapter<&'a T>;
 
     fn bit_slice(self, range: RangeInclusive<u64>) -> Self::Slice {
-        let (start, limit) = ::util::get_inclusive_bounds(&range)
+        let (start, limit) = ::range_compat::get_inclusive_bounds(range)
             .expect("BitSliceAdapter::bit_slice: bad range");
         self.reslice_ref(start, limit - start + 1)
     }

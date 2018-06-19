@@ -5,12 +5,11 @@ use storage::Address;
 
 use traits::get_masked_block;
 
+use range_compat::*;
+
 use std::cmp::Ordering;
 use std::fmt;
 use std::hash::{Hash, Hasher};
-use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
-#[cfg(inclusive_range)]
-use std::ops::{RangeInclusive, RangeToInclusive};
 
 impl<Block: BlockType> Bits for BitVec<Block> {
     type Block = Block;
