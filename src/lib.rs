@@ -116,7 +116,8 @@ mod storage;
 pub use self::storage::BlockType;
 
 mod traits;
-pub use self::traits::{Bits, BitsExt, BitsMut, BitsPush, BitSliceable};
+pub use self::traits::{Bits, BitsExt, BitsMut, BitsMutExt, BitsPush,
+                       BitSliceable, BitSliceableMut};
 
 mod slice;
 pub use self::slice::{BitSlice, BitSliceMut};

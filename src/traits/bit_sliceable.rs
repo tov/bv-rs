@@ -1,7 +1,14 @@
-use Bits;
+use {Bits, BitsMut};
 use range_compat::*;
 
 /// Types that support slicing by ranges.
+///
+/// Note that the [`bit_slice`] method takes `self` by value, which allows
+/// the `Slice` associated type to refer to the lifetime of `Self` in impls
+/// for borrowed types. For example, the impl for `&'a BitVec<u32>` has a
+/// `Slice` type of `BitSlice<'a, u32>`.
+///
+/// [`bit_slice`]: #method.bit_slice
 pub trait BitSliceable<Range>: Bits {
     /// The type of the slice produced.
     type Slice: Bits<Block = Self::Block>;
@@ -24,6 +31,27 @@ pub trait BitSliceable<Range>: Bits {
     /// ```
     fn bit_slice(self, range: Range) -> Self::Slice;
 }
+
+/// Types that produce mutable slices.
+///
+/// This provides no additional functionality over [`BitSliceable`], as
+/// the `bit_slice_mut` method just delegates to `bit_slice`. However, it
+/// can be used to force auto
+///
+/// Do not implement this type; there is a blanket impl for all
+/// [`BitSliceable`] types whose associated `Slice` types implement `BitsMut`.
+///
+/// [`BitSliceable`]: trait.BitSliceable.html
+pub trait BitSliceableMut<Range>: BitSliceable<Range> {
+    fn bit_slice_mut(self, range: Range) -> Self::Slice where Self: Sized {
+        self.bit_slice(range)
+    }
+}
+
+impl<Range, T> BitSliceableMut<Range> for T
+    where T: BitSliceable<Range>,
+          T::Slice: BitsMut { }
+
 
 impl<'a> BitSliceable<RangeFull> for &'a [bool] {
     type Slice = &'a [bool];

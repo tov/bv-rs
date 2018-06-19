@@ -94,7 +94,7 @@ impl<T: BitsMut> BitsMutExt for T {}
 
 #[cfg(test)]
 mod test {
-    use {BitVec, BitSliceMut, BitSliceable};
+    use {BitVec, BitSliceable, BitSliceableMut};
     use super::*;
 
     #[test]
@@ -120,11 +120,8 @@ mod test {
         let mut v1 = vec![0b00_0011_11u8];
         let     v2 = [0b0_1010_101u8];
 
-        {
-            let mut s1: BitSliceMut<u8> = (&mut v1).as_mut_slice().bit_slice(2..6);
-            let s2 = v2.bit_slice(3..7);
-            s1.bit_xor_assign(s2);
-        }
+        v1.bit_slice_mut(2..6)
+            .bit_xor_assign(v2.bit_slice(3..7));
 
         assert_eq!(v1, vec![0b00100111])
     }

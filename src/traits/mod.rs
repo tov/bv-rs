@@ -15,7 +15,7 @@ mod bits_push;
 pub use self::bits_push::BitsPush;
 
 mod bit_sliceable;
-pub use self::bit_sliceable::BitSliceable;
+pub use self::bit_sliceable::{BitSliceable, BitSliceableMut};
 
 #[cfg(test)]
 mod test {
