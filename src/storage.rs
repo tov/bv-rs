@@ -254,7 +254,7 @@ macro_rules! impl_block_type {
                 debug_assert!(k <= Self::nbits());
 
                 // Compute the mask when element_bits is not the word size:
-                let a = Self::one().wrapping_shl(k as u32) - 1;
+                let a = Self::one().wrapping_shl(k as u32).wrapping_sub(1);
 
                 // Special case for the word size:
                 let b = (Self::div_nbits(k as u64) & 1) as Self * !0;
