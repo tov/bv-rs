@@ -31,7 +31,7 @@ macro_rules! impl_traits_for_array {
             }
 
             impl<'a, R, Block: BlockType> BitSliceable<R> for &'a [Block; $size]
-                where &'a [Block]: BitSliceable<R> {
+                where &'a [Block]: BitSliceable<R, Block = Block> {
 
                 type Slice = <&'a [Block] as BitSliceable<R>>::Slice;
 
@@ -59,7 +59,7 @@ macro_rules! impl_traits_for_array {
             }
 
             impl<'a, R> BitSliceable<R> for &'a [bool; $size]
-                where &'a [bool]: BitSliceable<R> {
+                where &'a [bool]: BitSliceable<R, Block = u8> {
 
                 type Slice = <&'a [bool] as BitSliceable<R>>::Slice;
 

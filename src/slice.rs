@@ -592,7 +592,7 @@ impl<'a, Block: BlockType> BitSliceable<RangeFull> for BitSliceMut<'a, Block> {
 
 impl<'a, Block, R> BitSliceable<R> for &'a [Block]
     where Block: BlockType,
-          BitSlice<'a, Block>: BitSliceable<R, Slice = BitSlice<'a, Block>> {
+          BitSlice<'a, Block>: BitSliceable<R, Block = Block, Slice = BitSlice<'a, Block>> {
 
     type Slice = BitSlice<'a, Block>;
 
@@ -603,7 +603,7 @@ impl<'a, Block, R> BitSliceable<R> for &'a [Block]
 
 impl<'a, Block, R> BitSliceable<R> for &'a mut [Block]
     where Block: BlockType,
-          BitSliceMut<'a, Block>: BitSliceable<R, Slice = BitSliceMut<'a, Block>> {
+          BitSliceMut<'a, Block>: BitSliceable<R, Block = Block, Slice = BitSliceMut<'a, Block>> {
 
     type Slice = BitSliceMut<'a, Block>;
 

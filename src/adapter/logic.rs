@@ -188,12 +188,11 @@ macro_rules! impl_bits_bin_op {
             impl[T: Bits, U: Bits<Block = T::Block>] Index<u64> for $target<T, U>;
         }
 
-        impl<R, T, U> BitSliceable<R> for $target<T, U>
-            where R: Clone,
-                  T: BitSliceable<R>,
-                  U: BitSliceable<R>,
-                  T::Slice: Bits,
-                  U::Slice: Bits<Block = <T::Slice as Bits>::Block> {
+        impl<Block, R, T, U> BitSliceable<R> for $target<T, U>
+            where Block: BlockType,
+                  R: Clone,
+                  T: BitSliceable<R, Block = Block>,
+                  U: BitSliceable<R, Block = Block> {
 
             type Slice = $target<T::Slice, U::Slice>;
 
@@ -252,10 +251,8 @@ impl_index_from_bits! {
 impl<Block, R, T, U, F> BitSliceable<R> for BitZip<T, U, F>
     where Block: BlockType,
           R: Clone,
-          T: BitSliceable<R>,
-          U: BitSliceable<R>,
-          T::Slice: Bits<Block = Block>,
-          U::Slice: Bits<Block = Block>,
+          T: BitSliceable<R, Block = Block>,
+          U: BitSliceable<R, Block = Block>,
           F: Fn(Block, Block) -> Block {
 
     type Slice = BitZip<T::Slice, U::Slice, F>;

@@ -7,9 +7,9 @@ use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
 use std::ops::{RangeInclusive, RangeToInclusive};
 
 /// Types that support slicing by ranges.
-pub trait BitSliceable<Range> {
+pub trait BitSliceable<Range>: Bits {
     /// The type of the slice produced.
-    type Slice: Bits;
+    type Slice: Bits<Block = Self::Block>;
 
     /// Slices or re-slices the given object.
     ///
