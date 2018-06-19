@@ -8,7 +8,7 @@ use range_compat::*;
 /// for borrowed types. For example, the impl for `&'a BitVec<u32>` has a
 /// `Slice` type of `BitSlice<'a, u32>`.
 ///
-/// [`bit_slice`]: #method.bit_slice
+/// [`bit_slice`]: #tymethod.bit_slice
 pub trait BitSliceable<Range>: Bits {
     /// The type of the slice produced.
     type Slice: Bits<Block = Self::Block>;
@@ -39,7 +39,8 @@ pub trait BitSliceable<Range>: Bits {
 ///
 /// [`BitSliceable`]: trait.BitSliceable.html
 pub trait BitSliceableMut<Range>: BitSliceable<Range> {
-    /// An alias for [`BitSliceable::bit_slice`](trait.BitSliceable.html#bit_slice).
+    /// An alias for
+    /// [`BitSliceable::bit_slice`](trait.BitSliceable.html#tymethod.bit_slice).
     ///
     /// This method provides no additional functionality over `bit_slice`.
     /// However, it can be used to force auto-ref to choose a `Self` type
