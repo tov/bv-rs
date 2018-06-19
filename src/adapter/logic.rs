@@ -1,4 +1,4 @@
-use {Bits, BitSliceable};
+use {BitRange, Bits, BitSliceable};
 use BlockType;
 use iter::BlockIter;
 
@@ -126,12 +126,10 @@ impl_index_from_bits! {
     impl[T: Bits] Index<u64> for BitNot<T>;
 }
 
-impl<R, T> BitSliceable<R> for BitNot<T>
-    where T: BitSliceable<R> {
-
+impl<T: BitSliceable> BitSliceable for BitNot<T> {
     type Slice = BitNot<T::Slice>;
 
-    fn bit_slice(self, range: R) -> Self::Slice {
+    fn bit_slice<R: BitRange>(self, range: R) -> Self::Slice {
         BitNot(self.0.bit_slice(range))
     }
 }
@@ -174,16 +172,15 @@ macro_rules! impl_bits_bin_op {
             impl[T: Bits, U: Bits<Block = T::Block>] Index<u64> for $target<T, U>;
         }
 
-        impl<R, T, U> BitSliceable<R> for $target<T, U>
-            where R: Clone,
-                  T: BitSliceable<R>,
-                  U: BitSliceable<R>,
+        impl<T, U> BitSliceable for $target<T, U>
+            where T: BitSliceable,
+                  U: BitSliceable,
                   T::Slice: Bits,
                   U::Slice: Bits<Block = <T::Slice as Bits>::Block> {
 
             type Slice = $target<T::Slice, U::Slice>;
 
-            fn bit_slice(self, range: R) -> Self::Slice {
+            fn bit_slice<R: BitRange>(self, range: R) -> Self::Slice {
                 $target(BitBinOp::new(self.0.op1.bit_slice(range.clone()),
                                       self.0.op2.bit_slice(range)))
             }
@@ -234,18 +231,17 @@ impl_index_from_bits! {
         Index<u64> for BitZip<T, U, F>;
 }
 
-impl<Block, R, T, U, F> BitSliceable<R> for BitZip<T, U, F>
+impl<Block, T, U, F> BitSliceable for BitZip<T, U, F>
     where Block: BlockType,
-          R: Clone,
-          T: BitSliceable<R>,
-          U: BitSliceable<R>,
+          T: BitSliceable,
+          U: BitSliceable,
           T::Slice: Bits<Block = Block>,
           U::Slice: Bits<Block = Block>,
           F: Fn(Block, Block, usize) -> Block {
 
     type Slice = BitZip<T::Slice, U::Slice, F>;
 
-    fn bit_slice(self, range: R) -> Self::Slice {
+    fn bit_slice<R: BitRange>(self, range: R) -> Self::Slice {
         BitZip {
             ops: BitBinOp::new(self.ops.op1.bit_slice(range.clone()),
                                self.ops.op2.bit_slice(range)),

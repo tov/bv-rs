@@ -1,4 +1,5 @@
-use {BlockType, Bits, BitsMut, BitsPush, BitSliceable, BitSlice, BitSliceMut};
+use {BlockType, BitRange};
+use {Bits, BitsMut, BitsPush, BitSliceable, BitSlice, BitSliceMut};
 use super::BitVec;
 use iter::BlockIter;
 use storage::Address;
@@ -6,9 +7,6 @@ use storage::Address;
 use std::cmp::Ordering;
 use std::fmt;
 use std::hash::{Hash, Hasher};
-use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
-#[cfg(inclusive_range)]
-use std::ops::{RangeInclusive, RangeToInclusive};
 
 impl<Block: BlockType> Bits for BitVec<Block> {
     type Block = Block;
@@ -99,103 +97,19 @@ impl<Block: BlockType> BitsPush for BitVec<Block> {
     }
 }
 
-impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a BitVec<Block> {
+impl<'a, Block: BlockType> BitSliceable for &'a BitVec<Block> {
     type Slice = BitSlice<'a, Block>;
 
-    fn bit_slice(self, range: Range<u64>) -> BitSlice<'a, Block> {
+    fn bit_slice<R: BitRange>(self, range: R) -> BitSlice<'a, Block> {
         self.as_slice().bit_slice(range)
     }
 }
 
-impl<'a, Block: BlockType> BitSliceable<Range<u64>> for &'a mut BitVec<Block> {
+impl<'a, Block: BlockType> BitSliceable for &'a mut BitVec<Block> {
     type Slice = BitSliceMut<'a, Block>;
 
-    fn bit_slice(self, range: Range<u64>) -> BitSliceMut<'a, Block> {
+    fn bit_slice<R: BitRange>(self, range: R) -> BitSliceMut<'a, Block> {
         self.as_mut_slice().bit_slice(range)
-    }
-}
-
-#[cfg(inclusive_range)]
-impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for &'a BitVec<Block> {
-    type Slice = BitSlice<'a, Block>;
-
-    fn bit_slice(self, range: RangeInclusive<u64>) -> BitSlice<'a, Block> {
-        self.as_slice().bit_slice(range)
-    }
-}
-
-#[cfg(inclusive_range)]
-impl<'a, Block: BlockType> BitSliceable<RangeInclusive<u64>> for &'a mut BitVec<Block> {
-    type Slice = BitSliceMut<'a, Block>;
-
-    fn bit_slice(self, range: RangeInclusive<u64>) -> BitSliceMut<'a, Block> {
-        self.as_mut_slice().bit_slice(range)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a BitVec<Block> {
-    type Slice = BitSlice<'a, Block>;
-
-    fn bit_slice(self, range: RangeFrom<u64>) -> BitSlice<'a, Block> {
-        self.as_slice().bit_slice(range)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeFrom<u64>> for &'a mut BitVec<Block> {
-    type Slice = BitSliceMut<'a, Block>;
-
-    fn bit_slice(self, range: RangeFrom<u64>) -> BitSliceMut<'a, Block> {
-        self.as_mut_slice().bit_slice(range)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a BitVec<Block> {
-    type Slice = BitSlice<'a, Block>;
-
-    fn bit_slice(self, range: RangeTo<u64>) -> BitSlice<'a, Block> {
-        self.as_slice().bit_slice(range)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeTo<u64>> for &'a mut BitVec<Block> {
-    type Slice = BitSliceMut<'a, Block>;
-
-    fn bit_slice(self, range: RangeTo<u64>) -> BitSliceMut<'a, Block> {
-        self.as_mut_slice().bit_slice(range)
-    }
-}
-
-#[cfg(inclusive_range)]
-impl<'a, Block: BlockType> BitSliceable<RangeToInclusive<u64>> for &'a BitVec<Block> {
-    type Slice = BitSlice<'a, Block>;
-
-    fn bit_slice(self, range: RangeToInclusive<u64>) -> BitSlice<'a, Block> {
-        self.as_slice().bit_slice(range)
-    }
-}
-
-#[cfg(inclusive_range)]
-impl<'a, Block: BlockType> BitSliceable<RangeToInclusive<u64>> for &'a mut BitVec<Block> {
-    type Slice = BitSliceMut<'a, Block>;
-
-    fn bit_slice(self, range: RangeToInclusive<u64>) -> BitSliceMut<'a, Block> {
-        self.as_mut_slice().bit_slice(range)
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a BitVec<Block> {
-    type Slice = BitSlice<'a, Block>;
-
-    fn bit_slice(self, _: RangeFull) -> BitSlice<'a, Block> {
-        self.as_slice()
-    }
-}
-
-impl<'a, Block: BlockType> BitSliceable<RangeFull> for &'a mut BitVec<Block> {
-    type Slice = BitSliceMut<'a, Block>;
-
-    fn bit_slice(self, _: RangeFull) -> BitSliceMut<'a, Block> {
-        self.as_mut_slice()
     }
 }
 

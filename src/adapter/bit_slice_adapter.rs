@@ -1,9 +1,5 @@
-use {Bits, BitsMut, BitSliceable, BlockType};
+use {BitRange, Bits, BitsMut, BitSliceable, BlockType};
 use iter::BlockIter;
-
-use std::ops::{Range, RangeFrom, RangeTo, RangeFull};
-#[cfg(inclusive_range)]
-use std::ops::{RangeInclusive, RangeToInclusive};
 
 /// An adapter that turns any implementation of `Bits` into a slice.
 ///
@@ -31,40 +27,17 @@ impl<T: Bits> BitSliceAdapter<T> {
         BitSliceAdapter { bits, start, len }
     }
 
-    /// Reslices an existing slice adapter, by value.
+    /// Creates a new slice adapter from the given bit vector like.
     ///
-    /// Takes the index of the start bit, relative to the indexing
-    /// of the adapter.
-    ///
-    /// # Panics
-    ///
-    /// Out of bounds if `start + len > self.bit_len()`.
-    fn reslice(self, start: u64, len: u64) -> Self {
-        assert!( start + len <= self.bit_len(),
-                 "BitSliceAdapter::reslice: out of bounds" );
-        BitSliceAdapter {
-            bits:  self.bits,
-            start: self.start + start,
-            len,
-        }
-    }
-
-    /// Reslices an existing slice adapter, by reference.
-    ///
-    /// Takes the index of the start bit, relative to the indexing
-    /// of the adapter.
+    /// Takes the range to to slice by.
     ///
     /// # Panics
     ///
-    /// Out of bounds if `start + len > self.bit_len()`.
-    fn reslice_ref(&self, start: u64, len: u64) -> BitSliceAdapter<&T> {
-        assert!( start + len <= self.bit_len(),
-                 "BitSliceAdapter::reslice: out of bounds" );
-        BitSliceAdapter {
-            bits:  &self.bits,
-            start: self.start + start,
-            len,
-        }
+    /// If the range is improper or out of bounds.
+    pub fn from_range<R: BitRange>(bits: T, range: R) -> Self {
+        let (start, len) = range.interpret_range(bits.bit_len())
+            .expect("BitSliceAdapter::from_range");
+        BitSliceAdapter { bits, start, len }
     }
 }
 
@@ -84,59 +57,11 @@ macro_rules! impl_bit_sliceable_adapter {
         )+
     ) => {
         $(
-            impl<$($param)*> ::BitSliceable<::std::ops::Range<u64>> for $target {
+            impl<$($param)*> ::BitSliceable for $target {
                 type Slice = ::adapter::BitSliceAdapter<Self>;
 
-                fn bit_slice(self, range: ::std::ops::Range<u64>) -> Self::Slice {
-                    assert!( range.start <= range.end,
-                             format!("{}::slice: bad range", stringify!($target)) );
-                    ::adapter::BitSliceAdapter::new(self, range.start, range.end - range.start)
-                }
-            }
-
-            impl<$($param)*> ::BitSliceable<::std::ops::RangeFrom<u64>> for $target {
-                type Slice = ::adapter::BitSliceAdapter<Self>;
-
-                fn bit_slice(self, range: ::std::ops::RangeFrom<u64>) -> Self::Slice {
-                    let len = self.bit_len();
-                    self.bit_slice(range.start .. len)
-                }
-            }
-
-            impl<$($param)*> ::BitSliceable<::std::ops::RangeTo<u64>> for $target {
-                type Slice = ::adapter::BitSliceAdapter<Self>;
-
-                fn bit_slice(self, range: ::std::ops::RangeTo<u64>) -> Self::Slice {
-                    ::adapter::BitSliceAdapter::new(self, 0, range.end)
-                }
-            }
-
-            impl<$($param)*> ::BitSliceable<::std::ops::RangeFull> for $target {
-                type Slice = ::adapter::BitSliceAdapter<Self>;
-
-                fn bit_slice(self, _range: ::std::ops::RangeFull) -> Self::Slice {
-                    let len = self.bit_len();
-                    ::adapter::BitSliceAdapter::new(self, 0, len)
-                }
-            }
-
-            #[cfg(inclusive_range)]
-            impl<$($param)*> ::BitSliceable<::std::ops::RangeInclusive<u64>> for $target {
-                type Slice = ::adapter::BitSliceAdapter<Self>;
-
-                fn bit_slice(self, range: ::std::ops::RangeInclusive<u64>) -> Self::Slice {
-                    let (start, end) = ::util::get_inclusive_bounds(&range)
-                        .expect("BitSliceable::bit_slice: bad inclusive range");
-                    ::adapter::BitSliceAdapter::new(self, start, end - start + 1)
-                }
-            }
-
-            #[cfg(inclusive_range)]
-            impl<$($param)*> ::BitSliceable<::std::ops::RangeToInclusive<u64>> for $target {
-                type Slice = ::adapter::BitSliceAdapter<Self>;
-
-                fn bit_slice(self, range: ::std::ops::RangeToInclusive<u64>) -> Self::Slice {
-                    ::adapter::BitSliceAdapter::new(self, 0, range.end + 1)
+                fn bit_slice<R: $crate::BitRange>(self, range: R) -> Self::Slice {
+                    $crate::adapter::BitSliceAdapter::from_range(self, range)
                 }
             }
         )+
@@ -214,117 +139,17 @@ impl_index_from_bits! {
     impl[T: Bits] Index<u64> for BitSliceAdapter<T>;
 }
 
-impl<T: Bits> BitSliceable<Range<u64>> for BitSliceAdapter<T> {
+impl<T: Bits> BitSliceable for BitSliceAdapter<T> {
     type Slice = Self;
 
-    fn bit_slice(self, range: Range<u64>) -> Self::Slice {
-        assert!( range.start <= range.end,
-                 "BitSliceAdapter::bit_slice: bad range" );
-        self.reslice(range.start, range.end - range.start)
-    }
-}
-
-impl<T: Bits> BitSliceable<RangeTo<u64>> for BitSliceAdapter<T> {
-    type Slice = Self;
-
-    fn bit_slice(self, range: RangeTo<u64>) -> Self::Slice {
-        self.reslice(0, range.end)
-    }
-}
-
-impl<T: Bits> BitSliceable<RangeFrom<u64>> for BitSliceAdapter<T> {
-    type Slice = Self;
-
-    fn bit_slice(self, range: RangeFrom<u64>) -> Self::Slice {
-        let len = self.bit_len();
-        assert!( range.start <= len,
-                 "BitSliceAdapter::bit_slice: out of bounds" );
-        self.reslice(range.start, len - range.start)
-    }
-}
-
-impl<T: Bits> BitSliceable<RangeFull> for BitSliceAdapter<T> {
-    type Slice = Self;
-
-    fn bit_slice(self, _range: RangeFull) -> Self::Slice {
-        self
-    }
-}
-
-#[cfg(inclusive_range)]
-impl<T: Bits> BitSliceable<RangeInclusive<u64>> for BitSliceAdapter<T> {
-    type Slice = Self;
-
-    fn bit_slice(self, range: RangeInclusive<u64>) -> Self::Slice {
-        let (start, limit) = ::util::get_inclusive_bounds(&range)
-            .expect("BitSliceAdapter::bit_slice: bad range");
-        self.reslice(start, limit - start + 1)
-    }
-}
-
-#[cfg(inclusive_range)]
-impl<T: Bits> BitSliceable<RangeToInclusive<u64>> for BitSliceAdapter<T> {
-    type Slice = Self;
-
-    fn bit_slice(self, range: RangeToInclusive<u64>) -> Self::Slice {
-        self.reslice(0, range.end + 1)
-    }
-}
-
-impl<'a, T: Bits> BitSliceable<Range<u64>> for &'a BitSliceAdapter<T> {
-    type Slice = BitSliceAdapter<&'a T>;
-
-    fn bit_slice(self, range: Range<u64>) -> Self::Slice {
-        assert!( range.start <= range.end,
-                 "BitSliceAdapter::bit_slice: bad range" );
-        self.reslice_ref(range.start, range.end - range.start)
-    }
-}
-
-impl<'a, T: Bits> BitSliceable<RangeTo<u64>> for &'a BitSliceAdapter<T> {
-    type Slice = BitSliceAdapter<&'a T>;
-
-    fn bit_slice(self, range: RangeTo<u64>) -> Self::Slice {
-        self.reslice_ref(0, range.end)
-    }
-}
-
-impl<'a, T: Bits> BitSliceable<RangeFrom<u64>> for &'a BitSliceAdapter<T> {
-    type Slice = BitSliceAdapter<&'a T>;
-
-    fn bit_slice(self, range: RangeFrom<u64>) -> Self::Slice {
-        let len = self.bit_len();
-        assert!( range.start <= len,
-                 "BitSliceAdapter::bit_slice: out of bounds" );
-        self.reslice_ref(range.start, len - range.start)
-    }
-}
-
-impl<'a, T: Bits> BitSliceable<RangeFull> for &'a BitSliceAdapter<T> {
-    type Slice = BitSliceAdapter<&'a T>;
-
-    fn bit_slice(self, _range: RangeFull) -> Self::Slice {
-        self.reslice_ref(0, self.bit_len())
-    }
-}
-
-#[cfg(inclusive_range)]
-impl<'a, T: Bits> BitSliceable<RangeInclusive<u64>> for &'a BitSliceAdapter<T> {
-    type Slice = BitSliceAdapter<&'a T>;
-
-    fn bit_slice(self, range: RangeInclusive<u64>) -> Self::Slice {
-        let (start, limit) = ::util::get_inclusive_bounds(&range)
-            .expect("BitSliceAdapter::bit_slice: bad range");
-        self.reslice_ref(start, limit - start + 1)
-    }
-}
-
-#[cfg(inclusive_range)]
-impl<'a, T: Bits> BitSliceable<RangeToInclusive<u64>> for &'a BitSliceAdapter<T> {
-    type Slice = BitSliceAdapter<&'a T>;
-
-    fn bit_slice(self, range: RangeToInclusive<u64>) -> Self::Slice {
-        self.reslice_ref(0, range.end + 1)
+    fn bit_slice<R: BitRange>(self, range: R) -> Self::Slice {
+        let (start, len) = range.interpret_range(self.bit_len())
+            .expect("<BitSliceAdapter<T>>::bit_slice)");
+        BitSliceAdapter {
+            bits:  self.bits,
+            start: self.start + start,
+            len,
+        }
     }
 }
 

@@ -11,7 +11,14 @@ The format is based on [Keep a Changelog] and this project adheres to
 ## [Unreleased]
 
 ### Added
+- `BitRange` trait for types that can act as ranges for slicing bit vectors. 
+This includes all range types over `u64`.
 - `From<Box<[Block]>>` and `From<Vec<Block>>` impls for `BitVec<Block>`.
+
+### Changed
+- `BitSliceable` no longer takes a type parameter for the range types allowed.
+Instead, types the implement `BitSliceable` are sliceable by all types that
+implement `BitRange`.
 
 ## [0.9.0] - 2018-06-18
 

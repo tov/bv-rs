@@ -1,7 +1,7 @@
 //! This module impls the `Bits`, `BitsMut` and `BitSliceable` traits
 //! for fixed-sized arrays of `BlockType`s.
 
-use {BlockType, Bits, BitsMut, BitSliceable};
+use {BitRange, BlockType, Bits, BitsMut, BitSliceable};
 
 macro_rules! impl_traits_for_array {
     (
@@ -30,12 +30,10 @@ macro_rules! impl_traits_for_array {
                 }
             }
 
-            impl<'a, R, Block: BlockType> BitSliceable<R> for &'a [Block; $size]
-                where &'a [Block]: BitSliceable<R> {
+            impl<'a, Block: BlockType> BitSliceable for &'a [Block; $size] {
+                type Slice = <&'a [Block] as BitSliceable>::Slice;
 
-                type Slice = <&'a [Block] as BitSliceable<R>>::Slice;
-
-                fn bit_slice(self, range: R) -> Self::Slice {
+                fn bit_slice<R: BitRange>(self, range: R) -> Self::Slice {
                     (self as &'a [Block]).bit_slice(range)
                 }
             }
@@ -58,12 +56,10 @@ macro_rules! impl_traits_for_array {
                 }
             }
 
-            impl<'a, R> BitSliceable<R> for &'a [bool; $size]
-                where &'a [bool]: BitSliceable<R> {
+            impl<'a> BitSliceable for &'a [bool; $size] {
+                type Slice = <&'a [bool] as BitSliceable>::Slice;
 
-                type Slice = <&'a [bool] as BitSliceable<R>>::Slice;
-
-                fn bit_slice(self, range: R) -> Self::Slice {
+                fn bit_slice<R: BitRange>(self, range: R) -> Self::Slice {
                     (self as &'a [bool]).bit_slice(range)
                 }
             }
