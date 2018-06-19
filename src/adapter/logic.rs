@@ -234,6 +234,7 @@ impl<T, U, F> Bits for BitZip<T, U, F>
     }
 
     fn get_block(&self, position: usize) -> Self::Block {
+        assert!( position < self.block_len(), "BitZip::get_block: out of bounds" );
         get_masked_block(self, position)
     }
 
