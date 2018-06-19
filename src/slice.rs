@@ -7,7 +7,7 @@ use std::ops::{RangeInclusive, RangeToInclusive};
 #[cfg(inclusive_range)]
 use util;
 use iter::BlockIter;
-use traits::{Bits, BitsMut, BitSliceable};
+use traits::{Bits, BitsMut, BitSliceable, get_masked_block};
 use storage::{Address, BlockType};
 
 // This struct describes the span of a `BitSlice` or `BitSliceMut`, starting
@@ -15,19 +15,18 @@ use storage::{Address, BlockType};
 // `len` bits.
 #[derive(Copy, Clone, Debug)]
 struct SliceSpan {
-    offset:      u8,
-    len:         u64,
-    full_blocks: usize,
+    offset: u8,
+    len: u64,
+    aligned_blocks: usize,
 }
 // Invariant:
-//   full_blocks == if offset == 0 { Block::div_nbits(len) } else { 0 }
+//   aligned_blocks == if offset == 0 { Block::ceil_div_nbits(len) } else { 0 }
 
 // This struct describes the result of an indexing operation against a span.
 // We can give back a full, aligned block, or an arbitrary sequence of bits.
 #[derive(Copy, Clone, Debug)]
 enum BlockAddress {
     FullBlockAt(usize),
-    PartialBlockAt(usize, usize),
     SomeBitsAt(Address, usize),
 }
 
@@ -35,8 +34,8 @@ impl SliceSpan {
     fn new<Block: BlockType>(offset: u8, bit_len: u64) -> Self {
         SliceSpan {
             offset,
-            len:         bit_len,
-            full_blocks: if offset == 0 {Block::div_nbits(bit_len)} else {0},
+            len: bit_len,
+            aligned_blocks: if offset == 0 {Block::ceil_div_nbits(bit_len)} else {0},
         }
     }
 
@@ -49,17 +48,13 @@ impl SliceSpan {
     }
 
     fn find_block<Block: BlockType>(&self, position: usize) -> Option<BlockAddress> {
-        if position < self.full_blocks {
+        if position < self.aligned_blocks {
             return Some(BlockAddress::FullBlockAt(position));
         } else if position < self.block_len::<Block>() {
+            let start   = Block::mul_nbits(position) + u64::from(self.offset);;
+            let address = Address::new::<Block>(start);
             let count   = Block::block_bits(self.len, position);
-            if self.offset == 0 {
-                Some(BlockAddress::PartialBlockAt(position, count))
-            } else {
-                let start   = Block::mul_nbits(position) + u64::from(self.offset);;
-                let address = Address::new::<Block>(start);
-                Some(BlockAddress::SomeBitsAt(address, count))
-            }
+            Some(BlockAddress::SomeBitsAt(address, count))
         } else {
             None
         }
@@ -68,12 +63,8 @@ impl SliceSpan {
     fn find_bits<Block: BlockType>(&self, position: u64, count: usize) -> Option<BlockAddress> {
         if position + (count as u64) <= self.len {
             let address = Address::new::<Block>(position + u64::from(self.offset));
-            if address.bit_offset == 0 {
-                if count == Block::nbits() {
-                    Some(BlockAddress::FullBlockAt(address.block_index))
-                } else {
-                    Some(BlockAddress::PartialBlockAt(address.block_index, count))
-                }
+            if count == Block::nbits() && address.bit_offset == 0 {
+                Some(BlockAddress::FullBlockAt(address.block_index))
             } else {
                 Some(BlockAddress::SomeBitsAt(address, count))
             }
@@ -96,9 +87,6 @@ impl BlockAddress {
         match self {
             BlockAddress::FullBlockAt(position) =>
                 ptr::read(bits.offset(position as isize)),
-
-            BlockAddress::PartialBlockAt(position, count) =>
-                ptr::read(bits.offset(position as isize)).get_bits(0, count),
 
             BlockAddress::SomeBitsAt(address, count) => {
                 let offset      = address.bit_offset;
@@ -130,30 +118,10 @@ impl BlockAddress {
         }
     }
 
-    unsafe fn read_unmasked<Block: BlockType>(self, bits: *const Block) -> Block {
-        match self {
-            BlockAddress::FullBlockAt(position) =>
-                ptr::read(bits.offset(position as isize)),
-
-            BlockAddress::PartialBlockAt(position, _count) =>
-                ptr::read(bits.offset(position as isize)),
-
-            addr =>
-                addr.read(bits),
-        }
-    }
-
     unsafe fn write<Block: BlockType>(self, bits: *mut Block, value: Block) {
         match self {
             BlockAddress::FullBlockAt(position) =>
                 ptr::write(bits.offset(position as isize), value),
-
-            BlockAddress::PartialBlockAt(position, count) => {
-                let ptr       = bits.offset(position as isize);
-                let old_block = ptr::read(ptr);
-                let new_block = old_block.with_bits(0, count, value);
-                ptr::write(ptr, new_block);
-            }
 
             BlockAddress::SomeBitsAt(address, count) => {
                 let offset  = address.bit_offset;
@@ -421,15 +389,13 @@ impl<'a, Block: BlockType> Bits for BitSlice<'a, Block> {
     }
 
     fn get_block(&self, position: usize) -> Block {
-        let block_addr = self.span.find_block::<Block>(position)
-            .expect("BitSlice::get_block: out of bounds");
-        unsafe { block_addr.read(self.bits) }
+        get_masked_block(self, position)
     }
 
     fn get_raw_block(&self, position: usize) -> Block {
         let block_addr = self.span.find_block::<Block>(position)
             .expect("BitSlice::get_block: out of bounds");
-        unsafe { block_addr.read_unmasked(self.bits) }
+        unsafe { block_addr.read(self.bits) }
     }
 
     fn get_bits(&self, start: u64, count: usize) -> Self::Block {
