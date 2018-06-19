@@ -11,19 +11,19 @@ The format is based on [Keep a Changelog] and this project adheres to
 ## [Unreleased]
 
 ### Added
-- `Bits::get_raw_block` method, which may return spurious bits in the
+- Added `Bits::get_raw_block` method, which may return spurious bits in the
   last block of a bit vector. This enables some fast paths where we don't
   mind the spurious bits.
-- `From<Box<[Block]>>` and `From<Vec<Block>>` impls for `BitVec<Block>`.
+- Added `From<Box<[Block]>>` and `From<Vec<Block>>` impls for `BitVec<Block>`.
 
 ### Changed
-- `Bits` is a super trait of `BitSliceable<R>` now, and the block type of
+- `Bits` is now a super trait of `BitSliceable<R>`, and the block type of
   the slice matches the block type of `Self`.
-- Function passed to `BitsExt::bit_zip` no longer takes a third, `usize` 
+- The function passed to `BitsExt::bit_zip` no longer takes a third, `usize` 
   argument.
   
 ### Removed
-- `BlockType::last_block_bits` in favor of `BlockType::block_bits`.
+- Removed `BlockType::last_block_bits` in favor of `BlockType::block_bits`.
   
 ## [0.9.0] - 2018-06-18
 
