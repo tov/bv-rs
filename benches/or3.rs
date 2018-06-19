@@ -406,6 +406,35 @@ or3_bench! {
 }
 
 or3_bench! {
+    fn bv_u32_loop(v1: &BitVec<u32>, v2: &BitVec<u32>, v3: &BitVec<u32>) -> BitVec<u32> {
+        let len = cmp::min(v1.bit_len(), cmp::min(v2.bit_len(), v3.bit_len()));
+        let mut result = BitVec::with_capacity(len);
+
+        for i in 0 .. (len / 32) as usize {
+            result.push_block(v1.get_block(i) | v2.get_block(i) | v3.get_block(i));
+        }
+
+        result
+    }
+}
+
+or3_bench! {
+    fn bv_u32_loop_sliced(v1: &BitVec<u32>, v2: &BitVec<u32>, v3: &BitVec<u32>) -> BitVec<u32> {
+        let len = cmp::min(v1.bit_len(), cmp::min(v2.bit_len(), v3.bit_len()));
+        let s1 = v1.bit_slice(.. len);
+        let s2 = v2.bit_slice(.. len);
+        let s3 = v3.bit_slice(.. len);
+        let mut result = BitVec::with_capacity(len);
+
+        for i in 0 .. (len / 32) as usize {
+            result.push_block(s1.get_block(i) | s2.get_block(i) | s3.get_block(i));
+        }
+
+        result
+    }
+}
+
+or3_bench! {
     fn bv_u32_adapter(v1: &BitVec<u32>, v2: &BitVec<u32>, v3: &BitVec<u32>) -> BitVec<u32> {
         v1.into_bit_or(v2).into_bit_or(v3).to_bit_vec()
     }
