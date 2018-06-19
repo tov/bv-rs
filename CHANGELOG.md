@@ -11,7 +11,14 @@ The format is based on [Keep a Changelog] and this project adheres to
 ## [Unreleased]
 
 ### Added
+- `Bits::get_raw_block` method, which may return spurious bits in the
+  last block of a bit vector. This enables some fast paths where we don't
+  mind the spurious bits.
 - `From<Box<[Block]>>` and `From<Vec<Block>>` impls for `BitVec<Block>`.
+
+### Changed
+- Function passed to `BitsExt::bit_zip` no longer takes a third, `usize` 
+  argument.
 
 ## [0.9.0] - 2018-06-18
 
