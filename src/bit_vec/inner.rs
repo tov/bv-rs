@@ -75,13 +75,13 @@ impl<Block: BlockType> Inner<Block> {
     pub unsafe fn get_block(&self, index: usize) -> Block {
         // Weirdly, `.unwrap()` is consistently faster than
         // `.unwrap_or_else(ptr::null)`, or calls to `unreachable()`.
-        let ptr = self.0.as_ref().map(|b| b.as_ptr()).unwrap();
+        let ptr = self.0.as_ref().unwrap().as_ptr();
         ptr::read(ptr.offset(index as isize))
     }
 
     // Precondition: `index` is in bounds. This implies that `self.0.is_some()`.
     pub unsafe fn set_block(&mut self, index: usize, value: Block) {
-        let ptr = self.0.as_mut().map(|b| b.as_mut_ptr()).unwrap();
+        let ptr = self.0.as_mut().unwrap().as_mut_ptr();
         ptr::write(ptr.offset(index as isize), value);
     }
 }
