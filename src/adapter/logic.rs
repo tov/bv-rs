@@ -2,6 +2,8 @@ use {Bits, BitSliceable};
 use BlockType;
 use iter::BlockIter;
 
+use traits::get_masked_block;
+
 use std::cmp;
 
 /// The result of [`BitsExt::bit_not`](../trait.BitsExt.html#method.bit_not).
@@ -98,11 +100,11 @@ impl<T: Bits, U: Bits<Block = T::Block>> BitBinOp<T, U> {
     }
 
     fn block1(&self, position: usize) -> T::Block {
-        self.op1.get_block(position)
+        self.op1.get_raw_block(position)
     }
 
     fn block2(&self, position: usize) -> T::Block {
-        self.op2.get_block(position)
+        self.op2.get_raw_block(position)
     }
 }
 
@@ -119,6 +121,10 @@ impl<T: Bits> Bits for BitNot<T> {
 
     fn get_block(&self, position: usize) -> Self::Block {
         !self.0.get_block(position)
+    }
+
+    fn get_raw_block(&self, position: usize) -> Self::Block {
+        !self.0.get_raw_block(position)
     }
 }
 
@@ -166,6 +172,10 @@ macro_rules! impl_bits_bin_op {
             }
 
             fn get_block(&self, position: usize) -> Self::Block {
+                get_masked_block(self, position)
+            }
+
+            fn get_raw_block(&self, position: usize) -> Self::Block {
                 self.0.block1(position) $block_op self.0.block2(position)
             }
         }
@@ -212,7 +222,7 @@ impl_bits_bin_op!(BitXor as ^ ^);
 impl<T, U, F> Bits for BitZip<T, U, F>
     where T: Bits,
           U: Bits<Block = T::Block>,
-          F: Fn(T::Block, T::Block, usize) -> T::Block {
+          F: Fn(T::Block, T::Block) -> T::Block {
     type Block = T::Block;
 
     fn bit_len(&self) -> u64 {
@@ -220,17 +230,17 @@ impl<T, U, F> Bits for BitZip<T, U, F>
     }
 
     fn get_block(&self, position: usize) -> Self::Block {
-        let block_len = T::Block::block_bits(self.bit_len(), position);
-        (self.fun)(self.ops.block1(position),
-                   self.ops.block2(position),
-                   block_len)
-            .get_bits(0, block_len)
+        get_masked_block(self, position)
+    }
+
+    fn get_raw_block(&self, position: usize) -> Self::Block {
+        (self.fun)(self.ops.block1(position), self.ops.block2(position))
     }
 }
 
 impl_index_from_bits! {
     impl[T: Bits, U: Bits<Block = T::Block>,
-         F: Fn(T::Block, T::Block, usize) -> T::Block]
+         F: Fn(T::Block, T::Block) -> T::Block]
         Index<u64> for BitZip<T, U, F>;
 }
 
@@ -241,7 +251,7 @@ impl<Block, R, T, U, F> BitSliceable<R> for BitZip<T, U, F>
           U: BitSliceable<R>,
           T::Slice: Bits<Block = Block>,
           U::Slice: Bits<Block = Block>,
-          F: Fn(Block, Block, usize) -> Block {
+          F: Fn(Block, Block) -> Block {
 
     type Slice = BitZip<T::Slice, U::Slice, F>;
 
@@ -256,7 +266,7 @@ impl<Block, R, T, U, F> BitSliceable<R> for BitZip<T, U, F>
 
 impl_bit_sliceable_adapter! {
     impl['a, T: Bits, U: Bits<Block = T::Block>,
-         F: Fn(T::Block, T::Block, usize) -> T::Block]
+         F: Fn(T::Block, T::Block) -> T::Block]
         BitSliceable for &'a BitZip<T, U, F>;
 }
 
@@ -264,7 +274,7 @@ impl<T, U, F, V> PartialEq<V> for BitZip<T, U, F>
     where T: Bits,
           U: Bits<Block = T::Block>,
           V: Bits<Block = T::Block>,
-          F: Fn(T::Block, T::Block, usize) -> T::Block {
+          F: Fn(T::Block, T::Block) -> T::Block {
 
     fn eq(&self, other: &V) -> bool {
         BlockIter::new(self) == BlockIter::new(other)

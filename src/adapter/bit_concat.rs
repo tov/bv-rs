@@ -2,8 +2,6 @@ use Bits;
 use BlockType;
 use iter::BlockIter;
 
-use std::cmp;
-
 /// The result of
 /// [`BitsExt::bit_concat`](../trait.BitsExt.html#method.bit_concat).
 ///
@@ -39,21 +37,21 @@ impl<T, U> Bits for BitConcat<T, U>
 
     fn get_block(&self, position: usize) -> Self::Block {
         let start_bit = Self::Block::mul_nbits(position);
-        let limit_bit = cmp::min(start_bit + Self::Block::nbits() as u64,
-                                 self.bit_len());
+        let count     = Self::Block::block_bits(self.bit_len(), position);
+        let limit_bit = start_bit + count as u64;
 
         let len0 = self.0.bit_len();
         if limit_bit <= len0 {
             self.0.get_block(position)
         } else if start_bit < len0 {
-            let block1 = self.0.get_block(position);
-            let block2 = self.1.get_block(0);
+            let block1 = self.0.get_raw_block(position);
+            let block2 = self.1.get_raw_block(0);
             let size1  = (len0 - start_bit) as usize;
-            let size2  = Self::Block::nbits() - size1;
+            let size2  = count - size1;
             block1.get_bits(0, size1) |
                 (block2.get_bits(0, size2) << size1)
         } else {
-            self.1.get_bits(start_bit - len0, (limit_bit - start_bit) as usize)
+            self.1.get_bits(start_bit - len0, count)
         }
     }
 }

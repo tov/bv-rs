@@ -160,7 +160,7 @@ impl<Block: BlockType> BitVec<Block> {
         let mut result: Self = Self::from_block(Block::zero(), block_len);
 
         for i in 0 .. block_len {
-            result.set_block(i, bits.get_block(i));
+            result.set_block(i, bits.get_raw_block(i));
         }
 
         result.resize(bits.bit_len(), false);

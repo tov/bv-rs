@@ -3,6 +3,8 @@ use super::BitVec;
 use iter::BlockIter;
 use storage::Address;
 
+use traits::get_masked_block;
+
 use std::cmp::Ordering;
 use std::fmt;
 use std::hash::{Hash, Hasher};
@@ -27,12 +29,14 @@ impl<Block: BlockType> Bits for BitVec<Block> {
     }
 
     fn get_block(&self, position: usize) -> Block {
+        get_masked_block(self, position)
+    }
+
+    fn get_raw_block(&self, position: usize) -> Block {
         assert!( position < self.block_len(),
                  "BitVec::get_block: out of bounds" );
         // We know this is safe because we just did a bounds check.
-        let block = unsafe { self.bits.get_block(position) };
-        let count = Block::block_bits(self.bit_len(), position);
-        block.get_bits(0, count)
+        unsafe { self.bits.get_block(position) }
     }
 }
 

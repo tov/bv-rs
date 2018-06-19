@@ -2,6 +2,8 @@ use Bits;
 use BlockType;
 use iter::BlockIter;
 
+use traits::get_masked_block;
+
 /// Emulates a constant-valued bit-vector of a given size.
 #[derive(Debug, Clone)]
 pub struct BitFill<Block> {
@@ -25,6 +27,12 @@ impl<Block: BlockType> Bits for BitFill<Block> {
     fn get_block(&self, position: usize) -> Self::Block {
         assert!(position < self.block_len(),
                 "BitFill::get_block: out of bounds");
+        get_masked_block(self, position)
+    }
+
+    fn get_raw_block(&self, position: usize) -> Self::Block {
+        assert!(position < self.block_len(),
+                "BitFill::get_raw_block: out of bounds");
         self.block
     }
 

@@ -142,7 +142,7 @@ impl_for_bool_adapter! {
 impl<Block, T, U> PartialEq<U> for BoolAdapter<Block, T>
     where Block: BlockType,
           U: Bits<Block = Block>,
-          BoolAdapter<Block, T>: Bits<Block = Block> {
+          Self: Bits<Block = Block> {
 
     fn eq(&self, other: &U) -> bool {
         BlockIter::new(self) == BlockIter::new(other)

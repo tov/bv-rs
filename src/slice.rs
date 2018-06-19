@@ -27,6 +27,7 @@ struct SliceSpan {
 #[derive(Copy, Clone, Debug)]
 enum BlockAddress {
     FullBlockAt(usize),
+    PartialBlockAt(usize, usize),
     SomeBitsAt(Address, usize),
 }
 
@@ -51,10 +52,14 @@ impl SliceSpan {
         if position < self.full_blocks {
             return Some(BlockAddress::FullBlockAt(position));
         } else if position < self.block_len::<Block>() {
-            let start   = Block::mul_nbits(position) + u64::from(self.offset);;
-            let address = Address::new::<Block>(start);
             let count   = Block::block_bits(self.len, position);
-            Some(BlockAddress::SomeBitsAt(address, count))
+            if self.offset == 0 {
+                Some(BlockAddress::PartialBlockAt(position, count))
+            } else {
+                let start   = Block::mul_nbits(position) + u64::from(self.offset);;
+                let address = Address::new::<Block>(start);
+                Some(BlockAddress::SomeBitsAt(address, count))
+            }
         } else {
             None
         }
@@ -63,8 +68,12 @@ impl SliceSpan {
     fn find_bits<Block: BlockType>(&self, position: u64, count: usize) -> Option<BlockAddress> {
         if position + (count as u64) <= self.len {
             let address = Address::new::<Block>(position + u64::from(self.offset));
-            if count == Block::nbits() && address.bit_offset == 0 {
-                Some(BlockAddress::FullBlockAt(address.block_index))
+            if address.bit_offset == 0 {
+                if count == Block::nbits() {
+                    Some(BlockAddress::FullBlockAt(address.block_index))
+                } else {
+                    Some(BlockAddress::PartialBlockAt(address.block_index, count))
+                }
             } else {
                 Some(BlockAddress::SomeBitsAt(address, count))
             }
@@ -88,15 +97,13 @@ impl BlockAddress {
             BlockAddress::FullBlockAt(position) =>
                 ptr::read(bits.offset(position as isize)),
 
+            BlockAddress::PartialBlockAt(position, count) =>
+                ptr::read(bits.offset(position as isize)).get_bits(0, count),
+
             BlockAddress::SomeBitsAt(address, count) => {
                 let offset      = address.bit_offset;
                 let ptr1        = bits.offset(address.block_index as isize);
                 let block1      = ptr::read(ptr1);
-
-                // Fast path for getting partial aligned block;
-                if offset == 0 {
-                    return block1.get_bits(0, count);
-                }
 
                 // Otherwise, our access is unaligned and may span two blocks. So we need
                 // to get our bits starting at `offset` in `block1`, and the rest from `block2`
@@ -123,10 +130,30 @@ impl BlockAddress {
         }
     }
 
+    unsafe fn read_unmasked<Block: BlockType>(self, bits: *const Block) -> Block {
+        match self {
+            BlockAddress::FullBlockAt(position) =>
+                ptr::read(bits.offset(position as isize)),
+
+            BlockAddress::PartialBlockAt(position, _count) =>
+                ptr::read(bits.offset(position as isize)),
+
+            addr =>
+                addr.read(bits),
+        }
+    }
+
     unsafe fn write<Block: BlockType>(self, bits: *mut Block, value: Block) {
         match self {
             BlockAddress::FullBlockAt(position) =>
                 ptr::write(bits.offset(position as isize), value),
+
+            BlockAddress::PartialBlockAt(position, count) => {
+                let ptr       = bits.offset(position as isize);
+                let old_block = ptr::read(ptr);
+                let new_block = old_block.with_bits(0, count, value);
+                ptr::write(ptr, new_block);
+            }
 
             BlockAddress::SomeBitsAt(address, count) => {
                 let offset  = address.bit_offset;
@@ -397,6 +424,12 @@ impl<'a, Block: BlockType> Bits for BitSlice<'a, Block> {
         let block_addr = self.span.find_block::<Block>(position)
             .expect("BitSlice::get_block: out of bounds");
         unsafe { block_addr.read(self.bits) }
+    }
+
+    fn get_raw_block(&self, position: usize) -> Block {
+        let block_addr = self.span.find_block::<Block>(position)
+            .expect("BitSlice::get_block: out of bounds");
+        unsafe { block_addr.read_unmasked(self.bits) }
     }
 
     fn get_bits(&self, start: u64, count: usize) -> Self::Block {

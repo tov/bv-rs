@@ -1,5 +1,6 @@
 mod bits;
 pub use self::bits::Bits;
+pub (crate) use self::bits::get_masked_block;
 
 mod bits_ext;
 pub use self::bits_ext::BitsExt;

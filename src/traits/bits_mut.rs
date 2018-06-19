@@ -10,7 +10,7 @@ use storage::{BlockType, Address};
 pub trait BitsMut: Bits {
     /// Sets the bit at `position` to `value`.
     ///
-    /// The default implementation uses `get_block` and `set_block`.
+    /// The default implementation uses `get_raw_block` and `set_block`.
     ///
     /// # Panics
     ///
@@ -19,7 +19,7 @@ pub trait BitsMut: Bits {
         assert!(position < self.bit_len(), "BitsMut::set_bit: out of bounds");
 
         let address = Address::new::<Self::Block>(position);
-        let old_block = self.get_block(address.block_index);
+        let old_block = self.get_raw_block(address.block_index);
         let new_block = old_block.with_bit(address.bit_offset, value);
         self.set_block(address.block_index, new_block);
     }
@@ -68,7 +68,7 @@ pub trait BitsMut: Bits {
         let margin = Self::Block::nbits() - address.bit_offset;
 
         if margin >= count {
-            let old_block = self.get_block(address.block_index);
+            let old_block = self.get_raw_block(address.block_index);
             let new_block = old_block.with_bits(address.bit_offset, count, value);
             self.set_block(address.block_index, new_block);
             return;
@@ -76,8 +76,8 @@ pub trait BitsMut: Bits {
 
         let extra = count - margin;
 
-        let old_block1 = self.get_block(address.block_index);
-        let old_block2 = self.get_block(address.block_index + 1);
+        let old_block1 = self.get_raw_block(address.block_index);
+        let old_block2 = self.get_raw_block(address.block_index + 1);
 
         let high_bits = value >> margin;
 
