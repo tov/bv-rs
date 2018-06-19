@@ -8,6 +8,9 @@ pub use self::bits_ext::BitsExt;
 mod bits_mut;
 pub use self::bits_mut::BitsMut;
 
+mod bits_mut_ext;
+pub use self::bits_mut_ext::BitsMutExt;
+
 mod bits_push;
 pub use self::bits_push::BitsPush;
 
