@@ -13,6 +13,10 @@ The format is based on [Keep a Changelog] and this project adheres to
 ### Added
 - Added `BitsMutExt` extension trait with methods `bit_assign`, 
   `bit_zip_assign`, `bit_and_assign`, `bit_or_assign`, and `bit_xor_assign`.
+- Added `BitSliceableMut` helper trait with one method, `bit_slice_mut`. This
+  trait is automatically implemented for all `BitSliceable` types that slice to
+  a `BitsMut` type. Calling `bit_slice_mut` forces auto-ref to choose such a 
+  type.
 - Added `Bits::get_raw_block` method, which may return spurious bits in the
   last block of a bit vector. This enables some fast paths where we don't
   mind the spurious bits.
