@@ -21,7 +21,10 @@ The format is based on [Keep a Changelog] and this project adheres to
   the slice matches the block type of `Self`.
 - Function passed to `BitsExt::bit_zip` no longer takes a third, `usize` 
   argument.
-
+  
+### Removed
+- `BlockType::last_block_bits` in favor of `BlockType::block_bits`.
+  
 ## [0.9.0] - 2018-06-18
 
 ### Added

@@ -86,8 +86,8 @@ pub trait BlockType: Copy +
     /// The number of bits in the block at `position`, given a total bit length
     /// of `len`.
     ///
-    /// This will be `Self::nbits()` for all but the last block, for which it will
-    /// be `Self::last_block_bits(len)`.
+    /// This will be `Self::nbits()` for all but the last block, for which it may
+    /// be less.
     ///
     /// # Precondition
     ///
@@ -97,23 +97,15 @@ pub trait BlockType: Copy +
     fn block_bits(len: u64, position: usize) -> usize {
         let block_start = Self::mul_nbits(position);
         let block_limit = block_start + Self::nbits() as u64;
-        if block_limit <= len {
-            Self::nbits()
-        } else {
-            (len - block_start) as usize
-        }
-    }
 
-    /// Computes how many bits are in the last block of an array of
-    /// `len` bits.
-    ///
-    /// This is like `Self::mod_nbits`, but it returns `Self::nbits()` in
-    /// lieu of 0. Note that this means that if you have 0 bits then the
-    /// last block is full.
-    #[inline]
-    fn last_block_bits(len: u64) -> usize {
-        let masked = Self::mod_nbits(len);
-        if masked == 0 { Self::nbits() } else { masked }
+        debug_assert!( block_start <= len,
+                       "BlockType::block_bits: precondition" );
+
+        usize::if_then_else(
+            block_limit <= len,
+            Self::nbits(),
+            len.wrapping_sub(block_start) as usize
+        )
     }
 
     /// Log-base-2 of the number of bits in a block.
@@ -220,19 +212,19 @@ pub trait BlockType: Copy +
     /// Returns the smallest number `n` such that `2.pow(n) >= self`.
     #[inline]
     fn ceil_lg(self) -> usize {
-        let non_zero = (self > Self::one()) as usize;
-        let value_if_non_zero =
-            Self::nbits().wrapping_sub((self.wrapping_sub(Self::one())).leading_zeros() as usize);
-        non_zero * value_if_non_zero
+        usize::if_then(
+            self > Self::one(),
+            Self::nbits().wrapping_sub((self.wrapping_sub(Self::one())).leading_zeros() as usize)
+        )
     }
 
     /// Returns the largest number `n` such that `2.pow(n) <= self`.
     #[inline]
     fn floor_lg(self) -> usize {
-        let non_zero = (self > Self::one()) as usize;
-        let value_if_non_zero =
-            Self::nbits().wrapping_sub(1).wrapping_sub(self.leading_zeros() as usize);
-        non_zero * value_if_non_zero
+        usize::if_then(
+            self > Self::one(),
+            Self::nbits().wrapping_sub(1).wrapping_sub(self.leading_zeros() as usize)
+        )
     }
 
     /// A shift-left operation that does not overflow.
@@ -254,10 +246,29 @@ pub trait BlockType: Copy +
     fn one() -> Self;
 }
 
+trait IfThenElse {
+    fn if_then_else(cond: bool, then_val: Self, else_val: Self) -> Self;
+    fn if_then(cond: bool, then_val: Self) -> Self;
+}
+
 macro_rules! impl_block_type {
     ( $ty:ident )
         =>
     {
+        impl IfThenElse for $ty {
+            #[inline]
+            fn if_then_else(cond: bool, then_val: Self, else_val: Self) -> Self {
+                let then_cond = cond as Self;
+                let else_cond = 1 - then_cond;
+                (then_cond * then_val) | (else_cond * else_val)
+            }
+
+            #[inline]
+            fn if_then(cond: bool, then_val: Self) -> Self {
+                (cond as Self) * then_val
+            }
+        }
+
         impl BlockType for $ty {
             // The default `low_mask` has a branch, but we can do better if we have
             // `wrapping_shl`. That isn't a member of any trait, but all the primitive
@@ -391,11 +402,6 @@ mod test {
 
         fn prop_mul_nbits(n: u32) -> bool {
             u32::mul_nbits(n as usize) == n as u64 * 32
-        }
-
-        fn prop_last_block_bits(n: u32) -> bool {
-            u32::last_block_bits(n as u64) ==
-                 if n % 32 == 0 { 32 } else { n % 32 } as usize
         }
     }
 

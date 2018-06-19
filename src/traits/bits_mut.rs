@@ -39,15 +39,10 @@ pub trait BitsMut: Bits {
     ///
     /// Panics if `position` is out of bounds.
     fn set_block(&mut self, position: usize, mut value: Self::Block) {
-        let limit = if position + 1 == self.block_len() {
-            Self::Block::last_block_bits(self.bit_len())
-        } else {
-            Self::Block::nbits()
-        };
-
         let offset = Self::Block::mul_nbits(position);
+        let count  = Self::Block::block_bits(self.bit_len(), position);
 
-        for i in 0 .. limit as u64 {
+        for i in 0 .. count as u64 {
             let bit = value & Self::Block::one() != Self::Block::zero();
             self.set_bit(offset + i, bit);
             value = value >> 1;
