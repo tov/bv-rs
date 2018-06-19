@@ -238,3 +238,19 @@ impl<Block: BlockType> fmt::Debug for BitVec<Block> {
         self.as_slice().fmt(f)
     }
 }
+
+impl<Block: BlockType> From<Box<[Block]>> for BitVec<Block> {
+    fn from(bb: Box<[Block]>) -> Self {
+        let len = Block::mul_nbits(bb.len());
+        BitVec {
+            bits: bb.into(),
+            len,
+        }
+    }
+}
+
+impl<Block: BlockType> From<Vec<Block>> for BitVec<Block> {
+    fn from(vec: Vec<Block>) -> Self {
+        vec.into_boxed_slice().into()
+    }
+}

@@ -86,3 +86,8 @@ impl<Block: BlockType> Inner<Block> {
     }
 }
 
+impl<Block: BlockType> From<Box<[Block]>> for Inner<Block> {
+    fn from(bb: Box<[Block]>) -> Self {
+        Inner(Some(bb))
+    }
+}
