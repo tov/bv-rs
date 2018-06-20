@@ -11,16 +11,16 @@ The format is based on [Keep a Changelog] and this project adheres to
 ## [Unreleased]
 
 ### Added
-- Added `BitsMutExt` extension trait with methods `bit_assign`, 
+- `BitsMutExt` extension trait with methods `bit_assign`, 
   `bit_zip_assign`, `bit_and_assign`, `bit_or_assign`, and `bit_xor_assign`.
-- Added `BitSliceableMut` helper trait with one method, `bit_slice_mut`. This
+- `BitSliceableMut` helper trait with one method, `bit_slice_mut`. This
   trait is automatically implemented for all `BitSliceable` types that slice to
   a `BitsMut` type. Calling `bit_slice_mut` forces auto-ref to choose such a 
   type.
-- Added `Bits::get_raw_block` method, which may return spurious bits in the
+- `Bits::get_raw_block` method, which may return spurious bits in the
   last block of a bit vector. This enables some fast paths where we don't
   mind the spurious bits.
-- Added `From<Box<[Block]>>` and `From<Vec<Block>>` impls for `BitVec<Block>`.
+- `From<Box<[Block]>>` and `From<Vec<Block>>` impls for `BitVec<Block>`.
 
 ### Changed
 - `Bits` is now a super trait of `BitSliceable<R>`, and the block type of
@@ -29,7 +29,9 @@ The format is based on [Keep a Changelog] and this project adheres to
   argument.
   
 ### Removed
-- Removed `BlockType::last_block_bits` in favor of `BlockType::block_bits`.
+- `BlockType::last_block_bits` in favor of `BlockType::block_bits`.
+- Alias of trait `BitsExt` is moved in the `adapter` module. (Deprecated in
+  0.8.1.)
   
 ## [0.9.0] - 2018-06-18
 

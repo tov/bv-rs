@@ -7,9 +7,6 @@
 //! [`Bits`]: ../trait.Bits.html
 //! [`BitsExt`]: ../trait.BitsExt.html
 
-/// This `pub use` is deprecated.
-pub use BitsExt;
-
 #[macro_use]
 mod bit_slice_adapter;
 pub use self::bit_slice_adapter::BitSliceAdapter;
