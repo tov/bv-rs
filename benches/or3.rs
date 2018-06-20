@@ -4,7 +4,7 @@ extern crate bv;
 extern crate test;
 
 use bv::BitVec;
-use bv::{Bits, BitsExt, BitsMut, BitsPush, BitSliceable};
+use bv::{Bits, BitsExt, BitsMut, BitsMutExt, BitsPush, BitSliceable};
 
 use test::Bencher;
 use std::cmp;
@@ -381,6 +381,14 @@ or3_bench! {
 or3_bench! {
     fn vec_u32_adapter(v1: &Vec<u32>, v2: &Vec<u32>, v3: &Vec<u32>) -> BitVec<u32> {
         v1.into_bit_or(v2).into_bit_or(v3).to_bit_vec()
+    }
+}
+
+or3_bench! {
+    fn vec_u32_adapter_or_assign(v1: &Vec<u32>, v2: &Vec<u32>, v3: &Vec<u32>) -> BitVec<u32> {
+        let mut result = v1.to_bit_vec();
+        result.bit_or_assign(v2.into_bit_or(v3));
+        result
     }
 }
 
