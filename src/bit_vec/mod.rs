@@ -7,8 +7,10 @@ use std::ptr;
 
 mod inner;
 use self::inner::Inner;
+use bit_vec::iter::BitVecIter;
 
 mod impls;
+pub mod iter;
 
 #[cfg(test)]
 mod test;
@@ -614,6 +616,23 @@ impl<Block: BlockType> BitVec<Block> {
     /// ```
     pub fn is_empty(&self) -> bool {
         self.len == 0
+    }
+
+    /// Returns an iterator over the bits of this `BitVec`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bv::*;
+    ///
+    /// let bv: BitVec<usize> = bit_vec![ true, false ];
+    /// let mut iter = bv.iter();
+    /// assert_eq!(iter.next(), Some(true));
+    /// assert_eq!(iter.next(), Some(false));
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    pub fn iter(&self) -> BitVecIter<Block> {
+        BitVecIter::from(self)
     }
 }
 

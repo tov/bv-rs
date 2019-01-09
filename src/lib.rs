@@ -123,7 +123,7 @@ mod slice;
 pub use self::slice::{BitSlice, BitSliceMut};
 
 mod bit_vec;
-pub use self::bit_vec::BitVec;
+pub use self::bit_vec::{BitVec, iter::BitVecIter};
 
 mod array_n_impls;
 mod iter;
