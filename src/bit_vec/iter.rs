@@ -16,7 +16,7 @@ use Bits;
 /// assert_eq!(iter.next(), None);
 /// ```
 #[derive(Clone)]
-pub struct BitVecIter<'a, Block> {
+pub struct BitVecIter<'a, Block: 'a> {
     bv: &'a BitVec<Block>,
     index: u64,
 }
