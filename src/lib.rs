@@ -86,7 +86,7 @@
 //!
 //! to your crate root.
 //!
-//! This crate supports Rust version 1.20 and newer.
+//! This crate supports Rust version 1.24 and newer.
 //!
 //! [`BitVec`]: struct.BitVec.html
 //! [`Bits`]: trait.Bits.html
