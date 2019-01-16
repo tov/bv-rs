@@ -507,7 +507,7 @@ impl<Block: BlockType> BitVec<Block> {
     /// If the position is out of bounds.
     ///
     /// [`Bits::get_bit`]: ../trait.Bits.html#get_bit.method
-    pub fn get(&mut self, position: u64) -> bool {
+    pub fn get(&self, position: u64) -> bool {
         self.get_bit(position)
     }
 
