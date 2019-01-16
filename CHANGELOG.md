@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog] and this project adheres to
 [Keep a Changelog]: http://keepachangelog.com/en/1.0.0/
 [Semantic Versioning]: http://semver.org/spec/v2.0.0.html
 
+## [Unreleased]
+
+### Fixed
+- `BitVec::get` takes `&self`, not `&mut self`.
+
+### Changed
+- Oldest supported rustc version is now 1.24.0.
+
 ## [0.10.0] - 2018-06-19
 
 ### Added
