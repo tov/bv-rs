@@ -7,10 +7,9 @@ use std::ptr;
 
 mod inner;
 use self::inner::Inner;
-use bit_vec::iter::BitVecIter;
+use bits_iter::BitsIter;
 
 mod impls;
-pub mod iter;
 
 #[cfg(test)]
 mod test;
@@ -618,7 +617,7 @@ impl<Block: BlockType> BitVec<Block> {
         self.len == 0
     }
 
-    /// Returns an iterator over the bits of this `BitVec`.
+    /// Returns an iterator over the bits of this `Bits`.
     ///
     /// # Examples
     ///
@@ -631,8 +630,8 @@ impl<Block: BlockType> BitVec<Block> {
     /// assert_eq!(iter.next(), Some(false));
     /// assert_eq!(iter.next(), None);
     /// ```
-    pub fn iter(&self) -> BitVecIter<Block> {
-        BitVecIter::from(self)
+    pub fn iter<'a>(&'a self) -> impl Iterator<Item = bool> + 'a {
+        BitsIter::new(self)
     }
 }
 

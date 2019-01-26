@@ -1,5 +1,5 @@
 use {Bits, BitsMut, BitSliceable, BlockType};
-use iter::BlockIter;
+use block_iter::BlockIter;
 
 use range_compat::*;
 

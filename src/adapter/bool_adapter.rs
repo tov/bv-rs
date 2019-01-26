@@ -1,6 +1,6 @@
 use {Bits, BitsMut, BitsPush};
 use BlockType;
-use iter::BlockIter;
+use block_iter::BlockIter;
 
 use std::marker::PhantomData;
 use std::ops;
