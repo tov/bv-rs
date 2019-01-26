@@ -630,7 +630,7 @@ impl<Block: BlockType> BitVec<Block> {
     /// assert_eq!(iter.next(), Some(false));
     /// assert_eq!(iter.next(), None);
     /// ```
-    pub fn iter<'a>(&'a self) -> impl Iterator<Item = bool> + 'a {
+    pub fn iter(&self) -> BitsIter<&Self> {
         BitsIter::new(self)
     }
 }
