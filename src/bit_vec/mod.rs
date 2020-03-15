@@ -45,10 +45,34 @@ mod test;
 /// assert_eq!(bv[2], true);
 /// ```
 #[derive(Clone)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct BitVec<Block = usize> {
-    bits:   Inner<Block>,
-    len:    u64,
+#[cfg_attr(feature = "serde", derive(Serialize))]
+pub struct BitVec<Block: BlockType = usize> {
+    bits: Inner<Block>,
+    len: u64,
+}
+// Invariant: self.invariant()
+
+#[cfg(feature = "serde")]
+impl<'de, Block: BlockType + serde::Deserialize<'de>> serde::Deserialize<'de> for BitVec<Block> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct Unchecked<Block: BlockType> {
+            bits: Inner<Block>,
+            len: u64,
+        }
+        let unchecked = Unchecked::deserialize(deserializer)?;
+        let unchecked = BitVec {
+            bits: unchecked.bits,
+            len: unchecked.len,
+        };
+        if !unchecked.invariant() {
+            return Err(serde::de::Error::custom("Invalid BitVec"));
+        }
+        Ok(unchecked)
+    }
 }
 
 impl<Block: BlockType> Default for BitVec<Block> {
@@ -58,6 +82,11 @@ impl<Block: BlockType> Default for BitVec<Block> {
 }
 
 impl<Block: BlockType> BitVec<Block> {
+    #[allow(dead_code)]
+    fn invariant(&self) -> bool {
+        return self.len <= Block::mul_nbits(self.bits.len());
+    }
+
     /// Creates a new, empty bit-vector with a capacity of one block.
     ///
     /// # Examples
@@ -616,4 +645,3 @@ impl<Block: BlockType> BitVec<Block> {
         self.len == 0
     }
 }
-
