@@ -4,9 +4,26 @@ use std::cmp::min;
 use std::ptr;
 
 #[derive(Clone)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 pub struct Inner<Block>(Option<Box<[Block]>>);
 // Invariant: self.invariant()
+
+#[cfg(feature = "serde")]
+impl<'de, Block: BlockType + serde::Deserialize<'de>> serde::Deserialize<'de> for Inner<Block> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct Unchecked<Block>(Option<Box<[Block]>>);
+        let unchecked = Unchecked::deserialize(deserializer)?;
+        let unchecked = Inner(unchecked.0);
+        if !unchecked.invariant() {
+            return Err(serde::de::Error::custom("Invalid Inner"));
+        }
+        Ok(unchecked)
+    }
+}
 
 impl<Block: BlockType> Inner<Block> {
     #[allow(dead_code)]
