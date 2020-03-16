@@ -47,7 +47,7 @@ impl SliceSpan {
         if position < self.aligned_blocks {
             return Some(BlockAddress::FullBlockAt(position));
         } else if position < self.block_len::<Block>() {
-            let start   = Block::mul_nbits(position) + u64::from(self.offset);;
+            let start   = Block::mul_nbits(position) + u64::from(self.offset);
             let address = Address::new::<Block>(start);
             let count   = Block::block_bits(self.len, position);
             Some(BlockAddress::SomeBitsAt(address, count))

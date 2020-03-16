@@ -188,7 +188,7 @@ pub trait BlockType: Copy +
     #[inline]
     fn get_bits(self, start: usize, len: usize) -> Self {
         assert!(start + len <= Self::nbits(),
-                "Block::get_bits: out of bounds");;
+                "Block::get_bits: out of bounds");
 
         (self >> start) & Self::low_mask(len)
     }
