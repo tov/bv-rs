@@ -38,7 +38,7 @@ quickcheck! {
 // implementation and the actual implementation under test.
 struct ProgramResult<Block: BlockType> {
     expected: RefImpl,
-    actual:   Box<Bits<Block = Block>>,
+    actual:   Box<dyn Bits<Block = Block>>,
 }
 
 impl<Block: BlockType> ProgramResult<Block> {
@@ -68,13 +68,13 @@ impl Arbitrary for Program {
         let choice = g.gen_range(1, 71);
 
         match choice {
-            01...30 => Constant(RefImpl::arbitrary(g)),
-            31...35 => Not(recur(g)),
-            36...40 => And(recur(g), recur(g)),
-            41...45 => Or(recur(g), recur(g)),
-            46...50 => Xor(recur(g), recur(g)),
-            51...55 => Concat(recur(g), recur(g)),
-            56...60 => {
+            01..=30 => Constant(RefImpl::arbitrary(g)),
+            31..=35 => Not(recur(g)),
+            36..=40 => And(recur(g), recur(g)),
+            41..=45 => Or(recur(g), recur(g)),
+            46..=50 => Xor(recur(g), recur(g)),
+            51..=55 => Concat(recur(g), recur(g)),
+            56..=60 => {
                 let program = recur(g);
                 let len     = program.len();
                 if len >= 2 {
@@ -89,7 +89,7 @@ impl Arbitrary for Program {
         }
     }
 
-    fn shrink(&self) -> Box<Iterator<Item=Self>> {
+    fn shrink(&self) -> Box<dyn Iterator<Item=Self>> {
         use Program::*;
 
         let add = |r: &mut Vec<Program>, p: &Box<Program>| r.push(Program::clone(&**p));
@@ -207,7 +207,7 @@ impl Arbitrary for RefImpl {
         RefImpl(<Vec<bool>>::arbitrary(g))
     }
 
-    fn shrink(&self) -> Box<Iterator<Item=Self>> {
+    fn shrink(&self) -> Box<dyn Iterator<Item=Self>> {
         Box::new(self.0.shrink().map(RefImpl))
     }
 }

@@ -192,7 +192,7 @@ impl<'a, T: Bits + ?Sized> Bits for &'a mut T {
     }
 }
 
-impl<Block: BlockType> Bits for Box<Bits<Block = Block>> {
+impl<Block: BlockType> Bits for Box<dyn Bits<Block = Block>> {
     type Block = Block;
 
     fn bit_len(&self) -> u64 {
@@ -220,7 +220,7 @@ impl<Block: BlockType> Bits for Box<Bits<Block = Block>> {
     }
 }
 
-impl<Block: BlockType> Bits for Box<BitsMut<Block = Block>> {
+impl<Block: BlockType> Bits for Box<dyn BitsMut<Block = Block>> {
     type Block = Block;
 
     fn bit_len(&self) -> u64 {

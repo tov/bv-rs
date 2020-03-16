@@ -98,7 +98,7 @@ impl<'a, T: BitsMut + ?Sized> BitsMut for &'a mut T {
     }
 }
 
-impl<Block: BlockType> BitsMut for Box<BitsMut<Block = Block>> {
+impl<Block: BlockType> BitsMut for Box<dyn BitsMut<Block = Block>> {
     fn set_bit(&mut self, position: u64, value: bool) {
         (**self).set_bit(position, value);
     }
