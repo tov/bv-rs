@@ -6,5 +6,4 @@ implementors["bv"] = [{text:"impl&lt;Block:&nbsp;<a class=\"trait\" href=\"bv/tr
             } else {
                 window.pending_implementors = implementors;
             }
-        
-})()
+        })()

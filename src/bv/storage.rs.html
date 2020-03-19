@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/storage.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>storage.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `src/storage.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>storage.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../bv/index.html'><div class='logo-container'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -543,7 +543,7 @@
 <span id="543">543</span>
 <span id="544">544</span>
 <span id="545">545</span>
-</pre><pre class="rust ">
+</pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>;
 
@@ -563,7 +563,7 @@
 {
     <span class="doccomment">/// The number of bits in a block.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nbits</span>() <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">nbits</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="number">8</span> <span class="op">*</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>()
     }
 
@@ -575,8 +575,8 @@
     <span class="doccomment">/// so this should only be used when `index` is already known to</span>
     <span class="doccomment">/// be small enough.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">div_nbits</span>(<span class="ident">index</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
-        (<span class="ident">index</span> <span class="op">&gt;&gt;</span> <span class="self">Self</span>::<span class="ident">lg_nbits</span>()) <span class="kw">as</span> <span class="ident">usize</span>
+    <span class="kw">fn</span> <span class="ident">div_nbits</span>(<span class="ident">index</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        (<span class="ident">index</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">lg_nbits</span>()) <span class="kw">as</span> <span class="ident">usize</span>
     }
 
     <span class="doccomment">/// Returns `index / Self::nbits()`, computed by shifting.</span>
@@ -585,8 +585,8 @@
     <span class="doccomment">/// address, which is why it takes `u64` and returns `usize`. It can only fail (returning</span>
     <span class="doccomment">/// `None`) if `usize` is 32 bits.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">checked_div_nbits</span>(<span class="ident">index</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        (<span class="ident">index</span> <span class="op">&gt;&gt;</span> <span class="self">Self</span>::<span class="ident">lg_nbits</span>()).<span class="ident">to_usize</span>()
+    <span class="kw">fn</span> <span class="ident">checked_div_nbits</span>(<span class="ident">index</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        (<span class="ident">index</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">lg_nbits</span>()).<span class="ident">to_usize</span>()
     }
 
     <span class="doccomment">/// Returns `index / Self::nbits()` rounded up, computed by shifting.</span>
@@ -594,7 +594,7 @@
     <span class="doccomment">/// This is intended for converting a bit size into a block</span>
     <span class="doccomment">/// size, which is why it takes `u64` and returns `usize`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ceil_div_nbits</span>(<span class="ident">index</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">ceil_div_nbits</span>(<span class="ident">index</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="self">Self</span>::<span class="ident">div_nbits</span>(<span class="ident">index</span> <span class="op">+</span> (<span class="self">Self</span>::<span class="ident">nbits</span>() <span class="kw">as</span> <span class="ident">u64</span> <span class="op">-</span> <span class="number">1</span>))
     }
 
@@ -606,7 +606,7 @@
     <span class="doccomment">/// so this should only be used when `index` is already known to</span>
     <span class="doccomment">/// be small enough.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">checked_ceil_div_nbits</span>(<span class="ident">index</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">checked_ceil_div_nbits</span>(<span class="ident">index</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="self">Self</span>::<span class="ident">checked_div_nbits</span>(<span class="ident">index</span> <span class="op">+</span> (<span class="self">Self</span>::<span class="ident">nbits</span>() <span class="kw">as</span> <span class="ident">u64</span> <span class="op">-</span> <span class="number">1</span>))
     }
 
@@ -615,7 +615,7 @@
     <span class="doccomment">/// This is intended for converting a bit address into a bit offset</span>
     <span class="doccomment">/// within a block, which is why it takes `u64` and returns `usize`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">mod_nbits</span>(<span class="ident">index</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">mod_nbits</span>(<span class="ident">index</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">mask</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">lg_nbits_mask</span>();
         (<span class="ident">index</span> <span class="op">&amp;</span> <span class="ident">mask</span>) <span class="kw">as</span> <span class="ident">usize</span>
     }
@@ -625,8 +625,8 @@
     <span class="doccomment">/// This is intended for converting a block address into a bit address,</span>
     <span class="doccomment">/// which is why it takes a `usize` and returns a `u64`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">mul_nbits</span>(<span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
-        (<span class="ident">index</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;&lt;</span> <span class="self">Self</span>::<span class="ident">lg_nbits</span>()
+    <span class="kw">fn</span> <span class="ident">mul_nbits</span>(<span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+        (<span class="ident">index</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="self">Self</span>::<span class="ident">lg_nbits</span>()
     }
 
     <span class="doccomment">/// The number of bits in the block at `position`, given a total bit length</span>
@@ -640,15 +640,15 @@
     <span class="doccomment">/// `position * Self::nbits() &lt;= len`, or the block doesn&#39;t exist and the result</span>
     <span class="doccomment">/// is undefined.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">block_bits</span>(<span class="ident">len</span>: <span class="ident">u64</span>, <span class="ident">position</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">block_bits</span>(<span class="ident">len</span>: <span class="ident">u64</span>, <span class="ident">position</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">block_start</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">mul_nbits</span>(<span class="ident">position</span>);
         <span class="kw">let</span> <span class="ident">block_limit</span> <span class="op">=</span> <span class="ident">block_start</span> <span class="op">+</span> <span class="self">Self</span>::<span class="ident">nbits</span>() <span class="kw">as</span> <span class="ident">u64</span>;
 
-        <span class="macro">debug_assert</span><span class="macro">!</span>( <span class="ident">block_start</span> <span class="op">&lt;=</span> <span class="ident">len</span>,
+        <span class="macro">debug_assert</span><span class="macro">!</span>( <span class="ident">block_start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span>,
                        <span class="string">&quot;BlockType::block_bits: precondition&quot;</span> );
 
         <span class="ident">usize</span>::<span class="ident">if_then_else</span>(
-            <span class="ident">block_limit</span> <span class="op">&lt;=</span> <span class="ident">len</span>,
+            <span class="ident">block_limit</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span>,
             <span class="self">Self</span>::<span class="ident">nbits</span>(),
             <span class="ident">len</span>.<span class="ident">wrapping_sub</span>(<span class="ident">block_start</span>) <span class="kw">as</span> <span class="ident">usize</span>
         )
@@ -656,13 +656,13 @@
 
     <span class="doccomment">/// Log-base-2 of the number of bits in a block.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">lg_nbits</span>() <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">lg_nbits</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="self">Self</span>::<span class="ident">nbits</span>().<span class="ident">floor_lg</span>()
     }
 
     <span class="doccomment">/// Mask with the lowest-order `lg_nbits()` set.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">lg_nbits_mask</span><span class="op">&lt;</span><span class="prelude-ty">Result</span>: <span class="ident">BlockType</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">lg_nbits_mask</span><span class="op">&lt;</span><span class="prelude-ty">Result</span>: <span class="ident">BlockType</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="prelude-ty">Result</span>::<span class="ident">low_mask</span>(<span class="self">Self</span>::<span class="ident">lg_nbits</span>())
     }
 
@@ -676,13 +676,13 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// `element_bits &lt;= Self::nbits()`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">low_mask</span>(<span class="ident">element_bits</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">element_bits</span> <span class="op">&lt;=</span> <span class="self">Self</span>::<span class="ident">nbits</span>());
+    <span class="kw">fn</span> <span class="ident">low_mask</span>(<span class="ident">element_bits</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">element_bits</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">nbits</span>());
 
-        <span class="kw">if</span> <span class="ident">element_bits</span> <span class="op">==</span> <span class="self">Self</span>::<span class="ident">nbits</span>() {
+        <span class="kw">if</span> <span class="ident">element_bits</span> <span class="op">=</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">nbits</span>() {
             <span class="op">!</span><span class="self">Self</span>::<span class="ident">zero</span>()
         } <span class="kw">else</span> {
-            (<span class="self">Self</span>::<span class="ident">one</span>() <span class="op">&lt;&lt;</span> <span class="ident">element_bits</span>) <span class="op">-</span> <span class="self">Self</span>::<span class="ident">one</span>()
+            (<span class="self">Self</span>::<span class="ident">one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">element_bits</span>) <span class="op">-</span> <span class="self">Self</span>::<span class="ident">one</span>()
         }
     }
 
@@ -694,8 +694,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// `bit_index &lt; Self::nbits()`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">nth_mask</span>(<span class="ident">bit_index</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">one</span>() <span class="op">&lt;&lt;</span> <span class="ident">bit_index</span>
+    <span class="kw">fn</span> <span class="ident">nth_mask</span>(<span class="ident">bit_index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>::<span class="ident">one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">bit_index</span>
     }
 
     <span class="comment">// Methods for getting and setting bits.</span>
@@ -706,9 +706,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if `bit_index` is out of bounds.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">get_bit</span>(<span class="self">self</span>, <span class="ident">bit_index</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">get_bit</span>(<span class="self">self</span>, <span class="ident">bit_index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">bit_index</span> <span class="op">&lt;</span> <span class="self">Self</span>::<span class="ident">nbits</span>(), <span class="string">&quot;Block::get_bit: out of bounds&quot;</span>);
-        <span class="self">self</span> <span class="op">&amp;</span> <span class="self">Self</span>::<span class="ident">nth_mask</span>(<span class="ident">bit_index</span>) <span class="op">!=</span> <span class="self">Self</span>::<span class="ident">zero</span>()
+        <span class="self">self</span> <span class="op">&amp;</span> <span class="self">Self</span>::<span class="ident">nth_mask</span>(<span class="ident">bit_index</span>) <span class="op">!</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">zero</span>()
     }
 
     <span class="doccomment">/// Functionally updates the value of the `bit_index`th bit to `bit_value`.</span>
@@ -717,7 +717,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if `bit_index` is out of bounds.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">with_bit</span>(<span class="self">self</span>, <span class="ident">bit_index</span>: <span class="ident">usize</span>, <span class="ident">bit_value</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">with_bit</span>(<span class="self">self</span>, <span class="ident">bit_index</span>: <span class="ident">usize</span>, <span class="ident">bit_value</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">bit_index</span> <span class="op">&lt;</span> <span class="self">Self</span>::<span class="ident">nbits</span>(), <span class="string">&quot;Block::with_bit: out of bounds&quot;</span>);
         <span class="kw">if</span> <span class="ident">bit_value</span> {
             <span class="self">self</span> <span class="op">|</span> <span class="self">Self</span>::<span class="ident">nth_mask</span>(<span class="ident">bit_index</span>)
@@ -732,11 +732,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics of the bit span is out of bounds.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">get_bits</span>(<span class="self">self</span>, <span class="ident">start</span>: <span class="ident">usize</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">start</span> <span class="op">+</span> <span class="ident">len</span> <span class="op">&lt;=</span> <span class="self">Self</span>::<span class="ident">nbits</span>(),
-                <span class="string">&quot;Block::get_bits: out of bounds&quot;</span>);;
+    <span class="kw">fn</span> <span class="ident">get_bits</span>(<span class="self">self</span>, <span class="ident">start</span>: <span class="ident">usize</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">start</span> <span class="op">+</span> <span class="ident">len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">nbits</span>(),
+                <span class="string">&quot;Block::get_bits: out of bounds&quot;</span>);
 
-        (<span class="self">self</span> <span class="op">&gt;&gt;</span> <span class="ident">start</span>) <span class="op">&amp;</span> <span class="self">Self</span>::<span class="ident">low_mask</span>(<span class="ident">len</span>)
+        (<span class="self">self</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">start</span>) <span class="op">&amp;</span> <span class="self">Self</span>::<span class="ident">low_mask</span>(<span class="ident">len</span>)
     }
 
     <span class="doccomment">/// Functionally updates `len` bits to `value` starting at offset `start`.</span>
@@ -745,19 +745,19 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics of the bit span is out of bounds.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">with_bits</span>(<span class="self">self</span>, <span class="ident">start</span>: <span class="ident">usize</span>, <span class="ident">len</span>: <span class="ident">usize</span>, <span class="ident">value</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">start</span> <span class="op">+</span> <span class="ident">len</span> <span class="op">&lt;=</span> <span class="self">Self</span>::<span class="ident">nbits</span>(),
+    <span class="kw">fn</span> <span class="ident">with_bits</span>(<span class="self">self</span>, <span class="ident">start</span>: <span class="ident">usize</span>, <span class="ident">len</span>: <span class="ident">usize</span>, <span class="ident">value</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">start</span> <span class="op">+</span> <span class="ident">len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">nbits</span>(),
                 <span class="string">&quot;Block::with_bits: out of bounds&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">mask</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">low_mask</span>(<span class="ident">len</span>) <span class="op">&lt;&lt;</span> <span class="ident">start</span>;
-        <span class="kw">let</span> <span class="ident">shifted_value</span> <span class="op">=</span> <span class="ident">value</span> <span class="op">&lt;&lt;</span> <span class="ident">start</span>;
+        <span class="kw">let</span> <span class="ident">mask</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">low_mask</span>(<span class="ident">len</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">start</span>;
+        <span class="kw">let</span> <span class="ident">shifted_value</span> <span class="op">=</span> <span class="ident">value</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">start</span>;
 
         (<span class="self">self</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">mask</span>) <span class="op">|</span> (<span class="ident">shifted_value</span> <span class="op">&amp;</span> <span class="ident">mask</span>)
     }
 
     <span class="doccomment">/// Returns the smallest number `n` such that `2.pow(n) &gt;= self`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ceil_lg</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">ceil_lg</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="ident">usize</span>::<span class="ident">if_then</span>(
             <span class="self">self</span> <span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">one</span>(),
             <span class="self">Self</span>::<span class="ident">nbits</span>().<span class="ident">wrapping_sub</span>((<span class="self">self</span>.<span class="ident">wrapping_sub</span>(<span class="self">Self</span>::<span class="ident">one</span>())).<span class="ident">leading_zeros</span>() <span class="kw">as</span> <span class="ident">usize</span>)
@@ -766,7 +766,7 @@
 
     <span class="doccomment">/// Returns the largest number `n` such that `2.pow(n) &lt;= self`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">floor_lg</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">floor_lg</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="ident">usize</span>::<span class="ident">if_then</span>(
             <span class="self">self</span> <span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">one</span>(),
             <span class="self">Self</span>::<span class="ident">nbits</span>().<span class="ident">wrapping_sub</span>(<span class="number">1</span>).<span class="ident">wrapping_sub</span>(<span class="self">self</span>.<span class="ident">leading_zeros</span>() <span class="kw">as</span> <span class="ident">usize</span>)
@@ -774,43 +774,43 @@
     }
 
     <span class="doccomment">/// A shift-left operation that does not overflow.</span>
-    <span class="kw">fn</span> <span class="ident">wrapping_shl</span>(<span class="self">self</span>, <span class="ident">shift</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">wrapping_shl</span>(<span class="self">self</span>, <span class="ident">shift</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// A subtraction operation that does not overflow.</span>
-    <span class="kw">fn</span> <span class="ident">wrapping_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">wrapping_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns the number of leading zero bits in the given number.</span>
-    <span class="kw">fn</span> <span class="ident">leading_zeros</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span>;
+    <span class="kw">fn</span> <span class="ident">leading_zeros</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
 
     <span class="doccomment">/// Converts the number to a `usize`, if it fits.</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Returns 0.</span>
-    <span class="kw">fn</span> <span class="ident">zero</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">zero</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 
     <span class="doccomment">/// Returns 1.</span>
-    <span class="kw">fn</span> <span class="ident">one</span>() <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">one</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 }
 
 <span class="kw">trait</span> <span class="ident">IfThenElse</span> {
-    <span class="kw">fn</span> <span class="ident">if_then_else</span>(<span class="ident">cond</span>: <span class="ident">bool</span>, <span class="ident">then_val</span>: <span class="self">Self</span>, <span class="ident">else_val</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
-    <span class="kw">fn</span> <span class="ident">if_then</span>(<span class="ident">cond</span>: <span class="ident">bool</span>, <span class="ident">then_val</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">if_then_else</span>(<span class="ident">cond</span>: <span class="ident">bool</span>, <span class="ident">then_val</span>: <span class="self">Self</span>, <span class="ident">else_val</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
+    <span class="kw">fn</span> <span class="ident">if_then</span>(<span class="ident">cond</span>: <span class="ident">bool</span>, <span class="ident">then_val</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>;
 }
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_block_type</span> {
     ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span> )
-        <span class="op">=&gt;</span>
+        <span class="op">=</span><span class="op">&gt;</span>
     {
         <span class="kw">impl</span> <span class="ident">IfThenElse</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">if_then_else</span>(<span class="ident">cond</span>: <span class="ident">bool</span>, <span class="ident">then_val</span>: <span class="self">Self</span>, <span class="ident">else_val</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">if_then_else</span>(<span class="ident">cond</span>: <span class="ident">bool</span>, <span class="ident">then_val</span>: <span class="self">Self</span>, <span class="ident">else_val</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="kw">let</span> <span class="ident">then_cond</span> <span class="op">=</span> <span class="ident">cond</span> <span class="kw">as</span> <span class="self">Self</span>;
                 <span class="kw">let</span> <span class="ident">else_cond</span> <span class="op">=</span> <span class="number">1</span> <span class="op">-</span> <span class="ident">then_cond</span>;
                 (<span class="ident">then_cond</span> <span class="op">*</span> <span class="ident">then_val</span>) <span class="op">|</span> (<span class="ident">else_cond</span> <span class="op">*</span> <span class="ident">else_val</span>)
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">if_then</span>(<span class="ident">cond</span>: <span class="ident">bool</span>, <span class="ident">then_val</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">if_then</span>(<span class="ident">cond</span>: <span class="ident">bool</span>, <span class="ident">then_val</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 (<span class="ident">cond</span> <span class="kw">as</span> <span class="self">Self</span>) <span class="op">*</span> <span class="ident">then_val</span>
             }
         }
@@ -820,8 +820,8 @@
             <span class="comment">// `wrapping_shl`. That isn&#39;t a member of any trait, but all the primitive</span>
             <span class="comment">// numeric types have it, so we can override low_mask in this macro.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">low_mask</span>(<span class="ident">k</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">k</span> <span class="op">&lt;=</span> <span class="self">Self</span>::<span class="ident">nbits</span>());
+            <span class="kw">fn</span> <span class="ident">low_mask</span>(<span class="ident">k</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">k</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">nbits</span>());
 
                 <span class="comment">// Compute the mask when element_bits is not the word size:</span>
                 <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">one</span>().<span class="ident">wrapping_shl</span>(<span class="ident">k</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
@@ -833,23 +833,23 @@
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">wrapping_shl</span>(<span class="self">self</span>, <span class="ident">shift</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">wrapping_shl</span>(<span class="self">self</span>, <span class="ident">shift</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="self">self</span>.<span class="ident">wrapping_shl</span>(<span class="ident">shift</span>)
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">wrapping_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">wrapping_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="self">self</span>.<span class="ident">wrapping_sub</span>(<span class="ident">other</span>)
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">leading_zeros</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+            <span class="kw">fn</span> <span class="ident">leading_zeros</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
                 <span class="self">self</span>.<span class="ident">leading_zeros</span>() <span class="kw">as</span> <span class="ident">usize</span>
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="kw">as</span> <span class="self">Self</span> <span class="op">==</span> <span class="self">self</span> {
+            <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="kw">as</span> <span class="self">Self</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span> {
                     <span class="prelude-val">Some</span>(<span class="self">self</span> <span class="kw">as</span> <span class="ident">usize</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
@@ -857,12 +857,12 @@
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">zero</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">zero</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="number">0</span>
             }
 
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">one</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
+            <span class="kw">fn</span> <span class="ident">one</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
                 <span class="number">1</span>
             }
         }
@@ -896,7 +896,7 @@
     <span class="doccomment">/// Panics if `bit_index` divided by the block size doesn’t fit in a</span>
     <span class="doccomment">/// `usize`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Block</span>: <span class="ident">BlockType</span><span class="op">&gt;</span>(<span class="ident">bit_index</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Block</span>: <span class="ident">BlockType</span><span class="op">&gt;</span>(<span class="ident">bit_index</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Address</span> {
             <span class="ident">block_index</span>: <span class="ident">Block</span>::<span class="ident">checked_div_nbits</span>(<span class="ident">bit_index</span>)
                 .<span class="ident">expect</span>(<span class="string">&quot;Address::new: index overflow&quot;</span>),
@@ -927,27 +927,27 @@
     }
 
     <span class="macro">quickcheck</span><span class="macro">!</span>{
-        <span class="kw">fn</span> <span class="ident">prop_div_nbits</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-            <span class="ident">u32</span>::<span class="ident">div_nbits</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">==</span> (<span class="ident">n</span> <span class="op">/</span> <span class="number">32</span>) <span class="kw">as</span> <span class="ident">usize</span>
+        <span class="kw">fn</span> <span class="ident">prop_div_nbits</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="ident">u32</span>::<span class="ident">div_nbits</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">=</span><span class="op">=</span> (<span class="ident">n</span> <span class="op">/</span> <span class="number">32</span>) <span class="kw">as</span> <span class="ident">usize</span>
         }
 
-        <span class="kw">fn</span> <span class="ident">prop_ceil_div_nbits1</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-            <span class="ident">u32</span>::<span class="ident">ceil_div_nbits</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">==</span>
+        <span class="kw">fn</span> <span class="ident">prop_ceil_div_nbits1</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="ident">u32</span>::<span class="ident">ceil_div_nbits</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">=</span><span class="op">=</span>
                 (<span class="ident">n</span> <span class="kw">as</span> <span class="ident">f32</span> <span class="op">/</span> <span class="number">32.0f32</span>).<span class="ident">ceil</span>() <span class="kw">as</span> <span class="ident">usize</span>
         }
 
-        <span class="kw">fn</span> <span class="ident">prop_ceil_div_nbits2</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">fn</span> <span class="ident">prop_ceil_div_nbits2</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">u32</span>::<span class="ident">ceil_div_nbits</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>);
-            <span class="ident">result</span> <span class="op">*</span> <span class="number">32</span> <span class="op">&gt;=</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&amp;&amp;</span>
-                (<span class="ident">result</span> <span class="op">==</span> <span class="number">0</span> <span class="op">||</span> (<span class="ident">result</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">*</span> <span class="number">32</span> <span class="op">&lt;</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>)
+            <span class="ident">result</span> <span class="op">*</span> <span class="number">32</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="kw-2">&amp;</span><span class="op">&amp;</span>
+                (<span class="ident">result</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">result</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">*</span> <span class="number">32</span> <span class="op">&lt;</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">prop_mod_nbits</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-            <span class="ident">u32</span>::<span class="ident">mod_nbits</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">==</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">%</span> <span class="number">32</span>
+        <span class="kw">fn</span> <span class="ident">prop_mod_nbits</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="ident">u32</span>::<span class="ident">mod_nbits</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">%</span> <span class="number">32</span>
         }
 
-        <span class="kw">fn</span> <span class="ident">prop_mul_nbits</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-            <span class="ident">u32</span>::<span class="ident">mul_nbits</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">==</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="number">32</span>
+        <span class="kw">fn</span> <span class="ident">prop_mul_nbits</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+            <span class="ident">u32</span>::<span class="ident">mul_nbits</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="number">32</span>
         }
     }
 
@@ -1040,15 +1040,15 @@
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">2</span>, <span class="number">7u32</span>.<span class="ident">floor_lg</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">3</span>, <span class="number">8u32</span>.<span class="ident">floor_lg</span>());
 
-        <span class="kw">fn</span> <span class="ident">prop</span>(<span class="ident">n</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">TestResult</span> {
-            <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">TestResult</span>::<span class="ident">discard</span>(); }
+        <span class="kw">fn</span> <span class="ident">prop</span>(<span class="ident">n</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TestResult</span> {
+            <span class="kw">if</span> <span class="ident">n</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">TestResult</span>::<span class="ident">discard</span>(); }
 
             <span class="ident">TestResult</span>::<span class="ident">from_bool</span>(
-                <span class="number">2u64</span>.<span class="ident">pow</span>(<span class="ident">n</span>.<span class="ident">floor_lg</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;=</span> <span class="ident">n</span>
-                    <span class="op">&amp;&amp;</span> <span class="number">2u64</span>.<span class="ident">pow</span>(<span class="ident">n</span>.<span class="ident">floor_lg</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">&gt;</span> <span class="ident">n</span>)
+                <span class="number">2u64</span>.<span class="ident">pow</span>(<span class="ident">n</span>.<span class="ident">floor_lg</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">n</span>
+                    <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="number">2u64</span>.<span class="ident">pow</span>(<span class="ident">n</span>.<span class="ident">floor_lg</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">&gt;</span> <span class="ident">n</span>)
         }
 
-        <span class="ident">quickcheck</span>(<span class="ident">prop</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">TestResult</span>);
+        <span class="ident">quickcheck</span>(<span class="ident">prop</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TestResult</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1062,14 +1062,14 @@
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">3</span>, <span class="number">8u32</span>.<span class="ident">ceil_lg</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">4</span>, <span class="number">9u32</span>.<span class="ident">ceil_lg</span>());
 
-        <span class="kw">fn</span> <span class="ident">prop</span>(<span class="ident">n</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">TestResult</span> {
-            <span class="kw">if</span> <span class="ident">n</span> <span class="op">&lt;=</span> <span class="number">1</span> { <span class="kw">return</span> <span class="ident">TestResult</span>::<span class="ident">discard</span>(); }
+        <span class="kw">fn</span> <span class="ident">prop</span>(<span class="ident">n</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TestResult</span> {
+            <span class="kw">if</span> <span class="ident">n</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span> { <span class="kw">return</span> <span class="ident">TestResult</span>::<span class="ident">discard</span>(); }
 
             <span class="ident">TestResult</span>::<span class="ident">from_bool</span>(
-                <span class="number">2u64</span>.<span class="ident">pow</span>(<span class="ident">n</span>.<span class="ident">ceil_lg</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&gt;=</span> <span class="ident">n</span>
-                    <span class="op">&amp;&amp;</span> <span class="number">2u64</span>.<span class="ident">pow</span>(<span class="ident">n</span>.<span class="ident">ceil_lg</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">&lt;</span> <span class="ident">n</span>)
+                <span class="number">2u64</span>.<span class="ident">pow</span>(<span class="ident">n</span>.<span class="ident">ceil_lg</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">n</span>
+                    <span class="kw-2">&amp;</span><span class="op">&amp;</span> <span class="number">2u64</span>.<span class="ident">pow</span>(<span class="ident">n</span>.<span class="ident">ceil_lg</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">&lt;</span> <span class="ident">n</span>)
         }
-        <span class="ident">quickcheck</span>(<span class="ident">prop</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">TestResult</span>);
+        <span class="ident">quickcheck</span>(<span class="ident">prop</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TestResult</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1089,5 +1089,5 @@
         <span class="macro">assert_eq</span><span class="macro">!</span>( <span class="ident">u16</span>::<span class="ident">block_bits</span>(<span class="number">48</span>, <span class="number">3</span>), <span class="number">0</span> ); <span class="comment">// boundary condition</span>
     }
 }
-</pre>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g. <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g. <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g. <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../";window.currentCrate = "bv";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script defer src="../../search-index.js"></script></body></html>
+</pre></div>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "bv";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
