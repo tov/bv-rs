@@ -12,6 +12,9 @@ The format is based on [Keep a Changelog] and this project adheres to
 
 ## [Unreleased]
 
+### Fixed
+- Checks invariants after deserialization. (Thanks, @Mrmaxmeier!)
+
 ### Changed
 - Oldest supported rustc version is now 1.31.0.
 
