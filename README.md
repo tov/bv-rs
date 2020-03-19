@@ -20,7 +20,7 @@ It’s [on crates.io](https://crates.io/crates/bv), so you can add
 
 ```toml
 [dependencies]
-bv = "0.11.0"
+bv = "0.11.1"
 ```
 
 to your `Cargo.toml` and
@@ -31,4 +31,4 @@ extern crate bv;
 
 to your crate root.
 
-This crate supports Rust version 1.24 and newer.
+This crate supports Rust version 1.31 and newer.

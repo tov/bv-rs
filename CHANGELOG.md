@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog] and this project adheres to
 
 ## [Unreleased]
 
+## [0.11.1] - 2020-03-18
+
 ### Fixed
 - Checks invariants after deserialization. (Thanks, @Mrmaxmeier!)
 
