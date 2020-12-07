@@ -1,6 +1,6 @@
 use Bits;
 use BlockType;
-use iter::BlockIter;
+use block_iter::BlockIter;
 
 use traits::get_masked_block;
 

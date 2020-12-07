@@ -1,6 +1,6 @@
 use Bits;
 use BlockType;
-use iter::BlockIter;
+use block_iter::BlockIter;
 
 /// The result of
 /// [`BitsExt::bit_concat`](../trait.BitsExt.html#method.bit_concat).

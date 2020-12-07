@@ -1,4 +1,4 @@
-use iter::BlockIter;
+use block_iter::BlockIter;
 use traits::{Bits, BitsMut, BitSliceable, get_masked_block};
 use storage::{Address, BlockType};
 use range_compat::*;

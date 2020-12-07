@@ -14,7 +14,7 @@ pub struct BlockIter<T> {
 impl<T: Bits> BlockIter<T> {
     /// Creates a new block iterator from a `Bits` instance.
     pub fn new(bits: T) -> Self {
-        BlockIter { bits, pos:  0, }
+        BlockIter { bits, pos: 0, }
     }
 
     /// Returns the number of *bits* remaining in the iterator.

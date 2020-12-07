@@ -1,6 +1,6 @@
 use {BlockType, Bits, BitsMut, BitsPush, BitSliceable, BitSlice, BitSliceMut};
 use super::BitVec;
-use iter::BlockIter;
+use block_iter::BlockIter;
 use storage::Address;
 
 use traits::get_masked_block;
